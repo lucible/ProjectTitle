@@ -6,7 +6,7 @@ Project Title is a project by two people who love KOreader but wanted to expand 
 ## Features
 * **A Speedy Title Bar**: Thinner with more functionality — adding Favorites, History, Open Last Book, and Up Folder buttons to help you get exactly where you need as fast as possible.
 
-* **A Fresh Book Listing**: New fonts, new text, new icons for books without covers and unsupported files. An [optional](https://github.com/elfbutt/koreader-coverbrowserclean/wiki/Configure-Calibre-Page-Counts) progress bar that shows the relative length of each book in lieu of just a raw percentage. Books are presented in a tasteful, distinct manner that adjusts to the screen size and how many items are on screen.
+* **A Fresh Book Listing**: New fonts, new text, new icons for books without covers and unsupported files. An [optional](./wiki/Configure-Calibre-Page-Counts) progress bar that shows the relative length of each book in lieu of just a raw percentage. Books are presented in a tasteful, distinct manner that adjusts to the screen size and how many items are on screen.
 
 * **A Fitting Folder**: Folders no longer show slashes in their names, and instead are shown with a brand new icon. The arrow to move up a folder has been moved up into the title bar, to give more space for your books.
 
@@ -33,10 +33,10 @@ Project Title is a project by two people who love KOreader but wanted to expand 
 
 ## Installation Instructions
 To install the plugin on your eReader:
-https://github.com/elfbutt/koreader-coverbrowserclean/wiki/Installation
+[Installation Wiki Page](./wiki/Installation)
 
 To configure Calibre to add page counts to books:
-https://github.com/elfbutt/koreader-coverbrowserclean/wiki/Configure-Calibre-Page-Counts
+[Calibre Page Counts Wiki Page](./wiki/Configure-Calibre-Page-Counts)
 
 ## Credits
 All code here started life as the CoverBrowser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt
