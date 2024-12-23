@@ -12,6 +12,8 @@ local Menu = require("ui/widget/menu")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local Font = require("ui/font")
 local FileManager = require("apps/filemanager/filemanager")
+local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
+local FileManagerConverter = require("apps/filemanager/filemanagerconverter")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local UIManager = require("ui/uimanager")
@@ -31,6 +33,8 @@ local Device = require("device")
 local T = require("ffi/util").template
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local util = require("util")
+local ffiUtil = require("ffi/util")
+local C_ = _.pgettext
 
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
@@ -636,62 +640,59 @@ function CoverMenu:updateTitleBarPath(path)
 end
 
 function CoverMenu:setupLayout()
-    CoverMenu._FileManager_setupLayout_orig(self)
-
-    if self.title_bar.title == "KOReader" then
-        self.title_bar = TitleBar:new{
-            show_parent = self.show_parent,
-            fullscreen = "true",
-            align = "center",
-            title = "",
-            title_top_padding = Screen:scaleBySize(6),
-            subtitle = "",
-            subtitle_truncate_left = true,
-            subtitle_fullwidth = true,
-            button_padding = Screen:scaleBySize(5),
-            -- home
-            left_icon = "home",
-            left_icon_size_ratio = 1,
-            left_icon_tap_callback = function() self:goHome() end,
-            left_icon_hold_callback = function() self:onShowFolderMenu() end,
-            -- favorites
-            left2_icon = "favorites",
-            left2_icon_size_ratio = 1,
-            left2_icon_tap_callback = function() FileManager.instance.collections:onShowColl() end,
-            left2_icon_hold_callback = function() FileManager.instance.folder_shortcuts:onShowFolderShortcutsDialog() end,
-            -- history
-            left3_icon = "history",
-            left3_icon_size_ratio = 1,
-            left3_icon_tap_callback = function() FileManager.instance.history:onShowHist() end,
-            left3_icon_hold_callback = false,
-            -- plus menu
-            right_icon = self.selected_files and "check" or "plus",
-            right_icon_size_ratio = 1,
-            right_icon_tap_callback = function() self:onShowPlusMenu() end,
-            right_icon_hold_callback = false, -- propagate long-press to dispatcher
-            -- up folder
-            right2_icon = "go_up",
-            right2_icon_size_ratio = 1,
-            right2_icon_tap_callback = function() onFolderUp() end,
-            right2_icon_hold_callback = false,
-            -- open last file
-            right3_icon = "last_document",
-            right3_icon_size_ratio = 1,
-            right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
-            right3_icon_hold_callback = false,
-            -- centered logo
-            center_icon = "hero",
-            center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
-            center_icon_tap_callback = false,
-            center_icon_hold_callback = function()
-                UIManager:show(InfoMessage:new{
-                    text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v1.0\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
-                    show_icon = false,
-                    alignment = "center",
-                })
-            end,
-        }
-    end
+    self.show_parent = self.show_parent or self
+    self.title_bar = TitleBar:new{
+        show_parent = self.show_parent,
+        fullscreen = "true",
+        align = "center",
+        title = "",
+        title_top_padding = Screen:scaleBySize(6),
+        subtitle = "",
+        subtitle_truncate_left = true,
+        subtitle_fullwidth = true,
+        button_padding = Screen:scaleBySize(5),
+        -- home
+        left_icon = "home",
+        left_icon_size_ratio = 1,
+        left_icon_tap_callback = function() self:goHome() end,
+        left_icon_hold_callback = function() self:onShowFolderMenu() end,
+        -- favorites
+        left2_icon = "favorites",
+        left2_icon_size_ratio = 1,
+        left2_icon_tap_callback = function() FileManager.instance.collections:onShowColl() end,
+        left2_icon_hold_callback = function() FileManager.instance.folder_shortcuts:onShowFolderShortcutsDialog() end,
+        -- history
+        left3_icon = "history",
+        left3_icon_size_ratio = 1,
+        left3_icon_tap_callback = function() FileManager.instance.history:onShowHist() end,
+        left3_icon_hold_callback = false,
+        -- plus menu
+        right_icon = self.selected_files and "check" or "plus",
+        right_icon_size_ratio = 1,
+        right_icon_tap_callback = function() self:onShowPlusMenu() end,
+        right_icon_hold_callback = false, -- propagate long-press to dispatcher
+        -- up folder
+        right2_icon = "go_up",
+        right2_icon_size_ratio = 1,
+        right2_icon_tap_callback = function() onFolderUp() end,
+        right2_icon_hold_callback = false,
+        -- open last file
+        right3_icon = "last_document",
+        right3_icon_size_ratio = 1,
+        right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
+        right3_icon_hold_callback = false,
+        -- centered logo
+        center_icon = "hero",
+        center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
+        center_icon_tap_callback = false,
+        center_icon_hold_callback = function()
+            UIManager:show(InfoMessage:new{
+                text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v1.0\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
+                show_icon = false,
+                alignment = "center",
+            })
+        end,
+    }
 
     local file_chooser = FileChooser:new{
         path = self.root_path,
@@ -710,16 +711,198 @@ function CoverMenu:setupLayout()
         custom_title_bar = self.title_bar,
     }
     self.file_chooser = file_chooser
+    self.focused_file = nil -- use it only once
 
-    self.layout = VerticalGroup:new{
-        self.file_chooser,
-    }
+    local file_manager = self
+
+    function file_chooser:onFileSelect(item)
+        if file_manager.selected_files then -- toggle selection
+            item.dim = not item.dim and true or nil
+            file_manager.selected_files[item.path] = item.dim
+            self:updateItems()
+        else
+            file_manager:openFile(item.path)
+        end
+        return true
+    end
+
+    function file_chooser:onFileHold(item)
+        if file_manager.selected_files then
+            file_manager:tapPlus()
+        else
+            self:showFileDialog(item)
+        end
+    end
+
+    function file_chooser:showFileDialog(item)
+        local file = item.path
+        local is_file = item.is_file
+        local is_not_parent_folder = not item.is_go_up
+
+        local function close_dialog_callback()
+            UIManager:close(self.file_dialog)
+        end
+        local function refresh_callback()
+            self:refreshPath()
+        end
+        local function close_dialog_refresh_callback()
+            UIManager:close(self.file_dialog)
+            self:refreshPath()
+        end
+
+        local buttons = {
+            {
+                {
+                    text = C_("File", "Copy"),
+                    enabled = is_not_parent_folder,
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:copyFile(file)
+                    end,
+                },
+                {
+                    text = C_("File", "Paste"),
+                    enabled = file_manager.clipboard and true or false,
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:pasteFileFromClipboard(file)
+                    end,
+                },
+                {
+                    text = _("Select"),
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:onToggleSelectMode()
+                        if is_file then
+                            file_manager.selected_files[file] = true
+                            item.dim = true
+                            self:updateItems()
+                        end
+                    end,
+                },
+            },
+            {
+                {
+                    text = _("Cut"),
+                    enabled = is_not_parent_folder,
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:cutFile(file)
+                    end,
+                },
+                {
+                    text = _("Delete"),
+                    enabled = is_not_parent_folder,
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:showDeleteFileDialog(file, refresh_callback)
+                    end,
+                },
+                {
+                    text = _("Rename"),
+                    enabled = is_not_parent_folder,
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:showRenameFileDialog(file, is_file)
+                    end,
+                }
+            },
+            {}, -- separator
+        }
+
+        if is_file then
+            self.book_props = nil -- in 'self' to provide access to it in CoverBrowser
+            local has_provider = DocumentRegistry:hasProvider(file)
+            local has_sidecar = DocSettings:hasSidecarFile(file)
+            local doc_settings_or_file = file
+            if has_provider or has_sidecar then
+                self.book_props = file_manager.coverbrowser and file_manager.coverbrowser:getBookInfo(file)
+                if has_sidecar then
+                    doc_settings_or_file = DocSettings:open(file)
+                    if not self.book_props then
+                        local props = doc_settings_or_file:readSetting("doc_props")
+                        self.book_props = FileManagerBookInfo.extendProps(props, file)
+                        self.book_props.has_cover = true -- to enable "Book cover" button, we do not know if cover exists
+                    end
+                end
+                table.insert(buttons, filemanagerutil.genStatusButtonsRow(doc_settings_or_file, close_dialog_refresh_callback))
+                table.insert(buttons, {}) -- separator
+                table.insert(buttons, {
+                    filemanagerutil.genResetSettingsButton(doc_settings_or_file, close_dialog_refresh_callback),
+                    file_manager.collections:genAddToCollectionButton(file, close_dialog_callback, refresh_callback),
+                })
+            end
+            table.insert(buttons, {
+                {
+                    text = _("Open with…"),
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:showOpenWithDialog(file)
+                    end,
+                },
+                filemanagerutil.genBookInformationButton(doc_settings_or_file, self.book_props, close_dialog_callback),
+            })
+            if has_provider then
+                table.insert(buttons, {
+                    filemanagerutil.genBookCoverButton(file, self.book_props, close_dialog_callback),
+                    filemanagerutil.genBookDescriptionButton(file, self.book_props, close_dialog_callback),
+                })
+            end
+            if Device:canExecuteScript(file) then
+                table.insert(buttons, {
+                    filemanagerutil.genExecuteScriptButton(file, close_dialog_callback),
+                })
+            end
+            if FileManagerConverter:isSupported(file) then
+                table.insert(buttons, {
+                    {
+                        text = _("Convert"),
+                        callback = function()
+                            UIManager:close(self.file_dialog)
+                            FileManagerConverter:showConvertButtons(file, self)
+                        end,
+                    },
+                })
+            end
+        else -- folder
+            local folder = ffiUtil.realpath(file)
+            table.insert(buttons, {
+                {
+                    text = _("Set as HOME folder"),
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:setHome(folder)
+                    end
+                },
+            })
+            table.insert(buttons, {
+                file_manager.folder_shortcuts:genAddRemoveShortcutButton(folder, close_dialog_callback, refresh_callback)
+            })
+        end
+
+        if file_manager.file_dialog_added_buttons ~= nil then
+            for _, row_func in ipairs(file_manager.file_dialog_added_buttons) do
+                local row = row_func(file, is_file, self.book_props)
+                if row ~= nil then
+                    table.insert(buttons, row)
+                end
+            end
+        end
+
+        self.file_dialog = ButtonDialog:new{
+            title = is_file and BD.filename(file:match("([^/]+)$")) or BD.directory(file:match("([^/]+)$")),
+            title_align = "center",
+            buttons = buttons,
+        }
+        UIManager:show(self.file_dialog)
+        return true
+    end
 
     local fm_ui = FrameContainer:new{
         padding = 0,
         bordersize = 0,
         background = Blitbuffer.COLOR_WHITE,
-        self.layout,
+        file_chooser,
     }
 
     self[1] = fm_ui
@@ -728,7 +911,10 @@ function CoverMenu:setupLayout()
         ui = self
     }
 
-    return true
+    -- No need to reinvent the wheel, use FileChooser's layout
+    self.layout = file_chooser.layout
+
+    self:registerKeyEvents()
 end
 
 function CoverMenu:menuInit()
