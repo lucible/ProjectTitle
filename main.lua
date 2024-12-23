@@ -872,9 +872,11 @@ function CoverBrowser:onIncreaseItemsPerPage()
         local Screen = Device.screen
         local portrait_mode = Screen:getWidth() <= Screen:getHeight()
         if portrait_mode then
-            if BookInfoManager:getSetting("nb_cols_portrait") == BookInfoManager:getSetting("nb_rows_portrait") then
-                fc.nb_cols_portrait = math.min(BookInfoManager:getSetting("nb_cols_portrait") + 1, max_cols)
-                fc.nb_rows_portrait = math.min(BookInfoManager:getSetting("nb_rows_portrait") + 1, max_rows)
+            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
+            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+            if portrait_cols == portrait_rows then
+                fc.nb_cols_portrait = math.min(portrait_cols + 1, max_cols)
+                fc.nb_rows_portrait = math.min(portrait_rows + 1, max_rows)
                 BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
                 BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
@@ -882,9 +884,11 @@ function CoverBrowser:onIncreaseItemsPerPage()
             end
         end
         if not portrait_mode then
-            if BookInfoManager:getSetting("nb_cols_landscape") == BookInfoManager:getSetting("nb_rows_landscape") then
-                fc.nb_cols_landscape = math.min(BookInfoManager:getSetting("nb_cols_landscape") + 1, max_cols)
-                fc.nb_rows_landscape = math.min(BookInfoManager:getSetting("nb_rows_landscape") + 1, max_rows)
+            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
+            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+            if landscape_cols == landscape_rows then
+                fc.nb_cols_landscape = math.min(landscape_cols + 1, max_cols)
+                fc.nb_rows_landscape = math.min(landscape_rows + 1, max_rows)
                 BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
                 BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape
@@ -912,9 +916,11 @@ function CoverBrowser:onDecreaseItemsPerPage()
         local Screen = Device.screen
         local portrait_mode = Screen:getWidth() <= Screen:getHeight()
         if portrait_mode then
-            if BookInfoManager:getSetting("nb_cols_portrait") == BookInfoManager:getSetting("nb_rows_portrait") then
-                fc.nb_cols_portrait = math.max(BookInfoManager:getSetting("nb_cols_portrait") - 1, min_cols)
-                fc.nb_rows_portrait = math.max(BookInfoManager:getSetting("nb_rows_portrait") - 1, min_rows)
+            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
+            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+            if portrait_cols == portrait_rows then
+                fc.nb_cols_portrait = math.max(portrait_cols - 1, min_cols)
+                fc.nb_rows_portrait = math.max(portrait_rows - 1, min_rows)
                 BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
                 BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
@@ -922,9 +928,11 @@ function CoverBrowser:onDecreaseItemsPerPage()
             end
         end
         if not portrait_mode then
-            if BookInfoManager:getSetting("nb_cols_landscape") == BookInfoManager:getSetting("nb_rows_landscape") then
-                fc.nb_cols_landscape = math.max(BookInfoManager:getSetting("nb_cols_landscape") - 1, min_cols)
-                fc.nb_rows_landscape = math.max(BookInfoManager:getSetting("nb_rows_landscape") - 1, min_rows)
+            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
+            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+            if landscape_cols == landscape_rows then
+                fc.nb_cols_landscape = math.max(landscape_cols - 1, min_cols)
+                fc.nb_rows_landscape = math.max(landscape_rows - 1, min_rows)
                 BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
                 BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape
