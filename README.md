@@ -28,8 +28,8 @@ Project Title is a project by two people who love KOreader but wanted to expand 
 * KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames, I don't think you'll like what we're offering. Good news is that KOReader already does this extremely well!
 * People who absolutely love one of the features we removed from CoverBrowser. We made this plugin for ourselves by adding and also removing. You'll just have to try it out to see if there's anything you miss!
 
-## Screenshots
-[SCREENSHOT GRID]
+## Demonstration Video
+[![Demo Video](https://img.youtube.com/vi/oEsZY8JGXfo/0.jpg)](https://www.youtube.com/watch?v=oEsZY8JGXfo)
 
 ## Installation Instructions
 To install the plugin on your eReader:

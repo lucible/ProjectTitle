@@ -687,7 +687,7 @@ function CoverMenu:setupLayout()
         center_icon_tap_callback = false,
         center_icon_hold_callback = function()
             UIManager:show(InfoMessage:new{
-                text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v1.0\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
+                text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v0.01\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
                 show_icon = false,
                 alignment = "center",
             })
