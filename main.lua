@@ -41,10 +41,10 @@ if plugins_disabled["coverbrowser"] == true then
     coverbrowser_plugin = false
 else logger.warn("CoverBrowser enabled")
 end
-local max_safe_version = 202411000000
+local safe_version = 202411000000
 local cv_int, cv_hash = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
-if (cv_int <= max_safe_version) then
+if (cv_int == safe_version) then
     version_unsafe = false
 else logger.warn("Version not safe ", tostring(cv_int))
 end
