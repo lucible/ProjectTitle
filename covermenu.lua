@@ -269,68 +269,68 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     -- we replace it by ours.
     -- (FileManager may replace file_chooser.showFileDialog after we've been called once, so we need
     -- to replace it again if it is not ours)
-    if self.path -- FileManager only
-        and (not self.showFileDialog_ours -- never replaced
-              or self.showFileDialog ~= self.showFileDialog_ours) then -- it is no more ours
-        -- We need to do it at nextTick, once FileManager has instantiated
-        -- its FileChooser completely
-        UIManager:nextTick(function()
-            -- Store original function, so we can call it
-            self.showFileDialog_orig = self.showFileDialog
+    -- if self.path -- FileManager only
+    --     and (not self.showFileDialog_ours -- never replaced
+    --           or self.showFileDialog ~= self.showFileDialog_ours) then -- it is no more ours
+    --     -- We need to do it at nextTick, once FileManager has instantiated
+    --     -- its FileChooser completely
+    --     UIManager:nextTick(function()
+    --         -- Store original function, so we can call it
+    --         self.showFileDialog_orig = self.showFileDialog
 
-            -- Replace it with ours
-            -- This causes luacheck warning: "shadowing upvalue argument 'self' on line 34".
-            -- Ignoring it (as done in filemanager.lua for the same showFileDialog)
-            self.showFileDialog = function(self, item) -- luacheck: ignore
-                local file = item.path
-                -- Call original function: it will create a ButtonDialog
-                -- and store it as self.file_dialog, and UIManager:show() it.
-                self.showFileDialog_orig(self, item)
+    --         -- Replace it with ours
+    --         -- This causes luacheck warning: "shadowing upvalue argument 'self' on line 34".
+    --         -- Ignoring it (as done in filemanager.lua for the same showFileDialog)
+    --         self.showFileDialog = function(self, item) -- luacheck: ignore
+    --             local file = item.path
+    --             -- Call original function: it will create a ButtonDialog
+    --             -- and store it as self.file_dialog, and UIManager:show() it.
+    --             self.showFileDialog_orig(self, item)
 
-                local bookinfo = self.book_props -- getBookInfo(file) called by FileManager
-                if not bookinfo or bookinfo._is_directory then
-                    -- If no bookinfo (yet) about this file, or it's a directory, let the original dialog be
-                    return true
-                end
+    --             local bookinfo = self.book_props -- getBookInfo(file) called by FileManager
+    --             if not bookinfo or bookinfo._is_directory then
+    --                 -- If no bookinfo (yet) about this file, or it's a directory, let the original dialog be
+    --                 return true
+    --             end
 
-                -- Remember some of this original ButtonDialog properties
-                local orig_title = self.file_dialog.title
-                local orig_title_align = self.file_dialog.title_align
-                local orig_buttons = self.file_dialog.buttons
-                -- Close original ButtonDialog (it has not yet been painted
-                -- on screen, so we won't see it)
-                UIManager:close(self.file_dialog)
-                -- And clear the rendering stack to avoid inheriting its dirty/refresh queue
-                UIManager:clearRenderStack()
+    --             -- Remember some of this original ButtonDialog properties
+    --             local orig_title = self.file_dialog.title
+    --             local orig_title_align = self.file_dialog.title_align
+    --             local orig_buttons = self.file_dialog.buttons
+    --             -- Close original ButtonDialog (it has not yet been painted
+    --             -- on screen, so we won't see it)
+    --             UIManager:close(self.file_dialog)
+    --             -- And clear the rendering stack to avoid inheriting its dirty/refresh queue
+    --             UIManager:clearRenderStack()
 
-                -- Add some new buttons to original buttons set
-                table.insert(orig_buttons, {
-                    { -- Allow a new extraction (multiple interruptions, book replaced)...
-                        text = _("Refresh cached book information"),
-                        callback = function()
-                            -- Wipe the cache
-                            self:updateCache(file)
-                            BookInfoManager:deleteBookInfo(file)
-                            UIManager:close(self.file_dialog)
-                            self:updateItems(1, true)
-                        end,
-                    },
-                })
+    --             -- Add some new buttons to original buttons set
+    --             table.insert(orig_buttons, {
+    --                 { -- Allow a new extraction (multiple interruptions, book replaced)...
+    --                     text = _("Refresh cached book information"),
+    --                     callback = function()
+    --                         -- Wipe the cache
+    --                         self:updateCache(file)
+    --                         BookInfoManager:deleteBookInfo(file)
+    --                         UIManager:close(self.file_dialog)
+    --                         self:updateItems(1, true)
+    --                     end,
+    --                 },
+    --             })
 
-                -- Create the new ButtonDialog, and let UIManager show it
-                self.file_dialog = ButtonDialog:new{
-                    title = orig_title,
-                    title_align = orig_title_align,
-                    buttons = orig_buttons,
-                }
-                UIManager:show(self.file_dialog)
-                return true
-            end
+    --             -- Create the new ButtonDialog, and let UIManager show it
+    --             self.file_dialog = ButtonDialog:new{
+    --                 title = orig_title,
+    --                 title_align = orig_title_align,
+    --                 buttons = orig_buttons,
+    --             }
+    --             UIManager:show(self.file_dialog)
+    --             return true
+    --         end
 
-            -- Remember our function
-            self.showFileDialog_ours = self.showFileDialog
-        end)
-    end
+    --         -- Remember our function
+    --         self.showFileDialog_ours = self.showFileDialog
+    --     end)
+    -- end
     -- Menu.mergeTitleBarIntoLayout(self)
 end
 
@@ -586,40 +586,40 @@ function CoverMenu:tapPlus()
     -- Call original function: it will create a ButtonDialog
     -- and store it as self.file_dialog, and UIManager:show() it.
     CoverMenu._FileManager_tapPlus_orig(self)
-    if self.file_dialog.select_mode then return end -- do not change select menu
+    -- if self.file_dialog.select_mode then return end -- do not change select menu
 
-    -- Remember some of this original ButtonDialog properties
-    local orig_title = self.file_dialog.title
-    local orig_title_align = self.file_dialog.title_align
-    local orig_buttons = self.file_dialog.buttons
-    -- Close original ButtonDialog (it has not yet been painted
-    -- on screen, so we won't see it)
-    UIManager:close(self.file_dialog)
-    UIManager:clearRenderStack()
+    -- -- Remember some of this original ButtonDialog properties
+    -- local orig_title = self.file_dialog.title
+    -- local orig_title_align = self.file_dialog.title_align
+    -- local orig_buttons = self.file_dialog.buttons
+    -- -- Close original ButtonDialog (it has not yet been painted
+    -- -- on screen, so we won't see it)
+    -- UIManager:close(self.file_dialog)
+    -- UIManager:clearRenderStack()
 
-    -- Add a new button to original buttons set
-    table.insert(orig_buttons, {}) -- separator
-    table.insert(orig_buttons, {
-        {
-            text = _("Extract and cache book information"),
-            callback = function()
-                UIManager:close(self.file_dialog)
-                local Trapper = require("ui/trapper")
-                Trapper:wrap(function()
-                    BookInfoManager:extractBooksInDirectory(current_path, current_cover_specs)
-                end)
-            end,
-        },
-    })
+    -- -- Add a new button to original buttons set
+    -- table.insert(orig_buttons, {}) -- separator
+    -- table.insert(orig_buttons, {
+    --     {
+    --         text = _("Extract and cache book information"),
+    --         callback = function()
+    --             UIManager:close(self.file_dialog)
+    --             local Trapper = require("ui/trapper")
+    --             Trapper:wrap(function()
+    --                 BookInfoManager:extractBooksInDirectory(current_path, current_cover_specs)
+    --             end)
+    --         end,
+    --     },
+    -- })
 
-    -- Create the new ButtonDialog, and let UIManager show it
-    self.file_dialog = ButtonDialog:new{
-        title = orig_title,
-        title_align = orig_title_align,
-        buttons = orig_buttons,
-    }
-    UIManager:show(self.file_dialog)
-    return true
+    -- -- Create the new ButtonDialog, and let UIManager show it
+    -- self.file_dialog = ButtonDialog:new{
+    --     title = orig_title,
+    --     title_align = orig_title_align,
+    --     buttons = orig_buttons,
+    -- }
+    -- UIManager:show(self.file_dialog)
+    -- return true
 end
 
 local function onFolderUp()
@@ -687,7 +687,7 @@ function CoverMenu:setupLayout()
         center_icon_tap_callback = false,
         center_icon_hold_callback = function()
             UIManager:show(InfoMessage:new{
-                text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v0.01\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
+                text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v0.02\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
                 show_icon = false,
                 alignment = "center",
             })
@@ -1030,13 +1030,15 @@ function CoverMenu:updatePageInfo(select_number)
 
     -- test to see what items to draw (pathchooser vs "detailed list view mode")
     if not is_pathchooser then
-        if self.cur_folder_text and self.path then
-            local display_path = ""
+        local display_path = ""
+        if self.cur_folder_text and type(self.path) == "string" and self.path ~= '' then
             self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
             if (self.path == filemanagerutil.getDefaultDir() or
                     self.path == G_reader_settings:readSetting("home_dir")) and
                     G_reader_settings:nilOrTrue("shorten_home_dir") then
                 display_path = "Home"
+            elseif self._manager and type(self._manager.name) == "string" then
+                display_path = ""
             else
                 -- show only the current folder name, not the whole path
                 local folder_name = "/"
@@ -1053,6 +1055,9 @@ function CoverMenu:updatePageInfo(select_number)
                 end
                 display_path = folder_name
             end
+            self.cur_folder_text:setText(display_path)
+        elseif self.cur_folder_text and type(self.path) == "boolean" then
+            display_path = ""
             self.cur_folder_text:setText(display_path)
         end
     else

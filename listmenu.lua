@@ -381,6 +381,8 @@ function ListMenuItem:update()
             end
         end
 
+        local book_info = self.menu.getBookInfo(self.filepath)
+        self.been_opened = book_info.been_opened
         if bookinfo and is_pathchooser == false then -- This book is known (and not in patchooser mode)
             self.bookinfo_found = true
             local cover_bb_used = false
@@ -489,15 +491,19 @@ function ListMenuItem:update()
             local pages_left_str = ""
             local percent_str = ""
             local progress_str = ""
-            local pages = bookinfo.pages -- default to those in bookinfo db
-            local percent_finished, status, has_highlight
 
-            if DocSettings:hasSidecarFile(self.filepath) then
-                self.been_opened = true
-                self.menu:updateCache(self.filepath, nil, true, pages) -- create new cache entry if absent
-                pages, percent_finished, status, has_highlight =
-                    unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
-            end
+            -- local pages = bookinfo.pages -- default to those in bookinfo db
+            -- local percent_finished, status, has_highlight
+            -- if DocSettings:hasSidecarFile(self.filepath) then
+            --     self.been_opened = true
+            --     self.menu:updateCache(self.filepath, nil, true, pages) -- create new cache entry if absent
+            --     pages, percent_finished, status, has_highlight =
+            --        unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
+            -- end
+
+            local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
+            local percent_finished = book_info.percent_finished
+            local status = book_info.status
 
             -- right widget, first line
             local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
