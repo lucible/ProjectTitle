@@ -165,7 +165,8 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
 
     -- Specific UI building implementation (defined in some other module)
     self._has_cover_images = false
-    self:_updateItemsBuildUI()
+    -- self:_updateItemsBuildUI()
+    select_number = self:_updateItemsBuildUI() or select_number
 
     -- Set the local variables with the things we know
     -- These are used only by extractBooksInDirectory(), which should
@@ -695,6 +696,7 @@ function CoverMenu:setupLayout()
     }
 
     local file_chooser = FileChooser:new{
+        name = "filemanager",
         path = self.root_path,
         focused_path = self.focused_file,
         show_parent = self.show_parent,
@@ -706,9 +708,12 @@ function CoverMenu:setupLayout()
         -- allow left bottom tap gesture, otherwise it is eaten by hidden return button
         return_arrow_propagation = true,
         -- allow Menu widget to delegate handling of some gestures to GestureManager
-        filemanager = self,
+        ui = self,
         -- Tell FileChooser (i.e., Menu) to use our own title bar instead of Menu's default one
         custom_title_bar = self.title_bar,
+        search_callback = function(search_string)
+            self.filesearcher:onShowFileSearch(search_string)
+        end,
     }
     self.file_chooser = file_chooser
     self.focused_file = nil -- use it only once
