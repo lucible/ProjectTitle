@@ -415,6 +415,22 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
     return bookinfo
 end
 
+function BookInfoManager:getDocProps(filepath)
+    local bookinfo
+    local directory, filename = util.splitFilePathName(filepath)
+    self:openDbConnection()
+    local row = self.get_stmt:bind(directory, filename):step()
+    if row ~= nil then
+        bookinfo = {}
+        for i = 13, 20 do
+            bookinfo[BOOKINFO_COLS_SET[i]] = row[i]
+        end
+        bookinfo.pages = tonumber(bookinfo.pages)
+    end
+    self.get_stmt:clearbind():reset()
+    return bookinfo
+end
+
 function BookInfoManager:extractBookInfo(filepath, cover_specs)
     -- This will be run in a subprocess
     -- We use a temporary directory for cre cache (that will not affect parent process),
@@ -489,7 +505,10 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     dbrow.filemtime = file_attr.modification
 
     -- Proceed with extracting info
-    local document = DocumentRegistry:openDocument(filepath)
+    -- local document = DocumentRegistry:openDocument(filepath)
+    local ReaderUI = require("apps/reader/readerui")
+    local provider = ReaderUI:extendProvider(filepath, DocumentRegistry:getProvider(filepath))
+    local document = DocumentRegistry:openDocument(filepath, provider)
     local loaded = true
     if document then
         local pages
