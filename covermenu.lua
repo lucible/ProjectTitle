@@ -1,6 +1,7 @@
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
+local BookList = require("ui/widget/booklist")
 local ButtonDialog = require("ui/widget/buttondialog")
 local DocSettings = require("docsettings")
 local DocumentRegistry = require("document/documentregistry")
@@ -197,7 +198,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     if #self.items_to_update > 0 then
         -- Prepare for background info extraction job
         local files_to_index = {} -- table of {filepath, cover_specs}
-        for i=1, #self.items_to_update do
+        for i = 1, #self.items_to_update do
             table.insert(files_to_index, {
                 filepath = self.items_to_update[i].filepath,
                 cover_specs = self.items_to_update[i].cover_specs
@@ -212,7 +213,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
                     UIManager:unschedule(self.items_update_action)
                     self.items_update_action = nil
                 end
-                UIManager:show(InfoMessage:new{
+                UIManager:show(InfoMessage:new {
                     text = _("Start-up of background extraction job failed.\nPlease restart KOReader or your device.")
                 })
             end
@@ -246,7 +247,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
                 end
             end
             if #self.items_to_update > 0 then -- re-schedule myself
-                if is_still_extracting then -- we have still chances to get new stuff
+                if is_still_extracting then   -- we have still chances to get new stuff
                     logger.dbg("re-scheduling items update:", #self.items_to_update, "still waiting")
                     UIManager:scheduleIn(1, self.items_update_action)
                 else
@@ -332,150 +333,150 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     --         self.showFileDialog_ours = self.showFileDialog
     --     end)
     -- end
-    -- Menu.mergeTitleBarIntoLayout(self)
+    Menu.mergeTitleBarIntoLayout(self)
 end
 
 -- Similar to showFileDialog setup just above, but for History,
 -- which is plugged in main.lua _FileManagerHistory_updateItemTable()
-function CoverMenu:onHistoryMenuHold(item)
-    -- Call original function: it will create a ButtonDialog
-    -- and store it as self.histfile_dialog, and UIManager:show() it.
-    self.onMenuHold_orig(self, item)
-    local file = item.file
+-- function CoverMenu:onHistoryMenuHold(item)
+--     -- Call original function: it will create a ButtonDialog
+--     -- and store it as self.histfile_dialog, and UIManager:show() it.
+--     self.onMenuHold_orig(self, item)
+--     local file = item.file
 
-    local bookinfo = self.book_props -- getBookInfo(file) called by FileManagerHistory
-    if not bookinfo then
-        -- If no bookinfo (yet) about this file, let the original dialog be
-        return true
-    end
+--     local bookinfo = self.book_props -- getBookInfo(file) called by FileManagerHistory
+--     if not bookinfo then
+--         -- If no bookinfo (yet) about this file, let the original dialog be
+--         return true
+--     end
 
-    -- Remember some of this original ButtonDialog properties
-    local orig_title = self.histfile_dialog.title
-    local orig_title_align = self.histfile_dialog.title_align
-    local orig_buttons = self.histfile_dialog.buttons
-    -- Close original ButtonDialog (it has not yet been painted
-    -- on screen, so we won't see it)
-    UIManager:close(self.histfile_dialog)
-    UIManager:clearRenderStack()
+--     -- Remember some of this original ButtonDialog properties
+--     local orig_title = self.histfile_dialog.title
+--     local orig_title_align = self.histfile_dialog.title_align
+--     local orig_buttons = self.histfile_dialog.buttons
+--     -- Close original ButtonDialog (it has not yet been painted
+--     -- on screen, so we won't see it)
+--     UIManager:close(self.histfile_dialog)
+--     UIManager:clearRenderStack()
 
-    -- Add some new buttons to original buttons set
-    table.insert(orig_buttons, {
-        { -- Allow user to ignore some offending cover image
-            text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
-            enabled = bookinfo.has_cover and true or false,
-            callback = function()
-                BookInfoManager:setBookInfoProperties(file, {
-                    ["ignore_cover"] = not bookinfo.ignore_cover and 'Y' or false,
-                })
-                UIManager:close(self.histfile_dialog)
-                self:updateItems(1, true)
-            end,
-        },
-        { -- Allow user to ignore some bad metadata (filename will be used instead)
-            text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
-            enabled = bookinfo.has_meta and true or false,
-            callback = function()
-                BookInfoManager:setBookInfoProperties(file, {
-                    ["ignore_meta"] = not bookinfo.ignore_meta and 'Y' or false,
-                })
-                UIManager:close(self.histfile_dialog)
-                self:updateItems(1, true)
-            end,
-        },
-    })
-    table.insert(orig_buttons, {
-        { -- Allow a new extraction (multiple interruptions, book replaced)...
-            text = _("Refresh cached book information"),
-            callback = function()
-                -- Wipe the cache
-                self:updateCache(file)
-                BookInfoManager:deleteBookInfo(file)
-                UIManager:close(self.histfile_dialog)
-                self:updateItems(1, true)
-            end,
-        },
-    })
+--     -- Add some new buttons to original buttons set
+--     table.insert(orig_buttons, {
+--         { -- Allow user to ignore some offending cover image
+--             text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
+--             enabled = bookinfo.has_cover and true or false,
+--             callback = function()
+--                 BookInfoManager:setBookInfoProperties(file, {
+--                     ["ignore_cover"] = not bookinfo.ignore_cover and 'Y' or false,
+--                 })
+--                 UIManager:close(self.histfile_dialog)
+--                 self:updateItems(1, true)
+--             end,
+--         },
+--         { -- Allow user to ignore some bad metadata (filename will be used instead)
+--             text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
+--             enabled = bookinfo.has_meta and true or false,
+--             callback = function()
+--                 BookInfoManager:setBookInfoProperties(file, {
+--                     ["ignore_meta"] = not bookinfo.ignore_meta and 'Y' or false,
+--                 })
+--                 UIManager:close(self.histfile_dialog)
+--                 self:updateItems(1, true)
+--             end,
+--         },
+--     })
+--     table.insert(orig_buttons, {
+--         { -- Allow a new extraction (multiple interruptions, book replaced)...
+--             text = _("Refresh cached book information"),
+--             callback = function()
+--                 -- Wipe the cache
+--                 self:updateCache(file)
+--                 BookInfoManager:deleteBookInfo(file)
+--                 UIManager:close(self.histfile_dialog)
+--                 self:updateItems(1, true)
+--             end,
+--         },
+--     })
 
-    -- Create the new ButtonDialog, and let UIManager show it
-    self.histfile_dialog = ButtonDialog:new{
-        title = orig_title,
-        title_align = orig_title_align,
-        buttons = orig_buttons,
-    }
-    UIManager:show(self.histfile_dialog)
-    return true
-end
+--     -- Create the new ButtonDialog, and let UIManager show it
+--     self.histfile_dialog = ButtonDialog:new{
+--         title = orig_title,
+--         title_align = orig_title_align,
+--         buttons = orig_buttons,
+--     }
+--     UIManager:show(self.histfile_dialog)
+--     return true
+-- end
 
 -- Similar to showFileDialog setup just above, but for Collections,
 -- which is plugged in main.lua _FileManagerCollections_updateItemTable()
-function CoverMenu:onCollectionsMenuHold(item)
-    -- Call original function: it will create a ButtonDialog
-    -- and store it as self.collfile_dialog, and UIManager:show() it.
-    self.onMenuHold_orig(self, item)
-    local file = item.file
+-- function CoverMenu:onCollectionsMenuHold(item)
+--     -- Call original function: it will create a ButtonDialog
+--     -- and store it as self.collfile_dialog, and UIManager:show() it.
+--     self.onMenuHold_orig(self, item)
+--     local file = item.file
 
-    local bookinfo = self.book_props -- getBookInfo(file) called by FileManagerCollection
-    if not bookinfo then
-        -- If no bookinfo (yet) about this file, let the original dialog be
-        return true
-    end
+--     local bookinfo = self.book_props -- getBookInfo(file) called by FileManagerCollection
+--     if not bookinfo then
+--         -- If no bookinfo (yet) about this file, let the original dialog be
+--         return true
+--     end
 
-    -- Remember some of this original ButtonDialog properties
-    local orig_title = self.collfile_dialog.title
-    local orig_title_align = self.collfile_dialog.title_align
-    local orig_buttons = self.collfile_dialog.buttons
-    -- Close original ButtonDialog (it has not yet been painted
-    -- on screen, so we won't see it)
-    UIManager:close(self.collfile_dialog)
-    UIManager:clearRenderStack()
+--     -- Remember some of this original ButtonDialog properties
+--     local orig_title = self.collfile_dialog.title
+--     local orig_title_align = self.collfile_dialog.title_align
+--     local orig_buttons = self.collfile_dialog.buttons
+--     -- Close original ButtonDialog (it has not yet been painted
+--     -- on screen, so we won't see it)
+--     UIManager:close(self.collfile_dialog)
+--     UIManager:clearRenderStack()
 
-    -- Add some new buttons to original buttons set
-    table.insert(orig_buttons, {
-        { -- Allow user to ignore some offending cover image
-            text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
-            enabled = bookinfo.has_cover and true or false,
-            callback = function()
-                BookInfoManager:setBookInfoProperties(file, {
-                    ["ignore_cover"] = not bookinfo.ignore_cover and 'Y' or false,
-                })
-                UIManager:close(self.collfile_dialog)
-                self:updateItems(1, true)
-            end,
-        },
-        { -- Allow user to ignore some bad metadata (filename will be used instead)
-            text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
-            enabled = bookinfo.has_meta and true or false,
-            callback = function()
-                BookInfoManager:setBookInfoProperties(file, {
-                    ["ignore_meta"] = not bookinfo.ignore_meta and 'Y' or false,
-                })
-                UIManager:close(self.collfile_dialog)
-                self:updateItems(1, true)
-            end,
-        },
-    })
-    table.insert(orig_buttons, {
-        { -- Allow a new extraction (multiple interruptions, book replaced)...
-            text = _("Refresh cached book information"),
-            callback = function()
-                -- Wipe the cache
-                self:updateCache(file)
-                BookInfoManager:deleteBookInfo(file)
-                UIManager:close(self.collfile_dialog)
-                self:updateItems(1, true)
-            end,
-        },
-    })
+--     -- Add some new buttons to original buttons set
+--     table.insert(orig_buttons, {
+--         { -- Allow user to ignore some offending cover image
+--             text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
+--             enabled = bookinfo.has_cover and true or false,
+--             callback = function()
+--                 BookInfoManager:setBookInfoProperties(file, {
+--                     ["ignore_cover"] = not bookinfo.ignore_cover and 'Y' or false,
+--                 })
+--                 UIManager:close(self.collfile_dialog)
+--                 self:updateItems(1, true)
+--             end,
+--         },
+--         { -- Allow user to ignore some bad metadata (filename will be used instead)
+--             text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
+--             enabled = bookinfo.has_meta and true or false,
+--             callback = function()
+--                 BookInfoManager:setBookInfoProperties(file, {
+--                     ["ignore_meta"] = not bookinfo.ignore_meta and 'Y' or false,
+--                 })
+--                 UIManager:close(self.collfile_dialog)
+--                 self:updateItems(1, true)
+--             end,
+--         },
+--     })
+--     table.insert(orig_buttons, {
+--         { -- Allow a new extraction (multiple interruptions, book replaced)...
+--             text = _("Refresh cached book information"),
+--             callback = function()
+--                 -- Wipe the cache
+--                 self:updateCache(file)
+--                 BookInfoManager:deleteBookInfo(file)
+--                 UIManager:close(self.collfile_dialog)
+--                 self:updateItems(1, true)
+--             end,
+--         },
+--     })
 
-    -- Create the new ButtonDialog, and let UIManager show it
-    self.collfile_dialog = ButtonDialog:new{
-        title = orig_title,
-        title_align = orig_title_align,
-        buttons = orig_buttons,
-    }
-    UIManager:show(self.collfile_dialog)
-    return true
-end
+--     -- Create the new ButtonDialog, and let UIManager show it
+--     self.collfile_dialog = ButtonDialog:new{
+--         title = orig_title,
+--         title_align = orig_title_align,
+--         buttons = orig_buttons,
+--     }
+--     UIManager:show(self.collfile_dialog)
+--     return true
+-- end
 
 function CoverMenu:onCloseWidget()
     -- Due to close callback in FileManagerHistory:onShowHist, we may be called
@@ -490,7 +491,7 @@ function CoverMenu:onCloseWidget()
     logger.dbg("CoverMenu:onCloseWidget: terminating jobs if needed")
     BookInfoManager:terminateBackgroundJobs()
     BookInfoManager:closeDbConnection() -- sqlite connection no more needed
-    BookInfoManager:cleanUp() -- clean temporary resources
+    BookInfoManager:cleanUp()           -- clean temporary resources
     is_pathchooser = false
 
     -- Cancel any still scheduled update
@@ -522,10 +523,10 @@ function CoverMenu:genItemTable(dirs, files, path)
     -- Call the object's original genItemTable
     local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)
     if #item_table > 0 and is_pathchooser == false then
-        if item_table[1].text == "⬆ ../" then table.remove(item_table,1) end
+        if item_table[1].text == "⬆ ../" then table.remove(item_table, 1) end
     end
     if path ~= "/" and (G_reader_settings:isTrue("lock_home_folder") and path == G_reader_settings:readSetting("home_dir")) and is_pathchooser then
-            table.insert(item_table, 1, {
+        table.insert(item_table, 1, {
             text = BD.mirroredUILayout() and BD.ltr("../ ⬆") or "⬆ ../",
             path = path .. "/..",
             is_go_up = true,
@@ -626,13 +627,12 @@ end
 local function onFolderUp()
     if current_path then -- file browser or PathChooser
         if current_path ~= "/" and not (G_reader_settings:isTrue("lock_home_folder") and
-                        current_path == G_reader_settings:readSetting("home_dir")) then
+                current_path == G_reader_settings:readSetting("home_dir")) then
             FileManager.instance.file_chooser:changeToPath(string.format("%s/..", current_path))
         else
             FileManager.instance.file_chooser:goHome()
         end
     end
-
 end
 
 function CoverMenu:updateTitleBarPath(path)
@@ -642,7 +642,7 @@ end
 
 function CoverMenu:setupLayout()
     self.show_parent = self.show_parent or self
-    self.title_bar = TitleBar:new{
+    self.title_bar = TitleBar:new {
         show_parent = self.show_parent,
         fullscreen = "true",
         align = "center",
@@ -687,7 +687,7 @@ function CoverMenu:setupLayout()
         center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
         center_icon_tap_callback = false,
         center_icon_hold_callback = function()
-            UIManager:show(InfoMessage:new{
+            UIManager:show(InfoMessage:new {
                 text = T(_("KOReader %1\nhttps://koreader.rocks\n\nProject Title v0.02\nhttps://projtitle.github.io\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
                 show_icon = false,
                 alignment = "center",
@@ -695,7 +695,7 @@ function CoverMenu:setupLayout()
         end,
     }
 
-    local file_chooser = FileChooser:new{
+    local file_chooser = FileChooser:new {
         name = "filemanager",
         path = self.root_path,
         focused_path = self.focused_file,
@@ -733,7 +733,7 @@ function CoverMenu:setupLayout()
 
     function file_chooser:onFileHold(item)
         if file_manager.selected_files then
-            file_manager:tapPlus()
+            CoverMenu:tapPlus()
         else
             self:showFileDialog(item)
         end
@@ -758,14 +758,6 @@ function CoverMenu:setupLayout()
         local buttons = {
             {
                 {
-                    text = C_("File", "Copy"),
-                    enabled = is_not_parent_folder,
-                    callback = function()
-                        UIManager:close(self.file_dialog)
-                        file_manager:copyFile(file)
-                    end,
-                },
-                {
                     text = C_("File", "Paste"),
                     enabled = file_manager.clipboard and true or false,
                     callback = function()
@@ -775,6 +767,7 @@ function CoverMenu:setupLayout()
                 },
                 {
                     text = _("Select"),
+
                     callback = function()
                         UIManager:close(self.file_dialog)
                         file_manager:onToggleSelectMode()
@@ -785,16 +778,16 @@ function CoverMenu:setupLayout()
                         end
                     end,
                 },
-            },
-            {
                 {
-                    text = _("Cut"),
+                    text = _("Rename"),
                     enabled = is_not_parent_folder,
                     callback = function()
                         UIManager:close(self.file_dialog)
-                        file_manager:cutFile(file)
+                        file_manager:showRenameFileDialog(file, is_file)
                     end,
                 },
+            },
+            {
                 {
                     text = _("Delete"),
                     enabled = is_not_parent_folder,
@@ -804,37 +797,56 @@ function CoverMenu:setupLayout()
                     end,
                 },
                 {
-                    text = _("Rename"),
+                    text = _("Cut"),
                     enabled = is_not_parent_folder,
                     callback = function()
                         UIManager:close(self.file_dialog)
-                        file_manager:showRenameFileDialog(file, is_file)
+                        file_manager:cutFile(file)
                     end,
-                }
+                },
+                {
+                    text = C_("File", "Copy"),
+                    enabled = is_not_parent_folder,
+                    callback = function()
+                        UIManager:close(self.file_dialog)
+                        file_manager:copyFile(file)
+                    end,
+                },
             },
             {}, -- separator
         }
 
+        local book_props
         if is_file then
-            self.book_props = nil -- in 'self' to provide access to it in CoverBrowser
             local has_provider = DocumentRegistry:hasProvider(file)
-            local has_sidecar = DocSettings:hasSidecarFile(file)
+            local been_opened = BookList.hasBookBeenOpened(file)
             local doc_settings_or_file = file
-            if has_provider or has_sidecar then
-                self.book_props = file_manager.coverbrowser and file_manager.coverbrowser:getBookInfo(file)
-                if has_sidecar then
-                    doc_settings_or_file = DocSettings:open(file)
-                    if not self.book_props then
+            if has_provider or been_opened then
+                book_props = file_manager.coverbrowser and file_manager.coverbrowser:getBookInfo(file)
+                if been_opened then
+                    doc_settings_or_file = BookList.getDocSettings(file)
+                    if not book_props then
                         local props = doc_settings_or_file:readSetting("doc_props")
-                        self.book_props = FileManagerBookInfo.extendProps(props, file)
-                        self.book_props.has_cover = true -- to enable "Book cover" button, we do not know if cover exists
+                        book_props = FileManagerBookInfo.extendProps(props, file)
+                        book_props.has_cover = true -- to enable "Book cover" button, we do not know if cover exists
                     end
                 end
-                table.insert(buttons, filemanagerutil.genStatusButtonsRow(doc_settings_or_file, close_dialog_refresh_callback))
+                table.insert(buttons,
+                    filemanagerutil.genStatusButtonsRow(doc_settings_or_file, close_dialog_refresh_callback))
                 table.insert(buttons, {}) -- separator
                 table.insert(buttons, {
                     filemanagerutil.genResetSettingsButton(doc_settings_or_file, close_dialog_refresh_callback),
                     file_manager.collections:genAddToCollectionButton(file, close_dialog_callback, refresh_callback),
+                })
+            end
+            if Device:canExecuteScript(file) then
+                table.insert(buttons, {
+                    filemanagerutil.genExecuteScriptButton(file, close_dialog_callback),
+                })
+            end
+            if FileManagerConverter:isSupported(file) then
+                table.insert(buttons, {
+                    FileManagerConverter:genConvertButton(file, close_dialog_callback, refresh_callback)
                 })
             end
             table.insert(buttons, {
@@ -845,28 +857,12 @@ function CoverMenu:setupLayout()
                         file_manager:showOpenWithDialog(file)
                     end,
                 },
-                filemanagerutil.genBookInformationButton(doc_settings_or_file, self.book_props, close_dialog_callback),
+                filemanagerutil.genBookInformationButton(doc_settings_or_file, book_props, close_dialog_callback),
             })
             if has_provider then
                 table.insert(buttons, {
-                    filemanagerutil.genBookCoverButton(file, self.book_props, close_dialog_callback),
-                    filemanagerutil.genBookDescriptionButton(file, self.book_props, close_dialog_callback),
-                })
-            end
-            if Device:canExecuteScript(file) then
-                table.insert(buttons, {
-                    filemanagerutil.genExecuteScriptButton(file, close_dialog_callback),
-                })
-            end
-            if FileManagerConverter:isSupported(file) then
-                table.insert(buttons, {
-                    {
-                        text = _("Convert"),
-                        callback = function()
-                            UIManager:close(self.file_dialog)
-                            FileManagerConverter:showConvertButtons(file, self)
-                        end,
-                    },
+                    filemanagerutil.genBookCoverButton(file, book_props, close_dialog_callback),
+                    filemanagerutil.genBookDescriptionButton(file, book_props, close_dialog_callback),
                 })
             end
         else -- folder
@@ -887,14 +883,14 @@ function CoverMenu:setupLayout()
 
         if file_manager.file_dialog_added_buttons ~= nil then
             for _, row_func in ipairs(file_manager.file_dialog_added_buttons) do
-                local row = row_func(file, is_file, self.book_props)
+                local row = row_func(file, is_file, book_props)
                 if row ~= nil then
                     table.insert(buttons, row)
                 end
             end
         end
 
-        self.file_dialog = ButtonDialog:new{
+        self.file_dialog = ButtonDialog:new {
             title = is_file and BD.filename(file:match("([^/]+)$")) or BD.directory(file:match("([^/]+)$")),
             title_align = "center",
             buttons = buttons,
@@ -903,7 +899,7 @@ function CoverMenu:setupLayout()
         return true
     end
 
-    local fm_ui = FrameContainer:new{
+    local fm_ui = FrameContainer:new {
         padding = 0,
         bordersize = 0,
         background = Blitbuffer.COLOR_WHITE,
@@ -912,7 +908,7 @@ function CoverMenu:setupLayout()
 
     self[1] = fm_ui
 
-    self.menu = FileManagerMenu:new{
+    self.menu = FileManagerMenu:new {
         ui = self
     }
 
@@ -927,49 +923,49 @@ function CoverMenu:menuInit()
 
     -- create footer items
     local pagination_width = self.page_info:getSize().w -- get width before changing anything
-    self.page_info = HorizontalGroup:new{
+    self.page_info = HorizontalGroup:new {
         self.page_info_first_chev,
         self.page_info_left_chev,
         self.page_info_text,
         self.page_info_right_chev,
         self.page_info_last_chev,
     }
-    local page_info_container = RightContainer:new{
-        dimen = Geom:new{
+    local page_info_container = RightContainer:new {
+        dimen = Geom:new {
             w = self.screen_w * 0.98, -- 98% instead of 94% here due to whitespace on chevrons
             h = self.page_info:getSize().h,
         },
         self.page_info,
     }
-    self.cur_folder_text = TextWidget:new{
+    self.cur_folder_text = TextWidget:new {
         text = self.path,
         face = Font:getFace(good_serif, 20),
         max_width = self.screen_w * 0.94 - pagination_width,
         truncate_with_ellipsis = true,
         truncate_left = true,
     }
-    local cur_folder = HorizontalGroup:new{
+    local cur_folder = HorizontalGroup:new {
         self.cur_folder_text,
     }
-    local cur_folder_container = LeftContainer:new{
-        dimen = Geom:new{
+    local cur_folder_container = LeftContainer:new {
+        dimen = Geom:new {
             w = self.screen_w * 0.94,
             h = self.page_info:getSize().h,
         },
         cur_folder,
     }
-    local footer_left = BottomContainer:new{
+    local footer_left = BottomContainer:new {
         dimen = self.inner_dimen:copy(),
         cur_folder_container
     }
-    local footer_right = BottomContainer:new{
+    local footer_right = BottomContainer:new {
         dimen = self.inner_dimen:copy(),
         page_info_container
     }
-    local page_return = BottomContainer:new{
+    local page_return = BottomContainer:new {
         dimen = self.inner_dimen:copy(),
-        WidgetContainer:new{
-            dimen = Geom:new{
+        WidgetContainer:new {
+            dimen = Geom:new {
                 x = 0, y = 0,
                 w = self.screen_w * 0.94,
                 h = self.page_return_arrow:getSize().h,
@@ -977,8 +973,8 @@ function CoverMenu:menuInit()
             self.return_button,
         }
     }
-    local footer_line = BottomContainer:new{ -- line to separate footer from content above
-        dimen = Geom:new{
+    local footer_line = BottomContainer:new { -- line to separate footer from content above
+        dimen = Geom:new {
             x = 0, y = 0,
             w = self.inner_dimen.w,
             h = self.inner_dimen.h - self.page_info:getSize().h,
@@ -991,7 +987,7 @@ function CoverMenu:menuInit()
         },
     }
 
-    local content = OverlapGroup:new{
+    local content = OverlapGroup:new {
         -- This unique allow_mirroring=false looks like it's enough
         -- to have this complex Menu, and all widgets based on it,
         -- be mirrored correctly with RTL languages
@@ -1003,12 +999,12 @@ function CoverMenu:menuInit()
         footer_right,
         footer_line,
     }
-    self[1] = FrameContainer:new{
+    self[1] = FrameContainer:new {
         background = Blitbuffer.COLOR_WHITE,
         padding = 0,
         margin = 0,
         bordersize = 0,
-        radius = self.is_popout and math.floor(self.dimen.w * (1/20)) or 0,
+        radius = self.is_popout and math.floor(self.dimen.w * (1 / 20)) or 0,
         content
     }
 
@@ -1024,7 +1020,6 @@ function CoverMenu:menuInit()
     if not self.path_items then -- not FileChooser
         self:updateItems(1, true)
     end
-
 end
 
 function CoverMenu:updatePageInfo(select_number)
@@ -1040,7 +1035,7 @@ function CoverMenu:updatePageInfo(select_number)
             self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
             if (self.path == filemanagerutil.getDefaultDir() or
                     self.path == G_reader_settings:readSetting("home_dir")) and
-                    G_reader_settings:nilOrTrue("shorten_home_dir") then
+                G_reader_settings:nilOrTrue("shorten_home_dir") then
                 display_path = "Home"
             elseif self._manager and type(self._manager.name) == "string" then
                 display_path = ""

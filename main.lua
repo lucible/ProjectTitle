@@ -763,7 +763,6 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
     CoverMenu._FileManager_tapPlus_orig = _FileManager_tapPlus_orig
     FileManager.tapPlus = CoverMenu.tapPlus
 
-
     CoverMenu._FileChooser_genItemTable_orig = _FileChooser_genItemTable_orig
     FileChooser.genItemTable = CoverMenu.genItemTable
 

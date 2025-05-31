@@ -1,6 +1,6 @@
 local _ = require("gettext")
 return {
-    name = "projecttitle",
+    name = "coverbrowser",
     fullname = _("Project Title"),
     description = _([[All new user interface for browsing books.]]),
 }
