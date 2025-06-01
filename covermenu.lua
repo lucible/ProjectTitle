@@ -1010,7 +1010,7 @@ function CoverMenu:menuInit()
 
     -- set and update pathchooser status
     is_pathchooser = false
-    if util.stringStartsWith(self.title_bar.title, "Long-press to choose") then
+    if util.stringStartsWith(self.title_bar.title, "Long-press file's name to choose") then
         is_pathchooser = true
     end
 
