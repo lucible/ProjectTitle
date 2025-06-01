@@ -500,7 +500,6 @@ function ListMenuItem:update()
             --     pages, percent_finished, status, has_highlight =
             --        unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
             -- end
-
             local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
             local percent_finished = book_info.percent_finished
             local status = book_info.status

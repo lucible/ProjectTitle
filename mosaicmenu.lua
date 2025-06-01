@@ -545,6 +545,8 @@ function MosaicMenuItem:update()
             end
         end
 
+        local book_info = self.menu.getBookInfo(self.filepath)
+        self.been_opened = book_info.been_opened
         if bookinfo then -- This book is known
             -- Current page / pages are available or more accurate in .sdr/metadata.lua
             -- We use a cache (cleaned at end of this browsing session) to store
@@ -555,13 +557,18 @@ function MosaicMenuItem:update()
             if not self.menu.cover_info_cache then
                 self.menu.cover_info_cache = {}
             end
-            local percent_finished, status
-            if DocSettings:hasSidecarFile(self.filepath) then
-                self.been_opened = true
-                self.menu:updateCache(self.filepath, nil, true, bookinfo.pages) -- create new cache entry if absent
-                dummy, percent_finished, status =
-                    unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
-            end
+
+            -- local percent_finished, status
+            -- if DocSettings:hasSidecarFile(self.filepath) then
+            --     self.been_opened = true
+            --     self.menu:updateCache(self.filepath, nil, true, bookinfo.pages) -- create new cache entry if absent
+            --     dummy, percent_finished, status =
+            --         unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
+            -- end
+            local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
+            local percent_finished = book_info.percent_finished
+            local status = book_info.status
+
             self.percent_finished = percent_finished
             self.status = status
             self.show_progress_bar = self.status ~= "complete" and BookInfoManager:getSetting("show_progress_in_mosaic") and self.percent_finished
