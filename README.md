@@ -14,7 +14,7 @@ Project Title is a project by two people who love KOreader but wanted to expand 
 
 * **A Matching Book Status Page**: The default book status page (available as a screensaver) have been updated to show the book's description and your current progress, as well as having its design updated to match the new book listings.
 
-* **A Few Nice Extras**: Autoscan for new books on USB eject, make list and grid items larger or smaller with gestures (pinch/spread), a trophy icon to mark finished books, more here as i remember lol i hope i don't forget to delete this before we publish.
+* **A Few Nice Extras**: Autoscan for new books on USB eject, make list and grid items larger or smaller with gestures (pinch/spread), a trophy icon to mark finished books, and more (I think).
 
 ## Who this (hopefully) is for:
 * Kobo device owners. We designed this on two Kobos (Aura One, Sage) so we feel pretty confident about the experience there.
