@@ -32,6 +32,9 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 [![Demo Video](https://img.youtube.com/vi/oEsZY8JGXfo/0.jpg)](https://www.youtube.com/watch?v=oEsZY8JGXfo)
 
 ## Installation & Instructions
+To Download:
+Visit the [Releases Page](./releases) and find the version of Project: Title that exactly matches the version of KOReader you want to use. Not all versions of KOReader are supported or will be supported. If you upgrade KOReader, you will need to upgrade Project: Title, and if there is no version of Project: Title yet for that version, it will be blocked from loading.
+
 To install the plugin on your eReader:
 [Installation Wiki Page](../../wiki/Installation)
 
