@@ -5,7 +5,7 @@
     or instances.
 
     Additional provided files must be installed for this plugin to work.
-    See the installation instructions on the Project Title github for details.
+    See the installation instructions on the Project: Title github for details.
 --]]
 
 -- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled. untested version of koreader.
@@ -49,7 +49,7 @@ if (cv_int == safe_version) then
 else logger.warn("Version not safe ", tostring(cv_int))
 end
 if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
-    logger.warn("therefore refusing to load Project Title")
+    logger.warn("therefore refusing to load Project: Title")
     return { disabled = true, }
 end
 
@@ -157,8 +157,8 @@ local min_rows = 2
 local default_cols = 3
 local default_rows = 3
 function CoverBrowser:onDispatcherRegisterActions()
-    Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project Title: Decrease Items Per Page"), filemanager=true, separator = false})
-    Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project Title: Increase Items Per Page"), filemanager=true, separator = false})
+    Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project: Title - Decrease Items Per Page"), filemanager=true, separator = false})
+    Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project: Title - Increase Items Per Page"), filemanager=true, separator = false})
 end
 
 function CoverBrowser:init()
@@ -285,7 +285,7 @@ function CoverBrowser:addToMainMenu(menu_items)
     if menu_items.filebrowser_settings == nil then return end
     local fc = self.ui.file_chooser
     table.insert (menu_items.filebrowser_settings.sub_item_table, 5, {
-        text = _("Project Title settings"),
+        text = _("Project: Title settings"),
         separator = true,
         sub_item_table = {
             {

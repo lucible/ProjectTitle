@@ -3,6 +3,6 @@ return {
     -- we have to lie here and claim to be coverbrowser now that there are explicit calls from core koreader
     -- name = "projecttitle",
     name = "coverbrowser",
-    fullname = _("Project Title"),
+    fullname = _("Project: Title"),
     description = _([[All new user interface for browsing books.]]),
 }
