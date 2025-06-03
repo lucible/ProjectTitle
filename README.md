@@ -1,7 +1,7 @@
 # Project: Title
 
 #### A new view for KOReader, based on CoverBrowser.
-Project Title is a project by two people who love KOreader but wanted to expand upon the CoverBrowser plugin. We desired an interface that would blend in with the very best that commercial eReaders have. Something that would make the time between books, looking for that next read, as pleasant as possible.
+Project: Title is a project by two people who love KOreader but wanted to expand upon the CoverBrowser plugin. We desired an interface that would blend in with the very best that commercial eReaders have. Something that would make the time between books, looking for that next read, as pleasant as possible.
 
 ## Features
 * **A Speedy Title Bar**: Thinner with more functionality — adding Favorites, History, Open Last Book, and Up Folder buttons to help you get exactly where you need as fast as possible.
@@ -39,7 +39,7 @@ To configure Calibre to add page counts to books:
 [Calibre Page Counts Wiki Page](../../wiki/Configure-Calibre-Page-Counts)
 
 Documentation (including hidden Title Bar functions!)
-[Project Title Documentation](../../wiki/Documentation)
+[Project: Title Documentation](../../wiki/Documentation)
 
 ## Credits
 All code here started life as the CoverBrowser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt
