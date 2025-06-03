@@ -32,17 +32,18 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 [![Demo Video](https://img.youtube.com/vi/oEsZY8JGXfo/0.jpg)](https://www.youtube.com/watch?v=oEsZY8JGXfo)
 
 ## Installation & Instructions
-To Download:
-Visit the [Releases Page](./releases) and find the version of Project: Title that exactly matches the version of KOReader you want to use. Not all versions of KOReader are supported or will be supported. If you upgrade KOReader, you will need to upgrade Project: Title, and if there is no version of Project: Title yet for that version, it will be blocked from loading.
+**To Download:** Visit the [Releases Page](../../releases) and find the version of Project: Title that exactly matches the version of KOReader you want to use. Not all versions of KOReader are supported or will be supported. If you upgrade KOReader, you will need to upgrade Project: Title, and if there is no version of Project: Title yet for that version, it will be blocked from loading.
 
-To install the plugin on your eReader:
+**To install the plugin on your eReader:**
 [Installation Wiki Page](../../wiki/Installation)
 
-To configure Calibre to add page counts to books:
+**To configure Calibre to add page counts to books:**
 [Calibre Page Counts Wiki Page](../../wiki/Configure-Calibre-Page-Counts)
 
-Documentation (including hidden Title Bar functions!)
+**Documentation (including hidden Title Bar functions!)**
 [Project: Title Documentation](../../wiki/Documentation)
+
+**To uninstall the plugin:** You can disable it via the checkbox in the KOReader plugin settings menu, or you can delete the projecttitle.koplugin folder from your device. You can delete the additional fonts and icons if you wish as well, check the install steps for a reminder on where you placed them.
 
 ## Credits
 All code here started life as the CoverBrowser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt
