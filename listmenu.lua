@@ -237,8 +237,8 @@ function ListMenuItem:update()
 
     -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
-    if (self.title_bar and util.stringStartsWith(self.title_bar.title, "Long-press file's name to choose")) or
-            (self.menu and util.stringStartsWith(self.menu.title, "Long-press file's name to choose")) then
+    if (self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it")) or
+            (self.menu and util.stringEndsWith(self.menu.title, "name to choose it")) then
         is_pathchooser = true
     end
 
