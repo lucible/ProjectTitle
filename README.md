@@ -43,7 +43,7 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 **Documentation (including hidden Title Bar functions!)**
 [Project: Title Documentation](../../wiki/Documentation)
 
-**To uninstall the plugin:** You can disable it via the checkbox in the KOReader plugin settings menu, or you can delete the projecttitle.koplugin folder from your device. You can delete the additional fonts and icons if you wish as well, check the install steps for a reminder on where you placed them.
+**To uninstall the plugin:** To disable Project: Title open the plugins menu and re-enable Cover Browser then restart your device. You could also delete the projecttitle.koplugin folder from your device. You can then delete the additional fonts and icons, check the install steps for a reminder on where you placed them.
 
 ## Credits
 All code here started life as the CoverBrowser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt
