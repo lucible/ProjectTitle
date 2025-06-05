@@ -1297,7 +1297,7 @@ function ListMenu:_recalculateDimen()
 
     -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
-    if self.title_bar and util.stringStartsWith(self.title_bar.title, "Long-press to choose") then
+    if self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it")then
         is_pathchooser = true
     end
 
