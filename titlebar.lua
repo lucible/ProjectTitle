@@ -18,13 +18,13 @@ local logger = require("logger")
 
 local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
 
-local TitleBar = OverlapGroup:extend{
-    width = nil, -- default to screen width
+local TitleBar = OverlapGroup:extend {
+    width = nil,        -- default to screen width
     fullscreen = false, -- larger font and small adjustments if fullscreen
-    align = "center", -- or "left": title alignment inside TitleBar ("right" nor supported)
+    align = "center",   -- or "left": title alignment inside TitleBar ("right" nor supported)
 
     with_bottom_line = false,
-    bottom_line_color = nil, -- default to black
+    bottom_line_color = nil,     -- default to black
     bottom_line_h_padding = nil, -- default to 0: full width
 
     title = "",
@@ -32,25 +32,19 @@ local TitleBar = OverlapGroup:extend{
     title_face_fullscreen = Font:getFace("smalltfont"),
     title_face_not_fullscreen = Font:getFace("x_smalltfont"),
     -- by default: single line, truncated if overflow -- the default could be made dependant on self.fullscreen
-    title_multilines = false, -- multilines if overflow
-    title_shrink_font_to_fit = false, -- reduce font size so that single line text fits
+    title_multilines = false,                -- multilines if overflow
+    title_shrink_font_to_fit = false,        -- reduce font size so that single line text fits
 
-    -- subtitle = nil,
-    -- subtitle_face = Font:getFace("xx_smallinfofont"),
-    -- subtitle_truncate_left = false, -- default with single line is to truncate right (set to true for a filepath)
-    -- subtitle_fullwidth = false, -- true to allow subtitle to extend below the buttons
-    -- subtitle_multilines = false, -- multilines if overflow
-
-    info_text = nil, -- additional text displayed below bottom line
+    info_text = nil,                         -- additional text displayed below bottom line
     info_text_face = Font:getFace("x_smallinfofont"),
-    info_text_h_padding = nil, -- default to title_h_padding
+    info_text_h_padding = nil,               -- default to title_h_padding
 
-    lang = nil, -- use this language (string) instead of the UI language
+    lang = nil,                              -- use this language (string) instead of the UI language
 
-    title_top_padding = nil, -- computed if none provided
-    title_h_padding = Size.padding.large, -- horizontal padding (this replaces button_padding on the inner/title side)
+    title_top_padding = nil,                 -- computed if none provided
+    title_h_padding = Size.padding.large,    -- horizontal padding (this replaces button_padding on the inner/title side)
     -- title_subtitle_v_padding = 0,
-    bottom_v_padding = nil, -- hardcoded default values, different whether with_bottom_line true or false
+    bottom_v_padding = nil,                  -- hardcoded default values, different whether with_bottom_line true or false
 
     button_padding = Screen:scaleBySize(11), -- fine to keep exit/cross icon diagonally aligned with screen corners
     left_icon = nil,
@@ -95,8 +89,8 @@ local TitleBar = OverlapGroup:extend{
     center_icon_tap_callback = function() end,
     center_icon_hold_callback = function() end,
     center_icon_allow_flash = true,
-        -- set any of these _callback to false to not handle the event
-        -- and let it propagate; otherwise the event is discarded
+    -- set any of these _callback to false to not handle the event
+    -- and let it propagate; otherwise the event is discarded
 
     -- If provided, use right_icon="exit" and use this as right_icon_tap_callback
     close_callback = nil,
@@ -184,7 +178,8 @@ function TitleBar:init()
 
     if self.align == "center" then
         -- Keep title text centered even if single button
-        left_icon_reserved_width = math.max(left_icon_reserved_width, left2_icon_reserved_width,  left3_icon_reserved_width,  right_icon_reserved_width, right2_icon_reserved_width,  right3_icon_reserved_width)
+        left_icon_reserved_width = math.max(left_icon_reserved_width, left2_icon_reserved_width,
+            left3_icon_reserved_width, right_icon_reserved_width, right2_icon_reserved_width, right3_icon_reserved_width)
         left2_icon_reserved_width = left_icon_reserved_width
         left3_icon_reserved_width = left_icon_reserved_width
         right_icon_reserved_width = left_icon_reserved_width
@@ -199,7 +194,7 @@ function TitleBar:init()
         title_face = self.fullscreen and self.title_face_fullscreen or self.title_face_not_fullscreen
     end
     -- Dummy text widget to enforce vertical height
-    self.title_widget = TextWidget:new{
+    self.title_widget = TextWidget:new {
         face = title_face,
         text = "",
     }
@@ -208,9 +203,10 @@ function TitleBar:init()
         -- Compute it so baselines of the text and of the icons align.
         -- Our icons' baselines looks like they could be at 83% to 90% of their height.
         local text_baseline = self.title_widget:getBaseline()
-        local icon_height = math.max(left_icon_size, left2_icon_size, left3_icon_size, right_icon_size, right2_icon_size, right3_icon_size)
+        local icon_height = math.max(left_icon_size, left2_icon_size, left3_icon_size, right_icon_size, right2_icon_size,
+            right3_icon_size)
         local icon_baseline = icon_height * 0.8 + self.button_padding
-        title_top_padding = Math.round(math.max(0,  icon_baseline - text_baseline))
+        title_top_padding = Math.round(math.max(0, icon_baseline - text_baseline))
         if self.title_shrink_font_to_fit then
             -- Use, or store, the first top padding and baseline we have computed,
             -- so the text stays vertically stable
@@ -219,7 +215,8 @@ function TitleBar:init()
                 -- title_top_padding = Math.round(self._initial_title_top_padding + self._initial_title_text_baseline - text_baseline)
                 -- But then, smaller text is not vertically centered in the title bar.
                 -- So, go with just half the baseline difference:
-                title_top_padding = Math.round(self._initial_title_top_padding + (self._initial_title_text_baseline - text_baseline)/2)
+                title_top_padding = Math.round(self._initial_title_top_padding +
+                (self._initial_title_text_baseline - text_baseline) / 2)
             else
                 self._initial_title_top_padding = title_top_padding
                 self._initial_title_text_baseline = text_baseline
@@ -227,15 +224,15 @@ function TitleBar:init()
         end
     end
 
-    self.title_group = VerticalGroup:new{
+    self.title_group = VerticalGroup:new {
         align = self.align,
         overlap_align = self.align,
-        VerticalSpan:new{width = title_top_padding},
+        VerticalSpan:new { width = title_top_padding },
     }
     if self.align == "left" then
         -- we need to :resetLayout() both VerticalGroup and HorizontalGroup in :setTitle()
-        self.inner_title_group = HorizontalGroup:new{
-            HorizontalSpan:new{ width = icon_reserved_width + self.title_h_padding },
+        self.inner_title_group = HorizontalGroup:new {
+            HorizontalSpan:new { width = icon_reserved_width + self.title_h_padding },
             self.title_widget,
         }
         table.insert(self.title_group, self.inner_title_group)
@@ -258,19 +255,19 @@ function TitleBar:init()
                 self._initial_filler_height = filler_height
             end
         end
-        local line_widget = LineWidget:new{
-            dimen = Geom:new{ w = self.width, h = Size.line.thick },
+        local line_widget = LineWidget:new {
+            dimen = Geom:new { w = self.width, h = Size.line.thick },
             background = self.bottom_line_color
         }
         if self.bottom_line_h_padding then
             line_widget.dimen.w = line_widget.dimen.w - 2 * self.bottom_line_h_padding
-            line_widget = HorizontalGroup:new{
-                HorizontalSpan:new{ width = self.bottom_line_h_padding },
+            line_widget = HorizontalGroup:new {
+                HorizontalSpan:new { width = self.bottom_line_h_padding },
                 line_widget,
             }
         end
-        local filler_and_bottom_line = VerticalGroup:new{
-            VerticalSpan:new{ width = filler_height },
+        local filler_and_bottom_line = VerticalGroup:new {
+            VerticalSpan:new { width = filler_height },
             line_widget,
         }
         table.insert(self, filler_and_bottom_line)
@@ -297,11 +294,11 @@ function TitleBar:init()
     if self.info_text then
         local h_padding = self.info_text_h_padding or self.title_h_padding
         local v_padding = self.with_bottom_line and Size.padding.default or 0
-        local filler_and_info_text = VerticalGroup:new{
-            VerticalSpan:new{ width = self.titlebar_height + v_padding },
-            HorizontalGroup:new{
-                HorizontalSpan:new{ width = h_padding },
-                TextBoxWidget:new{
+        local filler_and_info_text = VerticalGroup:new {
+            VerticalSpan:new { width = self.titlebar_height + v_padding },
+            HorizontalGroup:new {
+                HorizontalSpan:new { width = h_padding },
+                TextBoxWidget:new {
                     text = self.info_text,
                     face = self.info_text_face,
                     width = self.width - 2 * h_padding,
@@ -313,7 +310,7 @@ function TitleBar:init()
         self.titlebar_height = filler_and_info_text:getSize().h + self.bottom_v_padding
     end
 
-    self.dimen = Geom:new{
+    self.dimen = Geom:new {
         x = 0,
         y = 0,
         w = self.width,
@@ -325,14 +322,14 @@ function TitleBar:init()
     local icon_padding_side_offset = Screen:scaleBySize(14)
 
     if self.has_left_icon then
-        self.left_button = IconButton:new{
+        self.left_button = IconButton:new {
             icon = self.left_icon,
             icon_rotation_angle = self.left_icon_rotation_angle,
             width = icon_reserved_width,
             height = left_icon_size,
             padding = self.button_padding,
             padding_left = icon_padding_side_offset, -- extend button tap zone
-            padding_right = icon_padding_width / 2, -- extend button tap zone
+            padding_right = icon_padding_width / 2,  -- extend button tap zone
             padding_bottom = left_icon_size * 0.2,
             padding_top = icon_padding_height,
             overlap_align = "left",
@@ -344,14 +341,14 @@ function TitleBar:init()
         table.insert(self, self.left_button)
     end
     if self.has_left2_icon then
-        self.left2_button = IconButton:new{
+        self.left2_button = IconButton:new {
             icon = self.left2_icon,
             icon_rotation_angle = self.left2_icon_rotation_angle,
             width = icon_reserved_width,
             height = left2_icon_size,
             padding = self.button_padding,
             padding_left = icon_padding_side_offset + icon_reserved_width + icon_padding_width, -- extend button tap zone
-            padding_right = icon_padding_width / 2, -- extend button tap zone
+            padding_right = icon_padding_width / 2,                                             -- extend button tap zone
             padding_bottom = left2_icon_size * 0.2,
             padding_top = icon_padding_height,
             overlap_align = "left",
@@ -363,14 +360,14 @@ function TitleBar:init()
         table.insert(self, self.left2_button)
     end
     if self.has_left3_icon then
-        self.left3_button = IconButton:new{
+        self.left3_button = IconButton:new {
             icon = self.left3_icon,
             icon_rotation_angle = self.left3_icon_rotation_angle,
             width = icon_reserved_width,
             height = left3_icon_size,
             padding = self.button_padding,
             padding_left = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width), -- extend button tap zone
-            padding_right = icon_padding_width / 2, -- extend button tap zone
+            padding_right = icon_padding_width / 2,                                                         -- extend button tap zone
             padding_bottom = left3_icon_size * 0.2,
             padding_top = icon_padding_height,
             overlap_align = "left",
@@ -382,7 +379,7 @@ function TitleBar:init()
         table.insert(self, self.left3_button)
     end
     if self.has_right_icon then
-        self.right_button = IconButton:new{
+        self.right_button = IconButton:new {
             icon = self.right_icon,
             icon_rotation_angle = self.right_icon_rotation_angle,
             width = icon_reserved_width,
@@ -401,13 +398,13 @@ function TitleBar:init()
         table.insert(self, self.right_button)
     end
     if self.has_right2_icon then
-        self.right2_button = IconButton:new{
+        self.right2_button = IconButton:new {
             icon = self.right2_icon,
             icon_rotation_angle = self.right2_icon_rotation_angle,
             width = icon_reserved_width,
             height = right2_icon_size,
             padding = self.button_padding,
-            padding_left = icon_padding_width / 2, -- extend button tap zone
+            padding_left = icon_padding_width / 2,                                               -- extend button tap zone
             padding_right = icon_padding_side_offset + icon_reserved_width + icon_padding_width, -- extend button tap zone
             padding_bottom = right2_icon_size * 0.2,
             padding_top = icon_padding_height,
@@ -420,13 +417,13 @@ function TitleBar:init()
         table.insert(self, self.right2_button)
     end
     if self.has_right3_icon then
-        self.right3_button = IconButton:new{
+        self.right3_button = IconButton:new {
             icon = self.right3_icon,
             icon_rotation_angle = self.right3_icon_rotation_angle,
             width = icon_reserved_width,
             height = right3_icon_size,
             padding = self.button_padding,
-            padding_left = icon_padding_width / 2, -- extend button tap zone
+            padding_left = icon_padding_width / 2,                                                                -- extend button tap zone
             padding_right = icon_padding_side_offset + (2 * left_icon_reserved_width) + (2 * icon_padding_width), -- extend button tap zone
             padding_bottom = right3_icon_size * 0.2,
             padding_top = icon_padding_height,
@@ -439,7 +436,7 @@ function TitleBar:init()
         table.insert(self, self.right3_button)
     end
     if self.has_center_icon then
-        self.center_button = IconButton:new{
+        self.center_button = IconButton:new {
             icon = self.center_icon,
             icon_rotation_angle = self.center_icon_rotation_angle,
             width = center_icon_reserved_width,
@@ -522,36 +519,42 @@ function TitleBar:setLeftIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+
 function TitleBar:setLeft2Icon(icon)
     if self.has_left2_icon then
         self.left2_button:setIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+
 function TitleBar:setLeft3Icon(icon)
     if self.has_left3_icon then
         self.left3_button:setIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+
 function TitleBar:setRightIcon(icon)
     if self.has_right_icon then
         self.right_button:setIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+
 function TitleBar:setright2Icon(icon)
     if self.has_right2_icon then
         self.right2_button:setIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+
 function TitleBar:setright3Icon(icon)
     if self.has_right3_icon then
         self.right3_button:setIcon(icon)
         UIManager:setDirty(self.show_parent, "ui", self.dimen)
     end
 end
+
 function TitleBar:setcenterIcon(icon)
     if self.has_center_icon then
         self.center_button:setIcon(icon)
@@ -593,26 +596,27 @@ end
 function TitleBar:generateVerticalLayout()
     local layout = {}
     if self.left_button then
-        table.insert(layout, {self.left_button})
+        table.insert(layout, { self.left_button })
     end
     if self.left2_button then
-        table.insert(layout, {self.left2_button})
+        table.insert(layout, { self.left2_button })
     end
     if self.left3_button then
-        table.insert(layout, {self.left3_button})
+        table.insert(layout, { self.left3_button })
     end
     if self.right3_button then
-        table.insert(layout, {self.right3_button})
+        table.insert(layout, { self.right3_button })
     end
     if self.center_button then
-        table.insert(layout, {self.center_button})
+        table.insert(layout, { self.center_button })
     end
     if self.right2_button then
-        table.insert(layout, {self.right2_button})
+        table.insert(layout, { self.right2_button })
     end
     if self.right_button then
-        table.insert(layout, {self.right_button})
+        table.insert(layout, { self.right_button })
     end
     return layout
 end
+
 return TitleBar

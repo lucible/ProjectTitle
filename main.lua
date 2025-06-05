@@ -1,36 +1,38 @@
 --[[
-    This plugin provides additional display modes to file browsers (File Manager
-    and History).
-    It does that by dynamically replacing some methods code to their classes
-    or instances.
+    Project: Title builds upon the work in the Cover Browser plugin to dramatically
+    alter the way list and mosaic views appear.
 
-    Additional provided files must be installed for this plugin to work.
-    See the installation instructions on the Project: Title github for details.
+    Additional provided files must be installed for this plugin to work. See the
+    installation wiki page on the Project: Title github for details.
 --]]
 
--- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled. untested version of koreader.
+-- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled. wrong version of koreader.
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Version = require("version")
 local font1_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
     font1_missing = false
-else logger.warn("Font1 missing")
+else
+    logger.warn("Font1 missing")
 end
 local font2_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-Regular.ttf") ~= nil then
     font2_missing = false
-else logger.warn("Font2 missing")
+else
+    logger.warn("Font2 missing")
 end
 local font3_missing = true
 if lfs.attributes(lfs.currentdir() .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
     font3_missing = false
-else logger.warn("Font3 missing")
+else
+    logger.warn("Font3 missing")
 end
 local icons_missing = true
 if lfs.attributes(lfs.currentdir() .. "/icons/hero.svg") ~= nil then
     icons_missing = false -- check for one icon and assume the rest are there too
-else logger.warn("Icons missing")
+else
+    logger.warn("Icons missing")
 end
 local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
 if type(plugins_disabled) ~= "table" then
@@ -39,14 +41,16 @@ end
 local coverbrowser_plugin = true
 if plugins_disabled["coverbrowser"] == true then
     coverbrowser_plugin = false
-else logger.warn("CoverBrowser enabled")
+else
+    logger.warn("CoverBrowser enabled")
 end
 local safe_version = 202504000000
 local cv_int, cv_hash = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
 if (cv_int == safe_version) then
     version_unsafe = false
-else logger.warn("Version not safe ", tostring(cv_int))
+else
+    logger.warn("Version not safe ", tostring(cv_int))
 end
 if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
     logger.warn("therefore refusing to load Project: Title")
@@ -73,8 +77,6 @@ local _FileChooser_onCloseWidget_orig = FileChooser.onCloseWidget
 local _FileChooser_genItemTable_orig = FileChooser.genItemTable
 
 local FileManager = require("apps/filemanager/filemanager")
--- local _FileManagerHistory_updateItemTable_orig = FileManagerHistory.updateItemTable
--- local _FileManagerCollection_updateItemTable_orig = FileManagerCollection.updateItemTable
 local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
 local FileManagerCollection = require("apps/filemanager/filemanagercollection")
 local FileManagerFileSearcher = require("apps/filemanager/filemanagerfilesearcher")
@@ -108,42 +110,31 @@ local _BookStatusWidget_genSummaryGroup_orig = BookStatusWidget.genSummaryGroup
 -- Available display modes
 local DISPLAY_MODES = {
     -- nil or ""                -- classic : filename only
-    mosaic_image        = true, -- 3x3 grid covers with images
-    list_image_meta     = true, -- image with metadata (title/authors)
-    list_only_meta      = true, -- metadata with no image
-
-    -- disable the following modes:
-    -- mosaic_text         = true, -- 3x3 grid covers text only
-    -- list_image_filename = true, -- image with filename (no metadata)
+    mosaic_image    = true,     -- 3x3 grid covers with images
+    list_image_meta = true,     -- image with metadata (title/authors)
+    list_only_meta  = true,     -- metadata with no image
 }
 local display_mode_db_names = {
-    filemanager  = "filemanager_display_mode",
-    history      = "history_display_mode",
-    collections  = "collection_display_mode",
+    filemanager = "filemanager_display_mode",
+    history     = "history_display_mode",
+    collections = "collection_display_mode",
 }
 -- Store some states as locals, to be permanent across instantiations
 local init_done = false
 local curr_display_modes = {
-    filemanager  = false, -- not initialized yet
-    history      = false, -- not initialized yet
-    collections  = false, -- not initialized yet
+    filemanager = false,  -- not initialized yet
+    history     = false,  -- not initialized yet
+    collections = false,  -- not initialized yet
 }
--- local filemanager_display_mode = false -- not initialized yet
--- local history_display_mode = false -- not initialized yet
--- local collection_display_mode = false -- not initialized yet
-local series_mode = nil -- defaults to not display series
+local series_mode = nil   -- defaults to not display series
 
-local CoverBrowser = WidgetContainer:extend{
+local CoverBrowser = WidgetContainer:extend {
     name = "coverbrowserclean",
     modes = {
-        { _("Detailed List"), "list_only_meta" },
+        { _("Detailed List"),               "list_only_meta" },
         { _("Detailed List (with covers)"), "list_image_meta" },
-        { _("Cover Grid"), "mosaic_image" },
+        { _("Cover Grid"),                  "mosaic_image" },
         { _("Filenames List") },
-
-        -- disable the following modes:
-        -- { _("Mosaic with text covers"), "mosaic_text" },
-        -- { _("Detailed list with cover images and filenames"), "list_image_filename" },
     },
 }
 
@@ -157,8 +148,10 @@ local min_rows = 2
 local default_cols = 3
 local default_rows = 3
 function CoverBrowser:onDispatcherRegisterActions()
-    Dispatcher:registerAction("dec_items_pp", { category = "none", event = "DecreaseItemsPerPage", title = _("Project: Title - Decrease Items Per Page"), filemanager=true, separator = false})
-    Dispatcher:registerAction("inc_items_pp", { category = "none", event = "IncreaseItemsPerPage", title = _("Project: Title - Increase Items Per Page"), filemanager=true, separator = false})
+    Dispatcher:registerAction("dec_items_pp",
+        { category = "none", event = "DecreaseItemsPerPage", title = _("Project: Title - Decrease Items Per Page"), filemanager = true, separator = false })
+    Dispatcher:registerAction("inc_items_pp",
+        { category = "none", event = "IncreaseItemsPerPage", title = _("Project: Title - Increase Items Per Page"), filemanager = true, separator = false })
 end
 
 function CoverBrowser:init()
@@ -175,7 +168,6 @@ function CoverBrowser:init()
         -- Only if no display mode has been set yet
         if not BookInfoManager:getSetting("filemanager_display_mode")
             and not BookInfoManager:getSetting("history_display_mode") then
-            -- logger.info("CoverBrowser: setting default display modes")
             BookInfoManager:saveSetting("filemanager_display_mode", "list_image_meta")
             BookInfoManager:saveSetting("history_display_mode", "list_image_meta")
             BookInfoManager:saveSetting("collection_display_mode", "list_image_meta")
@@ -226,22 +218,18 @@ function CoverBrowser:addToMainMenu(menu_items)
         history_sub_item_table[i] = {
             text = text,
             checked_func = function()
-                -- return mode == history_display_mode
                 return mode == curr_display_modes["history"]
             end,
             callback = function()
-                -- self:setupHistoryDisplayMode(mode)
                 CoverBrowser.setupWidgetDisplayMode("history", mode)
             end,
         }
         collection_sub_item_table[i] = {
             text = text,
             checked_func = function()
-                -- return mode == collection_display_mode
                 return mode == curr_display_modes["collections"]
             end,
             callback = function()
-                -- self:setupCollectionDisplayMode(mode)
                 CoverBrowser.setupWidgetDisplayMode("collections", mode)
             end,
         }
@@ -254,8 +242,6 @@ function CoverBrowser:addToMainMenu(menu_items)
         end,
         callback = function()
             if BookInfoManager:toggleSetting("unified_display_mode") then
-                -- self:setupHistoryDisplayMode(filemanager_display_mode)
-                -- self:setupCollectionDisplayMode(filemanager_display_mode)
                 CoverBrowser.setupWidgetDisplayMode("history", curr_display_modes["filemanager"])
                 CoverBrowser.setupWidgetDisplayMode("collections", curr_display_modes["filemanager"])
             end
@@ -284,20 +270,21 @@ function CoverBrowser:addToMainMenu(menu_items)
     -- next to Classic mode settings
     if menu_items.filebrowser_settings == nil then return end
     local fc = self.ui.file_chooser
-    table.insert (menu_items.filebrowser_settings.sub_item_table, 5, {
+    table.insert(menu_items.filebrowser_settings.sub_item_table, 5, {
         text = _("Project: Title settings"),
         separator = true,
         sub_item_table = {
             {
                 text_func = function()
-                    return T(_("Items per page in portrait mosaic mode: %1 × %2"), fc.nb_cols_portrait, fc.nb_rows_portrait)
+                    return T(_("Items per page in portrait mosaic mode: %1 × %2"), fc.nb_cols_portrait,
+                        fc.nb_rows_portrait)
                 end,
                 -- Best to not "keep_menu_open = true", to see how this apply on the full view
                 callback = function()
                     local nb_cols = fc.nb_cols_portrait
                     local nb_rows = fc.nb_rows_portrait
                     local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
-                    local widget = DoubleSpinWidget:new{
+                    local widget = DoubleSpinWidget:new {
                         title_text = _("Portrait mosaic mode"),
                         width_factor = 0.6,
                         left_text = _("Columns"),
@@ -339,13 +326,14 @@ function CoverBrowser:addToMainMenu(menu_items)
             },
             {
                 text_func = function()
-                    return T(_("Items per page in landscape mosaic mode: %1 × %2"), fc.nb_cols_landscape, fc.nb_rows_landscape)
+                    return T(_("Items per page in landscape mosaic mode: %1 × %2"), fc.nb_cols_landscape,
+                        fc.nb_rows_landscape)
                 end,
                 callback = function()
                     local nb_cols = fc.nb_cols_landscape
                     local nb_rows = fc.nb_rows_landscape
                     local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
-                    local widget = DoubleSpinWidget:new{
+                    local widget = DoubleSpinWidget:new {
                         title_text = _("Landscape mosaic mode"),
                         width_factor = 0.6,
                         left_text = _("Columns"),
@@ -394,7 +382,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                 callback = function()
                     local files_per_page = fc.files_per_page or default_items_per_page
                     local SpinWidget = require("ui/widget/spinwidget")
-                    local widget = SpinWidget:new{
+                    local widget = SpinWidget:new {
                         title_text = _("Portrait list mode"),
                         value = files_per_page,
                         value_min = min_items_per_page,
@@ -476,19 +464,19 @@ function CoverBrowser:addToMainMenu(menu_items)
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
                             UIManager:close(self.file_dialog)
-                            UIManager:show(ConfirmBox:new{
+                            UIManager:show(ConfirmBox:new {
                                 -- Checking file existences is quite fast, but deleting entries is slow.
                                 text = _("Are you sure that you want to prune cache of removed books?\n(This may take a while.)"),
                                 ok_text = _("Prune cache"),
                                 ok_callback = function()
                                     local InfoMessage = require("ui/widget/infomessage")
-                                    local msg = InfoMessage:new{ text = _("Pruning cache of removed books…") }
+                                    local msg = InfoMessage:new { text = _("Pruning cache of removed books…") }
                                     UIManager:show(msg)
                                     UIManager:nextTick(function()
                                         local summary = BookInfoManager:removeNonExistantEntries()
                                         BookInfoManager:compactDb() -- compact
                                         UIManager:close(msg)
-                                        UIManager:show( InfoMessage:new{ text = summary } )
+                                        UIManager:show(InfoMessage:new { text = summary })
                                     end)
                                 end
                             })
@@ -500,14 +488,14 @@ function CoverBrowser:addToMainMenu(menu_items)
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
                             UIManager:close(self.file_dialog)
-                            UIManager:show(ConfirmBox:new{
+                            UIManager:show(ConfirmBox:new {
                                 text = _("Are you sure that you want to delete cover and metadata cache for all books?"),
                                 ok_text = _("Empty cache"),
                                 ok_callback = function()
                                     BookInfoManager:deleteDb()
                                     BookInfoManager:compactDb() -- compact
                                     local InfoMessage = require("ui/widget/infomessage")
-                                    UIManager:show( InfoMessage:new{ text = "Cache emptied." } )
+                                    UIManager:show(InfoMessage:new { text = "Cache emptied." })
                                 end
                             })
                         end,
@@ -567,7 +555,7 @@ function CoverBrowser.initGrid(menu, display_mode)
         menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
         menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
         -- initial List mode files_per_page will be calculated and saved by ListMenu on the first drawing
-        menu.files_per_page = BookInfoManager:getSetting("files_per_page")
+        menu.files_per_page    = BookInfoManager:getSetting("files_per_page")
     end
     menu.display_mode_type = display_mode and display_mode:gsub("_.*", "") -- "mosaic" or "list"
 end
@@ -636,7 +624,7 @@ function CoverBrowser:refreshFileManagerInstance(cleanup, post_init)
     if fc then
         fc:_recalculateDimen()
         fc:switchItemTable(nil, nil, fc.prev_itemnumber, { dummy = "" }) -- dummy itemmatch to draw focus
-        if cleanup then -- clean instance properties we may have set
+        if cleanup then                                                  -- clean instance properties we may have set
             if fc.showFileDialog_orig then
                 -- remove our showFileDialog that extended file_dialog with new buttons
                 fc.showFileDialog = fc.showFileDialog_orig
@@ -666,8 +654,6 @@ end
 function CoverBrowser:setDisplayMode(display_mode)
     self:setupFileManagerDisplayMode(display_mode)
     if BookInfoManager:getSetting("unified_display_mode") then
-        -- self:setupHistoryDisplayMode(display_mode)
-        -- self:setupCollectionDisplayMode(display_mode)
         CoverBrowser.setupWidgetDisplayMode("history", display_mode)
         CoverBrowser.setupWidgetDisplayMode("collections", display_mode)
     end
@@ -682,7 +668,6 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         return
     end
     if init_done then -- save new mode in db
-        -- BookInfoManager:saveSetting("filemanager_display_mode", display_mode)
         BookInfoManager:saveSetting(display_mode_db_names["filemanager"], display_mode)
     end
     -- remember current mode in module variable
@@ -797,170 +782,12 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
     end
 end
 
--- local function _FileManagerHistory_updateItemTable(self)
---     -- 'self' here is the single FileManagerHistory instance
---     -- FileManagerHistory has just created a new instance of Menu as 'hist_menu'
---     -- at each display of History. Soon after instantiation, this method
---     -- is called. The first time it is called, we replace some methods.
---     local display_mode = self.display_mode
---     local hist_menu = self.hist_menu
-
---     if not hist_menu._coverbrowser_overridden then
---         hist_menu._coverbrowser_overridden = true
-
---         -- In both mosaic and list modes, replace original methods with those from
---         -- our generic CoverMenu
---         local CoverMenu = require("covermenu")
---         hist_menu.updateCache = CoverMenu.updateCache
---         hist_menu.updateItems = CoverMenu.updateItems
---         hist_menu.onCloseWidget = CoverMenu.onCloseWidget
---         -- Also replace original onMenuHold (it will use original method, so remember it)
---         hist_menu.onMenuHold_orig = hist_menu.onMenuHold
---         hist_menu.onMenuHold = CoverMenu.onHistoryMenuHold
-
---         CoverBrowser.initGrid(hist_menu, display_mode)
---         if hist_menu.display_mode_type == "mosaic" then
---             -- Replace some other original methods with those from our MosaicMenu
---             local MosaicMenu = require("mosaicmenu")
---             hist_menu._recalculateDimen = MosaicMenu._recalculateDimen
---             hist_menu._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
---             -- Set MosaicMenu behaviour:
---             hist_menu._do_cover_images = display_mode ~= "mosaic_text"
---             hist_menu._do_center_partial_rows = true -- nicer looking when few elements
-
---         elseif hist_menu.display_mode_type == "list" then
---             -- Replace some other original methods with those from our ListMenu
---             local ListMenu = require("listmenu")
---             hist_menu._recalculateDimen = ListMenu._recalculateDimen
---             hist_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
---             -- Set ListMenu behaviour:
---             hist_menu._do_cover_images = display_mode ~= "list_only_meta"
---             hist_menu._do_filename_only = display_mode == "list_image_filename"
-
---         end
---         hist_menu._do_hint_opened = BookInfoManager:getSetting("history_hint_opened")
---     end
-
---     -- And do now what the original does
---     _FileManagerHistory_updateItemTable_orig(self)
--- end
-
--- function CoverBrowser:setupHistoryDisplayMode(display_mode)
---     if not DISPLAY_MODES[display_mode] then
---         display_mode = nil -- unknow mode, fallback to classic
---     end
---     if init_done and display_mode == history_display_mode then -- no change
---         return
---     end
---     if init_done then -- save new mode in db
---         BookInfoManager:saveSetting("history_display_mode", display_mode)
---     end
---     -- remember current mode in module variable
---     history_display_mode = display_mode
---     logger.dbg("CoverBrowser: setting History display mode to:", display_mode or "classic")
-
---     if not init_done and not display_mode then
---         return -- starting in classic mode, nothing to patch
---     end
-
---     -- We only need to replace one FileManagerHistory method
---     if not display_mode then -- classic mode
---         -- Put back original methods
---         FileManagerHistory.updateItemTable = _FileManagerHistory_updateItemTable_orig
---         FileManagerHistory.display_mode = nil
---     else
---         -- Replace original method with the one defined above
---         FileManagerHistory.updateItemTable = _FileManagerHistory_updateItemTable
---         -- And let it know which display_mode we should use
---         FileManagerHistory.display_mode = display_mode
---     end
--- end
-
--- local function _FileManagerCollection_updateItemTable(self)
---     -- 'self' here is the single FileManagerCollection instance
---     -- FileManagerCollection has just created a new instance of Menu as 'coll_menu'
---     -- at each display of Collection/Favorites. Soon after instantiation, this method
---     -- is called. The first time it is called, we replace some methods.
---     local display_mode = self.display_mode
---     local coll_menu = self.coll_menu
-
---     if not coll_menu._coverbrowser_overridden then
---         coll_menu._coverbrowser_overridden = true
-
---         -- In both mosaic and list modes, replace original methods with those from
---         -- our generic CoverMenu
---         local CoverMenu = require("covermenu")
---         coll_menu.updateCache = CoverMenu.updateCache
---         coll_menu.updateItems = CoverMenu.updateItems
---         coll_menu.onCloseWidget = CoverMenu.onCloseWidget
---         -- Also replace original onMenuHold (it will use original method, so remember it)
---         coll_menu.onMenuHold_orig = coll_menu.onMenuHold
---         coll_menu.onMenuHold = CoverMenu.onCollectionsMenuHold
-
---         CoverBrowser.initGrid(coll_menu, display_mode)
---         if coll_menu.display_mode_type == "mosaic" then
---             -- Replace some other original methods with those from our MosaicMenu
---             local MosaicMenu = require("mosaicmenu")
---             coll_menu._recalculateDimen = MosaicMenu._recalculateDimen
---             coll_menu._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
---             -- Set MosaicMenu behaviour:
---             coll_menu._do_cover_images = display_mode ~= "mosaic_text"
---             coll_menu._do_center_partial_rows = true -- nicer looking when few elements
-
---         elseif coll_menu.display_mode_type == "list" then
---             -- Replace some other original methods with those from our ListMenu
---             local ListMenu = require("listmenu")
---             coll_menu._recalculateDimen = ListMenu._recalculateDimen
---             coll_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
---             -- Set ListMenu behaviour:
---             coll_menu._do_cover_images = display_mode ~= "list_only_meta"
---             coll_menu._do_filename_only = display_mode == "list_image_filename"
-
---         end
---         coll_menu._do_hint_opened = BookInfoManager:getSetting("collections_hint_opened")
---     end
-
---     -- And do now what the original does
---     _FileManagerCollection_updateItemTable_orig(self)
--- end
-
--- function CoverBrowser:setupCollectionDisplayMode(display_mode)
---     if not DISPLAY_MODES[display_mode] then
---         display_mode = nil -- unknow mode, fallback to classic
---     end
---     if init_done and display_mode == collection_display_mode then -- no change
---         return
---     end
---     if init_done then -- save new mode in db
---         BookInfoManager:saveSetting("collection_display_mode", display_mode)
---     end
---     -- remember current mode in module variable
---     collection_display_mode = display_mode
---     logger.dbg("CoverBrowser: setting Collection display mode to:", display_mode or "classic")
-
---     if not init_done and not display_mode then
---         return -- starting in classic mode, nothing to patch
---     end
-
---     -- We only need to replace one FileManagerCollection method
---     if not display_mode then -- classic mode
---         -- Put back original methods
---         FileManagerCollection.updateItemTable = _FileManagerCollection_updateItemTable_orig
---         FileManagerCollection.display_mode = nil
---     else
---         -- Replace original method with the one defined above
---         FileManagerCollection.updateItemTable = _FileManagerCollection_updateItemTable
---         -- And let it know which display_mode we should use
---         FileManagerCollection.display_mode = display_mode
---     end
--- end
-
 function CoverBrowser.setupWidgetDisplayMode(widget_id, display_mode)
     if display_mode == true then -- init
         display_mode = BookInfoManager:getSetting(display_mode_db_names[widget_id])
     end
     if not DISPLAY_MODES[display_mode] then
-        display_mode = nil -- unknown mode, fallback to classic
+        display_mode = nil                                              -- unknown mode, fallback to classic
     end
     if init_done and display_mode == curr_display_modes[widget_id] then -- no change
         return
@@ -1057,15 +884,12 @@ function CoverBrowser:onDocSettingsItemsChanged(file, doc_settings)
         status = doc_settings.summary and doc_settings.summary.status
         if not status then return end -- changes not for us
     end
-    -- if filemanager_display_mode and self.ui.file_chooser then
     if curr_display_modes["filemanager"] and self.ui.file_chooser then
         self.ui.file_chooser:updateCache(file, status)
     end
-    -- if history_display_mode and self.ui.history and self.ui.history.hist_menu then
     if curr_display_modes["history"] and self.ui.history and self.ui.history.hist_menu then
         self.ui.history.hist_menu:updateCache(file, status)
     end
-    -- if collection_display_mode and self.ui.collections and self.ui.collections.coll_menu then
     if curr_display_modes["collections"] and self.ui.collections and self.ui.collections.coll_menu then
         self.ui.collections.coll_menu:updateCache(file, status)
     end
@@ -1088,7 +912,7 @@ function CoverBrowser:onIncreaseItemsPerPage()
         files_per_page = math.min(files_per_page + 1, max_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
         FileChooser.files_per_page = files_per_page
-    -- grid mode
+        -- grid mode
     elseif display_mode == "mosaic_image" then
         local Device = require("device")
         local Screen = Device.screen
@@ -1132,7 +956,7 @@ function CoverBrowser:onDecreaseItemsPerPage()
         files_per_page = math.max(files_per_page - 1, min_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
         FileChooser.files_per_page = files_per_page
-    -- grid mode
+        -- grid mode
     elseif display_mode == "mosaic_image" then
         local Device = require("device")
         local Screen = Device.screen

@@ -208,7 +208,8 @@ function AltBookStatusWidget:genBookInfoGroup()
     }
 
     -- title box (done last to calculate the max available height)
-    local max_title_height = height - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h - Size.padding.default
+    local max_title_height = height - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h -
+    Size.padding.default
     local booktitle = TextBoxWidget:new {
         text = props.display_title,
         lang = lang,
@@ -221,9 +222,9 @@ function AltBookStatusWidget:genBookInfoGroup()
     }
 
     -- padding
-    local meta_padding_height = math.max(Size.padding.default, height - booktitle:getSize().h - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h)
+    local meta_padding_height = math.max(Size.padding.default,
+        height - booktitle:getSize().h - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h)
     local meta_padding = VerticalSpan:new { width = meta_padding_height }
-    logger.info("meta_padding ", meta_padding)
 
     -- build metadata column (adjacent to cover)
     local book_meta_info_group = VerticalGroup:new {

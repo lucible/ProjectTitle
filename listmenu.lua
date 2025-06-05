@@ -214,7 +214,7 @@ function ListMenuItem:update()
     -- calculate font used in all right widget text
     local wright_font_face = Font:getFace(good_sans, _fontSize(12, 18))
     -- and font sizes used for title and author/series
-    local title_font_size = _fontSize(20, 26) -- 22
+    local title_font_size = _fontSize(20, 26)   -- 22
     local authors_font_size = _fontSize(14, 18) -- 16
 
     -- We'll draw a border around cover images, it may not be
@@ -238,7 +238,7 @@ function ListMenuItem:update()
     -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
     if (self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it")) or
-            (self.menu and util.stringEndsWith(self.menu.title, "name to choose it")) then
+        (self.menu and util.stringEndsWith(self.menu.title, "name to choose it")) then
         is_pathchooser = true
     end
 
@@ -275,7 +275,7 @@ function ListMenuItem:update()
                 table.insert(wright_items, wfilecount)
             end
         else
-            local wmandatory = TextWidget:new{
+            local wmandatory = TextWidget:new {
                 -- self.mandatory CAN be nil, usually in pathchooser
                 text = self.mandatory or "",
                 face = wright_font_face,
@@ -370,7 +370,7 @@ function ListMenuItem:update()
             if bookinfo.cover_fetched then
                 if bookinfo.has_cover and not self.menu.no_refresh_covers then
                     --if BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
-                        -- skip this. we're storing a single thumbnail res and that's it.
+                    -- skip this. we're storing a single thumbnail res and that's it.
                     --end
                 end
                 -- if not has_cover, book has no cover, no need to try again
@@ -397,7 +397,8 @@ function ListMenuItem:update()
                     wleft_width = wleft_height -- make it squared
                     cover_bb_used = true
                     -- Let ImageWidget do the scaling and give us the final size
-                    local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h)
+                    local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h,
+                        max_img_w, max_img_h)
                     local wimage = ImageWidget:new {
                         image = bookinfo.cover_bb,
                         scale_factor = scale_factor,
@@ -420,7 +421,7 @@ function ListMenuItem:update()
                     -- Let menu know it has some item with images
                     self.menu._has_cover_images = true
                     self._has_cover_image = true
-                -- add generic file icons, but not in pathchooser
+                    -- add generic file icons, but not in pathchooser
                 else
                     -- use generic file icon insteaed of cover image
                     wleft_height = dimen.h
@@ -492,14 +493,6 @@ function ListMenuItem:update()
             local percent_str = ""
             local progress_str = ""
 
-            -- local pages = bookinfo.pages -- default to those in bookinfo db
-            -- local percent_finished, status, has_highlight
-            -- if DocSettings:hasSidecarFile(self.filepath) then
-            --     self.been_opened = true
-            --     self.menu:updateCache(self.filepath, nil, true, pages) -- create new cache entry if absent
-            --     pages, percent_finished, status, has_highlight =
-            --        unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
-            -- end
             local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
             local percent_finished = book_info.percent_finished
             local status = book_info.status
@@ -525,15 +518,16 @@ function ListMenuItem:update()
 
             local est_page_count = bookinfo.pages or nil
             if est_page_count and
-                        not BookInfoManager:getSetting("hide_page_info") and
-                        not BookInfoManager:getSetting("show_pages_read_as_progress") then
+                not BookInfoManager:getSetting("hide_page_info") and
+                not BookInfoManager:getSetting("show_pages_read_as_progress") then
                 local progressbar_items = { align = "center" }
 
                 local fn_pages = tonumber(est_page_count)
                 local max_progress_size = 235
                 local pixels_per_page = 3
                 local min_progress_size = 25
-                local total_pixels = math.max((math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
+                local total_pixels = math.max(
+                (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
                 local progress_bar = ProgressWidget:new {
                     width = Screen:scaleBySize(total_pixels),
                     height = Screen:scaleBySize(15),
@@ -549,7 +543,7 @@ function ListMenuItem:update()
                 local progress_width = progress_bar:getSize().w
                 local progress_dimen
                 local bar_and_icons
-                local bar_icon_size = Screen:scaleBySize(23) -- size for icons used with progress bar
+                local bar_icon_size = Screen:scaleBySize(23)        -- size for icons used with progress bar
                 if status == "complete" and fn_pages > (max_progress_size * pixels_per_page) then
                     progress_width = progress_width + bar_icon_size -- both icons need 2x half-width (1 full width) added
                     progress_dimen = Geom:new {
@@ -562,7 +556,7 @@ function ListMenuItem:update()
                         progress_bar,
                     }
                 elseif status == "complete" then
-                    progress_width = progress_width + math.floor(bar_icon_size/2) -- one icon needs 1x half-width added
+                    progress_width = progress_width + math.floor(bar_icon_size / 2) -- one icon needs 1x half-width added
                     progress_dimen = Geom:new {
                         x = 0, y = 0,
                         w = progress_width,
@@ -573,7 +567,7 @@ function ListMenuItem:update()
                         progress_bar,
                     }
                 elseif fn_pages > (max_progress_size * pixels_per_page) then
-                    progress_width = progress_width + math.floor(bar_icon_size/2) -- one icon needs 1x half-width added
+                    progress_width = progress_width + math.floor(bar_icon_size / 2) -- one icon needs 1x half-width added
                     progress_dimen = Geom:new {
                         x = 0, y = 0,
                         w = progress_width,
@@ -594,7 +588,7 @@ function ListMenuItem:update()
                         progress_bar,
                     }
                 end
-                local progress_block = OverlapGroup:new{
+                local progress_block = OverlapGroup:new {
                     dimen = progress_dimen,
                 }
                 table.insert(progress_block, bar_and_icons)
@@ -609,7 +603,7 @@ function ListMenuItem:update()
                         alpha = true,
                         original_in_nightmode = false,
                     })
-                    table.insert(progress_block, LeftContainer:new{
+                    table.insert(progress_block, LeftContainer:new {
                         dimen = progress_dimen,
                         max_widget,
                     })
@@ -626,7 +620,7 @@ function ListMenuItem:update()
                         alpha = true,
                         original_in_nightmode = false,
                     })
-                    table.insert(progress_block, RightContainer:new{
+                    table.insert(progress_block, RightContainer:new {
                         dimen = progress_dimen,
                         trophy_widget,
                     })
@@ -749,7 +743,8 @@ function ListMenuItem:update()
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
-            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
+            local show_series = bookinfo.series and bookinfo.series_index and
+            bookinfo.series_index ~= 0                                                                   -- suppress series if index is "0"
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them
@@ -1075,7 +1070,7 @@ function ListMenuItem:update()
             local wright_items = { align = "right" }
             local pad_width = Screen:scaleBySize(10) -- on the left, in between, and on the right
 
-            local wmandatory = TextWidget:new{
+            local wmandatory = TextWidget:new {
                 text = self.mandatory or "",
                 face = wright_font_face,
             }
@@ -1255,12 +1250,12 @@ end
 
 -- As done in MenuItem
 function ListMenuItem:onFocus()
-    -- self._underline_container.color = Blitbuffer.COLOR_BLACK
+    -- do nothing to indicate focus
     return true
 end
 
 function ListMenuItem:onUnfocus()
-    -- self._underline_container.color = Blitbuffer.COLOR_WHITE
+    -- do nothing to indicate focus
     return true
 end
 
@@ -1284,8 +1279,10 @@ local ListMenu = {}
 
 function ListMenu:_recalculateDimen()
     local Menu = require("ui/widget/menu")
-    local perpage = self.items_per_page or G_reader_settings:readSetting("items_per_page") or self.items_per_page_default
-    local font_size = self.items_font_size or G_reader_settings:readSetting("items_font_size") or Menu.getItemFontSize(perpage)
+    local perpage = self.items_per_page or G_reader_settings:readSetting("items_per_page") or self
+    .items_per_page_default
+    local font_size = self.items_font_size or G_reader_settings:readSetting("items_font_size") or
+    Menu.getItemFontSize(perpage)
     if self.perpage ~= perpage or self.font_size ~= font_size then
         self.perpage = perpage
         self.font_size = font_size
@@ -1297,7 +1294,7 @@ function ListMenu:_recalculateDimen()
 
     -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
-    if self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it")then
+    if self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it") then
         is_pathchooser = true
     end
 
@@ -1388,7 +1385,7 @@ function ListMenu:_updateItemsBuildUI()
     -- Build our list
     local line_width = self.width or self.screen_w
     -- create and draw the top-most line at 94% screen width (acts like bottom line for titlebar)
-    local line_widget = HorizontalGroup:new{
+    local line_widget = HorizontalGroup:new {
         HorizontalSpan:new { width = line_width * 0.03 },
         LineWidget:new {
             dimen = Geom:new { w = line_width * 0.94, h = Size.line.medium },
