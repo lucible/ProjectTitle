@@ -14,9 +14,9 @@ local IconWidget = require("ui/widget/iconwidget")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LeftContainer = require("ui/widget/container/leftcontainer")
+local LineWidget = require("ui/widget/linewidget")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local ProgressWidget = require("ui/widget/progresswidget")
-local ReadCollection = require("readcollection")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
@@ -882,6 +882,17 @@ end
 
 function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
+    local line_width = self.width or self.screen_w
+    -- create and draw the top-most line at 94% screen width (acts like bottom line for titlebar)
+    local line_widget = HorizontalGroup:new {
+        HorizontalSpan:new { width = line_width * 0.03 },
+        LineWidget:new {
+            dimen = Geom:new { w = line_width * 0.94, h = Size.line.medium },
+            background = Blitbuffer.COLOR_BLACK,
+        },
+        HorizontalSpan:new { width = line_width * 0.03 },
+    }
+    table.insert(self.item_group, line_widget)
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
     local line_layout = {}
