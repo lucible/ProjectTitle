@@ -24,14 +24,11 @@ local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("titlebar")
-local VerticalGroup = require("ui/widget/verticalgroup")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local FileManagerMenu = require("apps/filemanager/filemanagermenu")
-local Version = require("version")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
 local Device = require("device")
-local T = require("ffi/util").template
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local util = require("util")
 local ffiUtil = require("ffi/util")
@@ -62,6 +59,7 @@ local BookInfoManager = require("bookinfomanager")
 local current_path = nil
 local current_cover_specs = false
 local is_pathchooser = false
+local meta_browse_mode = false
 
 local good_serif = "source/SourceSerif4-Regular.ttf"
 
@@ -304,68 +302,68 @@ function CoverMenu:onCloseWidget()
 end
 
 function CoverMenu:genItemTable(dirs, files, path)
-    -- Call the object's original genItemTable
-    local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)
-    if #item_table > 0 and is_pathchooser == false then
-        if item_table[1].text == "⬆ ../" then table.remove(item_table, 1) end
-    end
-    if path ~= "/" and (G_reader_settings:isTrue("lock_home_folder") and path == G_reader_settings:readSetting("home_dir")) and is_pathchooser then
-        table.insert(item_table, 1, {
-            text = BD.mirroredUILayout() and BD.ltr("../ ⬆") or "⬆ ../",
-            path = path .. "/..",
-            is_go_up = true,
-        })
-    end
-    return item_table
+    if meta_browse_mode == true and is_pathchooser == false then
+        local Filechooser = require("ui/widget/filechooser")
+        local lfs = require("libs/libkoreader-lfs")
+        local SQ3 = require("lua-ljsqlite3/init")
+        local DataStorage = require("datastorage")
+        local custom_item_table = {}
+        self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
+        self.db_conn = SQ3.open(self.db_location)
+        self.db_conn:set_busy_timeout(5000)
+        local res = self.db_conn:exec("SELECT directory, filename FROM bookinfo ORDER BY authors ASC, series ASC, series_index ASC, title ASC;")
+        if res then
+            local directories = res[1]
+            local filenames = res[2]
+            for i, filename in ipairs(filenames) do
+                local dirpath = directories[i]
+                local f = filename
+                local fullpath = dirpath..f
+                if lfs.attributes(fullpath, "mode") == "file" then
+                    local attributes = lfs.attributes(fullpath) or {}
+                    local collate = { can_collate_mixed = nil, item_func = nil }
+                    local item = Filechooser:getListItem(dirpath, f, fullpath, attributes, collate)
+                    table.insert(custom_item_table, item)
+                end
+            end
+        end
+        self.db_conn:close()
+        return custom_item_table
 
-    -- idea for future development? build item tables from calibre json database
-    -- local CalibreMetadata = require("metadata") -- borrowing! would be better to steal and extend
-    -- local Filechooser = require("ui/widget/filechooser")
-    -- local lfs = require("libs/libkoreader-lfs")
-    -- local custom_item_table = {}
-    -- local root = "/mnt/onboard" -- would need to replace with a generic
-    -- CalibreMetadata:init(root, true)
-    -- for _, book in ipairs(CalibreMetadata.books) do
-    --     local fullpath = root.."/"..book.lpath
-    --     logger.info(fullpath)
-    --     local dirpath, f = util.splitFilePathName(fullpath)
-    --     if lfs.attributes(fullpath, "mode") == "file" then
-    --         local attributes = lfs.attributes(fullpath) or {}
-    --         local collate = { can_collate_mixed = nil, item_func = nil }
-    --         local item = Filechooser:getListItem(dirpath, f, fullpath, attributes, collate)
-    --         table.insert(custom_item_table, item)
-    --     end
-    -- end
-    -- CalibreMetadata:clean()
-    -- return custom_item_table
-
-    -- idea for future development? build item tables from itemcache database
-    -- local Filechooser = require("ui/widget/filechooser")
-    -- local lfs = require("libs/libkoreader-lfs")
-    -- local SQ3 = require("lua-ljsqlite3/init")
-    -- local DataStorage = require("datastorage")
-    -- local custom_item_table = {}
-    -- self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
-    -- self.db_conn = SQ3.open(self.db_location)
-    -- self.db_conn:set_busy_timeout(5000)
-    -- local res = self.db_conn:exec("SELECT directory, filename FROM bookinfo ORDER BY authors ASC, series ASC, series_index ASC, title ASC;")
-    -- if res then
-    --     local directories = res[1]
-    --     local filenames = res[2]
-    --     for i, filename in ipairs(filenames) do
-    --         local dirpath = directories[i]
-    --         local f = filename
-    --         local fullpath = dirpath..f
-    --         if lfs.attributes(fullpath, "mode") == "file" then
-    --             local attributes = lfs.attributes(fullpath) or {}
-    --             local collate = { can_collate_mixed = nil, item_func = nil }
-    --             local item = Filechooser:getListItem(dirpath, f, fullpath, attributes, collate)
-    --             table.insert(custom_item_table, item)
-    --         end
-    --     end
-    -- end
-    -- self.db_conn:close()
-    -- return custom_item_table
+        -- idea for future development? build item tables from calibre json database
+        -- local CalibreMetadata = require("metadata") -- borrowing! would be better to steal and extend
+        -- local Filechooser = require("ui/widget/filechooser")
+        -- local lfs = require("libs/libkoreader-lfs")
+        -- local custom_item_table = {}
+        -- local root = "/mnt/onboard" -- would need to replace with a generic
+        -- CalibreMetadata:init(root, true)
+        -- for _, book in ipairs(CalibreMetadata.books) do
+        --     local fullpath = root.."/"..book.lpath
+        --     logger.info(fullpath)
+        --     local dirpath, f = util.splitFilePathName(fullpath)
+        --     if lfs.attributes(fullpath, "mode") == "file" then
+        --         local attributes = lfs.attributes(fullpath) or {}
+        --         local collate = { can_collate_mixed = nil, item_func = nil }
+        --         local item = Filechooser:getListItem(dirpath, f, fullpath, attributes, collate)
+        --         table.insert(custom_item_table, item)
+        --     end
+        -- end
+        -- CalibreMetadata:clean()
+        -- return custom_item_table
+    else
+        local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)
+        if #item_table > 0 and is_pathchooser == false then
+            if item_table[1].text == "⬆ ../" then table.remove(item_table, 1) end
+        end
+        if path ~= "/" and (G_reader_settings:isTrue("lock_home_folder") and path == G_reader_settings:readSetting("home_dir")) and is_pathchooser then
+            table.insert(item_table, 1, {
+                text = BD.mirroredUILayout() and BD.ltr("../ ⬆") or "⬆ ../",
+                path = path .. "/..",
+                is_go_up = true,
+            })
+        end
+        return item_table
+    end
 end
 
 function CoverMenu:tapPlus()
@@ -420,7 +418,7 @@ function CoverMenu:setupLayout()
         right_icon = self.selected_files and "check" or "plus",
         right_icon_size_ratio = 1,
         right_icon_tap_callback = function() self:onShowPlusMenu() end,
-        right_icon_hold_callback = false, -- propagate long-press to dispatcher
+        right_icon_hold_callback = false,
         -- up folder
         right2_icon = "go_up",
         right2_icon_size_ratio = 1,
@@ -436,12 +434,16 @@ function CoverMenu:setupLayout()
         center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
         center_icon_tap_callback = false,
         center_icon_hold_callback = function()
-            UIManager:show(InfoMessage:new {
-                text = T(_("KOReader %1\nwith Project: Title UI\nhttps://koreader.rocks\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
-                show_icon = false,
-                alignment = "center",
-            })
-        end,
+            meta_browse_mode = not meta_browse_mode
+            self:goHome()
+            end,
+        -- center_icon_hold_callback = function()
+        --     UIManager:show(InfoMessage:new {
+        --         text = T(_("KOReader %1\nwith Project: Title UI\nhttps://koreader.rocks\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
+        --         show_icon = false,
+        --         alignment = "center",
+        --     })
+        -- end,
     }
 
     local file_chooser = FileChooser:new {
@@ -786,6 +788,7 @@ function CoverMenu:updatePageInfo(select_number)
                     self.path == G_reader_settings:readSetting("home_dir")) and
                 G_reader_settings:nilOrTrue("shorten_home_dir") then
                 display_path = "Home"
+                if meta_browse_mode == true then display_path = "Library" end
             elseif self._manager and type(self._manager.name) == "string" then
                 display_path = ""
             else
