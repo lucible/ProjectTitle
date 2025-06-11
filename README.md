@@ -1,5 +1,3 @@
-# Project: Title
-
 <a href="resources/collage.jpg"><img src="resources/collage.jpg" width="600px">
 
 #### A new view for KOReader, based on CoverBrowser.
