@@ -788,7 +788,6 @@ function CoverMenu:updatePageInfo(select_number)
                     self.path == G_reader_settings:readSetting("home_dir")) and
                 G_reader_settings:nilOrTrue("shorten_home_dir") then
                 display_path = "Home"
-                if meta_browse_mode == true then display_path = "Library" end
             elseif self._manager and type(self._manager.name) == "string" then
                 display_path = ""
             else
@@ -807,6 +806,7 @@ function CoverMenu:updatePageInfo(select_number)
                 end
                 display_path = folder_name
             end
+            if meta_browse_mode == true then display_path = "Library" end
             self.cur_folder_text:setText(display_path)
         elseif self.cur_folder_text and type(self.path) == "boolean" then
             display_path = ""
