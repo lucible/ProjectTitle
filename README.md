@@ -1,5 +1,5 @@
 <a href="resources/collage.jpg"><img src="resources/collage.jpg" width="600px"></a><br />
-<sub>A collage of screenshots showing KOReader with Project: Title installed showing a variety of possible display settings.</sub><br />
+<sub>A collage of screenshots showing KOReader with Project: Title installed demonstrating a variety of possible display settings.</sub><br />
 <sup>The books used are from the Standard Ebooks collection and the text visible is part of their cover design, not overlaid by this plugin.</sup> 
 
 #### A new view for KOReader, based on CoverBrowser.
