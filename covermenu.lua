@@ -690,8 +690,10 @@ function CoverMenu:menuInit()
         },
         self.page_info,
     }
+    local path = ""
+    if type(self.path) == "string" then path = self.path end
     self.cur_folder_text = TextWidget:new {
-        text = self.path,
+        text = path,
         face = Font:getFace(good_serif, 20),
         max_width = self.screen_w * 0.94 - pagination_width,
         truncate_with_ellipsis = true,
