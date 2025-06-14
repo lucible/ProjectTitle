@@ -56,6 +56,7 @@ if font1_missing or font2_missing or font3_missing or icons_missing or coverbrow
     logger.warn("therefore refusing to load Project: Title")
     return { disabled = true, }
 end
+logger.info("All tests passed, loading Project: Title on KOReader ver ", tostring(cv_int))
 
 -- carry on...
 local FFIUtil = require("ffi/util")
@@ -102,10 +103,11 @@ local _Menu_init_orig = Menu.init
 local _Menu_updatePageInfo_orig = Menu.updatePageInfo
 
 local BookStatusWidget = require("ui/widget/bookstatuswidget")
-local _BookStatusWidget_genHeader_orig = BookStatusWidget.genHeader
-local _BookStatusWidget_getStatusContent_orig = BookStatusWidget.getStatusContent
-local _BookStatusWidget_genBookInfoGroup_orig = BookStatusWidget.genBookInfoGroup
-local _BookStatusWidget_genSummaryGroup_orig = BookStatusWidget.genSummaryGroup
+-- local _BookStatusWidget_genHeader_orig = BookStatusWidget.genHeader
+-- local _BookStatusWidget_getStatusContent_orig = BookStatusWidget.getStatusContent
+-- local _BookStatusWidget_genBookInfoGroup_orig = BookStatusWidget.genBookInfoGroup
+-- local _BookStatusWidget_genSummaryGroup_orig = BookStatusWidget.genSummaryGroup
+local AltBookStatusWidget = require("altbookstatuswidget")
 
 -- Available display modes
 local DISPLAY_MODES = {
@@ -138,6 +140,7 @@ local CoverBrowser = WidgetContainer:extend {
     },
 }
 
+local enable_custom_bookstatus = true
 local max_items_per_page = 10
 local min_items_per_page = 3
 local default_items_per_page = 7
@@ -147,6 +150,7 @@ local min_cols = 2
 local min_rows = 2
 local default_cols = 3
 local default_rows = 3
+
 function CoverBrowser:onDispatcherRegisterActions()
     Dispatcher:registerAction("dec_items_pp",
         { category = "none", event = "DecreaseItemsPerPage", title = _("Project: Title - Decrease Items Per Page"), filemanager = true, separator = false })
@@ -161,6 +165,13 @@ function CoverBrowser:init()
 
     if init_done then -- things already patched according to current modes
         return
+    end
+
+    if enable_custom_bookstatus == true then
+        BookStatusWidget.genHeader = AltBookStatusWidget.genHeader
+        BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
+        BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
+        BookStatusWidget.genSummaryGroup = AltBookStatusWidget.genSummaryGroup
     end
 
     -- Set up default display modes on first launch
@@ -697,10 +708,6 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         FileManager.updateTitleBarPath = _FileManager_updateTitleBarPath_orig
         Menu.init = _Menu_init_orig
         Menu.updatePageInfo = _Menu_updatePageInfo_orig
-        BookStatusWidget.genHeader = _BookStatusWidget_genHeader_orig
-        BookStatusWidget.getStatusContent = _BookStatusWidget_getStatusContent_orig
-        BookStatusWidget.genBookInfoGroup = _BookStatusWidget_genBookInfoGroup_orig
-        BookStatusWidget.genSummaryGroup = _BookStatusWidget_genSummaryGroup_orig
         -- Also clean-up what we added, even if it does not bother original code
         FileChooser.updateCache = nil
         FileChooser._updateItemsBuildUI = nil
@@ -763,12 +770,6 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
 
     Menu.init = CoverMenu.menuInit
     Menu.updatePageInfo = CoverMenu.updatePageInfo
-
-    local AltBookStatusWidget = require("BookStatusWidget")
-    BookStatusWidget.genHeader = AltBookStatusWidget.genHeader
-    BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
-    BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
-    BookStatusWidget.genSummaryGroup = AltBookStatusWidget.genSummaryGroup
 
     if init_done then
         self:refreshFileManagerInstance(false, true)

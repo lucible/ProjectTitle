@@ -24,7 +24,6 @@ local util = require("util")
 local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
-
 local BookInfoManager = require("bookinfomanager")
 
 local function findLast(haystack, needle)

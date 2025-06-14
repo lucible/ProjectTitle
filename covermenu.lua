@@ -303,6 +303,8 @@ end
 
 function CoverMenu:genItemTable(dirs, files, path)
     if meta_browse_mode == true and is_pathchooser == false then
+        -- build item tables from coverbrowser-style sqlite db
+        -- sqlite db doesn't track read status or progress %, would have to get that from elsewhere
         local Filechooser = require("ui/widget/filechooser")
         local lfs = require("libs/libkoreader-lfs")
         local SQ3 = require("lua-ljsqlite3/init")
@@ -330,8 +332,8 @@ function CoverMenu:genItemTable(dirs, files, path)
         self.db_conn:close()
         return custom_item_table
 
-        -- idea for future development? build item tables from calibre json database
-        -- local CalibreMetadata = require("metadata") -- borrowing! would be better to steal and extend
+        -- build item tables from calibre json database
+        -- local CalibreMetadata = require("metadata")
         -- local Filechooser = require("ui/widget/filechooser")
         -- local lfs = require("libs/libkoreader-lfs")
         -- local custom_item_table = {}
