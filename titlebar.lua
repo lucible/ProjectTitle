@@ -496,12 +496,13 @@ function TitleBar:setTitle(title, no_refresh)
         end
     else
         -- TextWidget with max-width: we can just update its text
+        self.title_widget:setText(title)
         if self.inner_title_group then
             self.inner_title_group:resetLayout()
         end
-        if self.title_group then
+        -- if self.title_group then
             self.title_group:resetLayout()
-        end
+        -- end
         if not no_refresh then
             UIManager:setDirty(self.show_parent, "ui", self.dimen)
         end
@@ -509,8 +510,8 @@ function TitleBar:setTitle(title, no_refresh)
 end
 
 function TitleBar:setSubTitle(subtitle, no_refresh)
-    -- We dont need the original function
-    -- We dont use that title bar and we dont use the subtitle
+    -- We do nothing here, as we do not render a subTitle
+    -- Do not delete function as it may be called from elsewhere
 end
 
 function TitleBar:setLeftIcon(icon)
