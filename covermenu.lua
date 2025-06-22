@@ -344,10 +344,10 @@ local function onFolderUp()
     end
 end
 
-function CoverMenu:updateTitleBarPath(path)
-    -- We dont need the original function
-    -- We dont use that title bar and we dont use the subtitle
-end
+-- function CoverMenu:updateTitleBarPath(path)
+--     -- We dont need the original function
+--     -- We dont use that title bar and we dont use the subtitle
+-- end
 
 function CoverMenu:setupLayout()
     self.show_parent = self.show_parent or self
