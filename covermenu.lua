@@ -72,43 +72,6 @@ local nb_drawings_since_last_collectgarbage = 0
 -- in the real Menu class or instance
 local CoverMenu = {}
 
--- function CoverMenu:updateCache(file, status, do_create, pages)
---     if do_create then -- create new cache entry if absent
---         if self.cover_info_cache[file] then return end
---         local doc_settings = DocSettings:open(file)
---         -- We can get nb of page in the new 'doc_pages' setting, or from the old 'stats.page'
---         local doc_pages = doc_settings:readSetting("doc_pages")
---         if doc_pages then
---             pages = doc_pages
---         else
---             local stats = doc_settings:readSetting("stats")
---             if stats and stats.pages and stats.pages ~= 0 then -- crengine with statistics disabled stores 0
---                 pages = stats.pages
---             end
---         end
---         local percent_finished = doc_settings:readSetting("percent_finished")
---         local summary = doc_settings:readSetting("summary")
---         status = summary and summary.status
---         local has_highlight
---         local annotations = doc_settings:readSetting("annotations")
---         if annotations then
---             has_highlight = #annotations > 0
---         else
---             local highlight = doc_settings:readSetting("highlight")
---             has_highlight = highlight and next(highlight) and true
---         end
---         self.cover_info_cache[file] = table.pack(pages, percent_finished, status, has_highlight) -- may be a sparse array
---     else
---         if self.cover_info_cache and self.cover_info_cache[file] then
---             if status then
---                 self.cover_info_cache[file][3] = status
---             else
---                 self.cover_info_cache[file] = nil
---             end
---         end
---     end
--- end
-
 function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     -- logger.info("PTPT update items start")
     -- local start_time = time.now()
@@ -671,7 +634,7 @@ end
 function CoverMenu:menuInit()
     CoverMenu._Menu_init_orig(self)
 
-    -- build pagination controls
+    -- pagination controls
     local pagination_width = self.page_info:getSize().w -- get width before changing anything
     self.page_info = HorizontalGroup:new {
         self.page_info_first_chev,
@@ -701,6 +664,7 @@ function CoverMenu:menuInit()
         page_info_container
     }
 
+    -- current folder text
     local path = ""
     if type(self.path) == "string" then path = self.path end
     local cur_folder_container
@@ -716,9 +680,6 @@ function CoverMenu:menuInit()
             truncate_with_ellipsis = true,
             truncate_left = true,
         }
-        -- local cur_folder = HorizontalGroup:new {
-        --     self.cur_folder_text,
-        -- }
         cur_folder_container = LeftContainer:new {
             dimen = cur_folder_geom,
             self.cur_folder_text,
@@ -729,11 +690,7 @@ function CoverMenu:menuInit()
             face = Font:getFace(good_serif, 20),
             max_width = self.screen_w * 0.94 - pagination_width,
             truncate_with_ellipsis = true,
-            -- truncate_left = true,
         }
-        -- local cur_folder = HorizontalGroup:new {
-        --     self.cur_folder_text,
-        -- }
         cur_folder_container = RightContainer:new {
             dimen = cur_folder_geom,
             self.cur_folder_text,
@@ -744,6 +701,7 @@ function CoverMenu:menuInit()
         cur_folder_container
     }
 
+    -- occasionally there needs to be a "go back up" arrow down here (eg: collections)
     local page_return
     if not BookInfoManager:getSetting("reverse_footer") then
         page_return = BottomContainer:new {
