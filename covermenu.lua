@@ -279,8 +279,9 @@ function CoverMenu:genItemTable(dirs, files, path)
         self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
         self.db_conn = SQ3.open(self.db_location)
         self.db_conn:set_busy_timeout(5000)
-        local res = self.db_conn:exec("SELECT directory, filename FROM bookinfo WHERE directory LIKE '" ..
-            G_reader_settings:readSetting("home_dir") .. "%' ORDER BY authors ASC, series ASC, series_index ASC, title ASC;")
+        local query = string.format("SELECT directory, filename FROM bookinfo WHERE directory LIKE '%s%%' ORDER BY authors ASC, series ASC, series_index ASC, title ASC;",
+            G_reader_settings:readSetting("home_dir"):gsub("'","''"))
+        local res = self.db_conn:exec(query)
         if res then
             local directories = res[1]
             local filenames = res[2]
