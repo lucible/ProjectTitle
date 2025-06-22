@@ -57,8 +57,8 @@ local BookInfoManager = require("bookinfomanager")
 -- Store these as local, to be set by some object and re-used by
 -- another object (as we plug the methods below to different objects,
 -- we can't store them in 'self' if we want another one to use it)
+local previous_path = nil
 local current_path = nil
-local current_cover_specs = false
 local is_pathchooser = false
 local meta_browse_mode = false
 
@@ -135,10 +135,10 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     -- Set the local variables with the things we know
     -- These are used only by extractBooksInDirectory(), which should
     -- use the cover_specs set for FileBrowser, and not those from History.
-    -- Hopefully, we get self.path=nil when called from History
+    -- Hopefully, we get self.path=nil when called from History -- and self.path ~= "favorites" 
     if self.path and is_pathchooser == false then
+        previous_path = current_path
         current_path = self.path
-        current_cover_specs = self.cover_specs
     end
 
     -- As done in Menu:updateItems()
@@ -338,17 +338,13 @@ end
 
 local function onFolderUp()
     if current_path then -- file browser or PathChooser
+        if current_path == "favorites" then current_path = previous_path end
         if not (G_reader_settings:isTrue("lock_home_folder") and
                 current_path == G_reader_settings:readSetting("home_dir")) then
             FileManager.instance.file_chooser:changeToPath(string.format("%s/..", current_path), current_path)
         end
     end
 end
-
--- function CoverMenu:updateTitleBarPath(path)
---     -- We dont need the original function
---     -- We dont use that title bar and we dont use the subtitle
--- end
 
 function CoverMenu:setupLayout()
     self.show_parent = self.show_parent or self
