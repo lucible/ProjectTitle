@@ -492,7 +492,9 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                         callback = function()
                             BookInfoManager:toggleSetting("opened_at_top_of_library")
-                            fc:updateItems() -- not actually refreshing?
+                            -- can't figure out how to refresh the item table from here
+                            -- but a restart gets the job done
+                            UIManager:askForRestart()
                         end,
                     },
                 },
@@ -515,6 +517,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                         checked_func = function() return BookInfoManager:getSetting("autoscan_on_eject") end,
                         callback = function()
                             BookInfoManager:toggleSetting("autoscan_on_eject")
+                            UIManager:askForRestart()
                         end,
                     },
                     {
