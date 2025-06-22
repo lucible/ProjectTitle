@@ -101,7 +101,6 @@ local _updateItemTable_orig_funcs = {
 }
 
 local _FileManager_setupLayout_orig = FileManager.setupLayout
--- local _FileManager_updateTitleBarPath_orig = FileManager.updateTitleBarPath
 
 local Menu = require("ui/widget/menu")
 local _Menu_init_orig = Menu.init
@@ -751,7 +750,6 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         CoverBrowser.removeFileDialogButtons("filemanager")
         FileChooser.genItemTable = _FileChooser_genItemTable_orig
         FileManager.setupLayout = _FileManager_setupLayout_orig
-        -- FileManager.updateTitleBarPath = _FileManager_updateTitleBarPath_orig
         Menu.init = _Menu_init_orig
         Menu.updatePageInfo = _Menu_updatePageInfo_orig
         -- Also clean-up what we added, even if it does not bother original code
@@ -798,9 +796,6 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
 
     CoverMenu._FileManager_setupLayout_orig = _FileManager_setupLayout_orig
     FileManager.setupLayout = CoverMenu.setupLayout
-
-    -- CoverMenu._FileManager_updateTitleBarPath_orig = _FileManager_updateTitleBarPath_orig
-    -- FileManager.updateTitleBarPath = CoverMenu.updateTitleBarPath
 
     CoverMenu._Menu_init_orig = _Menu_init_orig
     CoverMenu._Menu_updatePageInfo_orig = _Menu_updatePageInfo_orig
