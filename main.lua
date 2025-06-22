@@ -438,49 +438,54 @@ function CoverBrowser:addToMainMenu(menu_items)
                 separator = true,
             },
             {
-                text = _("Show series metadata"),
-                checked_func = function() return series_mode == "series_in_separate_line" end,
-                callback = function()
-                    if series_mode == "series_in_separate_line" then
-                        series_mode = nil
-                    else
-                        series_mode = "series_in_separate_line"
-                    end
-                    BookInfoManager:saveSetting("series_mode", series_mode)
-                    fc:updateItems(1, true)
-                end,
-            },
-            {
-                text = _("Show pages read instead of progress %"),
-                enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
-                checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
-                callback = function()
-                    BookInfoManager:toggleSetting("show_pages_read_as_progress")
-                    fc:updateItems(1, true)
-                end,
-            },
-            {
-                text = _("Show file info instead of pages or progress %"),
-                checked_func = function()
-                    return not BookInfoManager:getSetting("hide_file_info")
-                end,
-                callback = function()
-                    BookInfoManager:toggleSetting("hide_file_info")
-                    if not BookInfoManager:getSetting("hide_file_info") then
-                        BookInfoManager:saveSetting("hide_page_info", true)
-                    else
-                        BookInfoManager:saveSetting("hide_page_info", false)
-                    end
-                    fc:updateItems(1, true)
-                end,
-            },
-            {
-                text = _("Always show maximum length progress bars"),
-                checked_func = function() return BookInfoManager:getSetting("force_max_progressbars") end,
-                callback = function()
-                    BookInfoManager:toggleSetting("force_max_progressbars")
-                    fc:updateItems(1, true)
-                end,
+                text = _("Metadata display preferences"),
+                sub_item_table = {
+                    {
+                        text = _("Show series"),
+                        checked_func = function() return series_mode == "series_in_separate_line" end,
+                        callback = function()
+                            if series_mode == "series_in_separate_line" then
+                                series_mode = nil
+                            else
+                                series_mode = "series_in_separate_line"
+                            end
+                            BookInfoManager:saveSetting("series_mode", series_mode)
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Show pages read instead of progress %"),
+                        enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
+                        checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("show_pages_read_as_progress")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Show file info instead of pages or progress %"),
+                        checked_func = function()
+                            return not BookInfoManager:getSetting("hide_file_info")
+                        end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("hide_file_info")
+                            if not BookInfoManager:getSetting("hide_file_info") then
+                                BookInfoManager:saveSetting("hide_page_info", true)
+                            else
+                                BookInfoManager:saveSetting("hide_page_info", false)
+                            end
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Always show maximum length progress bars"),
+                        checked_func = function() return BookInfoManager:getSetting("force_max_progressbars") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("force_max_progressbars")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                },
             },
             {
                 text = _("Library view"),
@@ -699,7 +704,7 @@ end
 
 function CoverBrowser:setupFileManagerDisplayMode(display_mode)
     if not DISPLAY_MODES[display_mode] then
-        display_mode = nil -- unknown mode, fallback to classic
+        display_mode = nil                                                  -- unknown mode, fallback to classic
     end
     if init_done and display_mode == curr_display_modes["filemanager"] then -- no change
         return

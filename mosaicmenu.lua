@@ -1007,7 +1007,8 @@ function MosaicMenuItem:paintTo(bb, x, y)
     end
 
     local bookinfo = BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
-    if self.show_progress_bar and is_pathchooser == false then
+    self.is_directory = not (self.entry.is_file or self.entry.file)
+    if self.show_progress_bar and is_pathchooser == false and not self.is_directory then
         local progress_widget_width_mult = 1.0
         local est_page_count = bookinfo.pages or nil
         if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = 700 end -- override metadata
@@ -1042,9 +1043,12 @@ function MosaicMenuItem:paintTo(bb, x, y)
             })
             max_widget:paintTo(bb, (pos_x - (bar_icon_size / 2)), (pos_y - (bar_icon_size / 4.5)))
         end
-    else
-        if self.status ~= "complete" and self.percent_finished ~= nil and is_pathchooser == false then
-            local progresstxt = " " .. math.floor(100 * self.percent_finished) .. "% Read "
+    elseif not self.is_directory and is_pathchooser == false then
+        local progresstxt = nil
+        if not BookInfoManager:getSetting("hide_file_info") then
+            progresstxt = (" " .. self.mandatory .. " ") or " ??? "
+        elseif self.status ~= "complete" and self.percent_finished ~= nil then
+            progresstxt = " " .. math.floor(100 * self.percent_finished) .. "% Read "
             if BookInfoManager:getSetting("show_pages_read_as_progress") then
                 local book_info = self.menu.getBookInfo(self.filepath)
                 local pages = book_info.pages or bookinfo.pages or nil -- default to those in bookinfo db
@@ -1052,9 +1056,8 @@ function MosaicMenuItem:paintTo(bb, x, y)
                     progresstxt = T(_(" %1 of %2 "), Math.round(self.percent_finished * pages), pages)
                 end
             end
-            if not BookInfoManager:getSetting("hide_file_info") then
-                progresstxt = (" " .. self.mandatory .. " ") or " ??? "
-            end
+        end
+        if progresstxt ~= nil then
             local txtprogress_widget_text = TextWidget:new {
                 text = progresstxt,
                 face = Font:getFace(good_sans, 15),
