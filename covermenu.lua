@@ -703,15 +703,16 @@ function CoverMenu:menuInit()
 
     -- occasionally there needs to be a "go back up" arrow down here (eg: collections)
     local page_return
+    local page_return_geom = Geom:new {
+        x = 0, y = 0,
+        w = self.screen_w * 0.94,
+        h = self.page_return_arrow:getSize().h,
+    }
     if not BookInfoManager:getSetting("reverse_footer") then
         page_return = BottomContainer:new {
             dimen = self.inner_dimen:copy(),
             LeftContainer:new {
-                dimen = Geom:new {
-                    x = 0, y = 0,
-                    w = self.screen_w * 0.94,
-                    h = self.page_return_arrow:getSize().h,
-                },
+                dimen = page_return_geom,
                 self.return_button,
             }
         }
@@ -719,11 +720,7 @@ function CoverMenu:menuInit()
         page_return = BottomContainer:new {
             dimen = self.inner_dimen:copy(),
             RightContainer:new {
-                dimen = Geom:new {
-                    x = 0, y = 0,
-                    w = self.screen_w * 0.94,
-                    h = self.page_return_arrow:getSize().h,
-                },
+                dimen = page_return_geom,
                 self.return_button,
             }
         }
