@@ -110,9 +110,8 @@ local CoverMenu = {}
 -- end
 
 function CoverMenu:updateItems(select_number, no_recalculate_dimen)
-    logger.info("PTPT update items start")
-    logger.info(debug.getinfo(2).name)
-    local start_time = time.now()
+    -- logger.info("PTPT update items start")
+    -- local start_time = time.now()
     -- As done in Menu:updateItems()
     local old_dimen = self.dimen and self.dimen:copy()
     -- self.layout must be updated for focusmanager
@@ -261,8 +260,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         end
         UIManager:scheduleIn(1, self.items_update_action)
     end
-
-    logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
+    -- logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function CoverMenu:onCloseWidget()
@@ -309,12 +307,12 @@ end
 function CoverMenu:genItemTable(dirs, files, path)
     if meta_browse_mode == true and is_pathchooser == false and G_reader_settings:readSetting("home_dir") ~= nil then
         -- build item tables from coverbrowser-style sqlite db
-        -- sqlite db doesn't track read status or progress %, would have to get that from elsewhere
         local Filechooser = require("ui/widget/filechooser")
         local lfs = require("libs/libkoreader-lfs")
         local SQ3 = require("lua-ljsqlite3/init")
         local DataStorage = require("datastorage")
         local custom_item_table = {}
+        local opened_items = {}
         self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
         self.db_conn = SQ3.open(self.db_location)
         self.db_conn:set_busy_timeout(5000)
@@ -330,7 +328,14 @@ function CoverMenu:genItemTable(dirs, files, path)
                     local attributes = lfs.attributes(fullpath) or {}
                     local collate = { can_collate_mixed = nil, item_func = nil }
                     local item = Filechooser:getListItem(dirpath, filename, fullpath, attributes, collate)
-                    table.insert(custom_item_table, item)
+                    if BookList.hasBookBeenOpened(fullpath) and BookInfoManager:getSetting("opened_at_top_of_library") then
+                        table.insert(opened_items, item)
+                    else
+                        table.insert(custom_item_table, item)
+                    end
+                end
+                if util.tableSize(opened_items) > 0 then
+                    util.tableMerge(custom_item_table, opened_items)
                 end
             end
         end
@@ -373,12 +378,6 @@ local function onFolderUp()
                 current_path == G_reader_settings:readSetting("home_dir")) then
             FileManager.instance.file_chooser:changeToPath(string.format("%s/..", current_path), current_path)
         end
-        -- if current_path ~= "/" and not (G_reader_settings:isTrue("lock_home_folder") and
-        --         current_path == G_reader_settings:readSetting("home_dir")) then
-        --     FileManager.instance.file_chooser:changeToPath(string.format("%s/..", current_path))
-        -- else
-        --     FileManager.instance.file_chooser:goHome()
-        -- end
     end
 end
 

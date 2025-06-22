@@ -96,10 +96,10 @@ function ItemShortCutIcon:init()
     }
 end
 
-local function findLast(haystack, needle)
-    local i = haystack:match(".*" .. needle .. "()")
-    if i == nil then return nil else return i - 1 end
-end
+-- local function findLast(haystack, needle)
+--     local i = haystack:match(".*" .. needle .. "()")
+--     if i == nil then return nil else return i - 1 end
+-- end
 
 -- Based on menu.lua's MenuItem
 local ListMenuItem = InputContainer:extend {
@@ -926,7 +926,7 @@ function ListMenuItem:update()
             -- series name and position (if available, if requested)
             if show_series then
                 if string.match(bookinfo.series, ": ") then
-                    bookinfo.series = string.sub(bookinfo.series, findLast(bookinfo.series, ": ") + 1, -1)
+                    bookinfo.series = string.sub(bookinfo.series, util.lastIndexOf(bookinfo.series, ": ") + 1, -1)
                 end
                 if bookinfo.series_index then
                     -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"

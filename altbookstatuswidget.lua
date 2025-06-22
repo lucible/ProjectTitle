@@ -26,10 +26,10 @@ local Screen = Device.screen
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
-local function findLast(haystack, needle)
-    local i = haystack:match(".*" .. needle .. "()")
-    if i == nil then return nil else return i - 1 end
-end
+-- local function findLast(haystack, needle)
+--     local i = haystack:match(".*" .. needle .. "()")
+--     if i == nil then return nil else return i - 1 end
+-- end
 
 local AltBookStatusWidget = {}
 
@@ -157,7 +157,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     if show_series then
         local series_text = props.series
         if string.match(props.series, ": ") then
-            series_text = string.sub(series_text, findLast(series_text, ": ") + 1, -1)
+            series_text = string.sub(series_text, util.lastIndexOf(series_text, ": ") + 1, -1)
         end
         if props.series_index then
             series_text = "#" .. props.series_index .. " – " .. BD.auto(series_text)

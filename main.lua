@@ -206,6 +206,7 @@ function CoverBrowser:init()
         logger.info("Migrating Project: Title settings to version 2")
         BookInfoManager:saveSetting("disable_auto_foldercovers", false)
         BookInfoManager:saveSetting("force_max_progressbars", false)
+        BookInfoManager:saveSetting("opened_at_top_of_library", true)
         BookInfoManager:saveSetting("config_version", "2")
     end
 
@@ -482,7 +483,22 @@ function CoverBrowser:addToMainMenu(menu_items)
                 end,
             },
             {
-                text = _("Book cover and metadata cache"),
+                text = _("Library view"),
+                sub_item_table = {
+                    {
+                        text = _("Show opened books first"),
+                        checked_func = function()
+                            return BookInfoManager:getSetting("opened_at_top_of_library")
+                        end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("opened_at_top_of_library")
+                            fc:updateItems() -- not actually refreshing?
+                        end,
+                    },
+                },
+            },
+            {
+                text = _("Book covers and cache database"),
                 sub_item_table = {
                     {
                         text = _("Auto-generate cover images for folders from books"),
