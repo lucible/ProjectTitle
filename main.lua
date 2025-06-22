@@ -207,6 +207,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("disable_auto_foldercovers", false)
         BookInfoManager:saveSetting("force_max_progressbars", false)
         BookInfoManager:saveSetting("opened_at_top_of_library", true)
+        BookInfoManager:saveSetting("reverse_footer", false)
         BookInfoManager:saveSetting("config_version", "2")
     end
 
@@ -438,7 +439,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                 separator = true,
             },
             {
-                text = _("Metadata display preferences"),
+                text = _("Show page controls in left corner"),
+                checked_func = function() return BookInfoManager:getSetting("reverse_footer") end,
+                callback = function()
+                    BookInfoManager:toggleSetting("reverse_footer")
+                    UIManager:askForRestart()
+                end,
+            },
+            {
+                text = _("Book display"),
                 sub_item_table = {
                     {
                         text = _("Show series"),
@@ -505,7 +514,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                 },
             },
             {
-                text = _("Book covers and cache database"),
+                text = _("Covers and cache database"),
                 sub_item_table = {
                     {
                         text = _("Auto-generate cover images for folders from books"),

@@ -671,7 +671,7 @@ end
 function CoverMenu:menuInit()
     CoverMenu._Menu_init_orig(self)
 
-    -- create footer items
+    -- build pagination controls
     local pagination_width = self.page_info:getSize().w -- get width before changing anything
     self.page_info = HorizontalGroup:new {
         self.page_info_first_chev,
@@ -680,52 +680,99 @@ function CoverMenu:menuInit()
         self.page_info_right_chev,
         self.page_info_last_chev,
     }
-    local page_info_container = RightContainer:new {
-        dimen = Geom:new {
-            w = self.screen_w * 0.98, -- 98% instead of 94% here due to whitespace on chevrons
-            h = self.page_info:getSize().h,
-        },
-        self.page_info,
+    local page_info_container
+    local page_info_geom = Geom:new {
+        w = self.screen_w * 0.98, -- 98% instead of 94% here due to whitespace on chevrons
+        h = self.page_info:getSize().h,
     }
-    local path = ""
-    if type(self.path) == "string" then path = self.path end
-    self.cur_folder_text = TextWidget:new {
-        text = path,
-        face = Font:getFace(good_serif, 20),
-        max_width = self.screen_w * 0.94 - pagination_width,
-        truncate_with_ellipsis = true,
-        truncate_left = true,
-    }
-    local cur_folder = HorizontalGroup:new {
-        self.cur_folder_text,
-    }
-    local cur_folder_container = LeftContainer:new {
-        dimen = Geom:new {
-            w = self.screen_w * 0.94,
-            h = self.page_info:getSize().h,
-        },
-        cur_folder,
-    }
-    local footer_left = BottomContainer:new {
-        dimen = self.inner_dimen:copy(),
-        cur_folder_container
-    }
-    local footer_right = BottomContainer:new {
+    if not BookInfoManager:getSetting("reverse_footer") then
+        page_info_container = RightContainer:new {
+            dimen = page_info_geom,
+            self.page_info,
+        }
+    else
+        page_info_container = LeftContainer:new {
+            dimen = page_info_geom,
+            self.page_info,
+        }
+    end
+    local page_controls = BottomContainer:new {
         dimen = self.inner_dimen:copy(),
         page_info_container
     }
-    local page_return = BottomContainer:new {
-        dimen = self.inner_dimen:copy(),
-        WidgetContainer:new {
-            dimen = Geom:new {
-                x = 0, y = 0,
-                w = self.screen_w * 0.94,
-                h = self.page_return_arrow:getSize().h,
-            },
-            self.return_button,
-        }
+
+    local path = ""
+    if type(self.path) == "string" then path = self.path end
+    local cur_folder_container
+    local cur_folder_geom = Geom:new {
+        w = self.screen_w * 0.94,
+        h = self.page_info:getSize().h,
     }
-    local footer_line = BottomContainer:new { -- line to separate footer from content above
+    if not BookInfoManager:getSetting("reverse_footer") then
+        self.cur_folder_text = TextWidget:new {
+            text = path,
+            face = Font:getFace(good_serif, 20),
+            max_width = self.screen_w * 0.94 - pagination_width,
+            truncate_with_ellipsis = true,
+            truncate_left = true,
+        }
+        -- local cur_folder = HorizontalGroup:new {
+        --     self.cur_folder_text,
+        -- }
+        cur_folder_container = LeftContainer:new {
+            dimen = cur_folder_geom,
+            self.cur_folder_text,
+        }
+    else
+        self.cur_folder_text = TextWidget:new {
+            text = path,
+            face = Font:getFace(good_serif, 20),
+            max_width = self.screen_w * 0.94 - pagination_width,
+            truncate_with_ellipsis = true,
+            -- truncate_left = true,
+        }
+        -- local cur_folder = HorizontalGroup:new {
+        --     self.cur_folder_text,
+        -- }
+        cur_folder_container = RightContainer:new {
+            dimen = cur_folder_geom,
+            self.cur_folder_text,
+        }
+    end
+    local current_folder = BottomContainer:new {
+        dimen = self.inner_dimen:copy(),
+        cur_folder_container
+    }
+
+    local page_return
+    if not BookInfoManager:getSetting("reverse_footer") then
+        page_return = BottomContainer:new {
+            dimen = self.inner_dimen:copy(),
+            LeftContainer:new {
+                dimen = Geom:new {
+                    x = 0, y = 0,
+                    w = self.screen_w * 0.94,
+                    h = self.page_return_arrow:getSize().h,
+                },
+                self.return_button,
+            }
+        }
+    else
+        page_return = BottomContainer:new {
+            dimen = self.inner_dimen:copy(),
+            RightContainer:new {
+                dimen = Geom:new {
+                    x = 0, y = 0,
+                    w = self.screen_w * 0.94,
+                    h = self.page_return_arrow:getSize().h,
+                },
+                self.return_button,
+            }
+        }
+    end
+
+    -- assemble final footer with horizontal line to separate from content above
+    local footer_line = BottomContainer:new {
         dimen = Geom:new {
             x = 0, y = 0,
             w = self.inner_dimen.w,
@@ -738,8 +785,7 @@ function CoverMenu:menuInit()
             background = Blitbuffer.COLOR_BLACK,
         },
     }
-
-    local content = OverlapGroup:new {
+    local footer = OverlapGroup:new {
         -- This unique allow_mirroring=false looks like it's enough
         -- to have this complex Menu, and all widgets based on it,
         -- be mirrored correctly with RTL languages
@@ -747,8 +793,8 @@ function CoverMenu:menuInit()
         dimen = self.inner_dimen:copy(),
         self.content_group,
         page_return,
-        footer_left,
-        footer_right,
+        current_folder,
+        page_controls,
         footer_line,
     }
     self[1] = FrameContainer:new {
@@ -757,7 +803,7 @@ function CoverMenu:menuInit()
         margin = 0,
         bordersize = 0,
         radius = self.is_popout and math.floor(self.dimen.w * (1 / 20)) or 0,
-        content
+        footer
     }
 
     -- set and update pathchooser status
