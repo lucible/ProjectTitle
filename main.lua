@@ -141,7 +141,6 @@ local CoverBrowser = WidgetContainer:extend {
     },
 }
 
-local enable_custom_bookstatus = true
 local max_items_per_page = 10
 local min_items_per_page = 3
 local default_items_per_page = 7
@@ -166,13 +165,6 @@ function CoverBrowser:init()
 
     if init_done then -- things already patched according to current modes
         return
-    end
-
-    if enable_custom_bookstatus == true then
-        BookStatusWidget.genHeader = AltBookStatusWidget.genHeader
-        BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
-        BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
-        BookStatusWidget.genSummaryGroup = AltBookStatusWidget.genSummaryGroup
     end
 
     -- Set up default display modes on first launch
@@ -208,6 +200,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("force_max_progressbars", false)
         BookInfoManager:saveSetting("opened_at_top_of_library", true)
         BookInfoManager:saveSetting("reverse_footer", false)
+        BookInfoManager:saveSetting("use_custom_bookstatus", true)
         BookInfoManager:saveSetting("config_version", "2")
     end
 
@@ -215,6 +208,14 @@ function CoverBrowser:init()
     CoverBrowser.setupWidgetDisplayMode("history", true)
     CoverBrowser.setupWidgetDisplayMode("collections", true)
     series_mode = BookInfoManager:getSetting("series_mode")
+
+    if BookInfoManager:getSetting("use_custom_bookstatus") then
+        logger.info("enabling custom boostatus")
+        BookStatusWidget.genHeader = AltBookStatusWidget.genHeader
+        BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
+        BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
+        BookStatusWidget.genSummaryGroup = AltBookStatusWidget.genSummaryGroup
+    end
 
     local home_dir = G_reader_settings:readSetting("home_dir")
     if home_dir and BookInfoManager:getSetting("autoscan_on_eject") then
@@ -492,6 +493,14 @@ function CoverBrowser:addToMainMenu(menu_items)
                         callback = function()
                             BookInfoManager:toggleSetting("force_max_progressbars")
                             fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Use custom book status screen"),
+                        checked_func = function() return BookInfoManager:getSetting("use_custom_bookstatus") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("use_custom_bookstatus")
+                            UIManager:askForRestart()
                         end,
                     },
                 },
