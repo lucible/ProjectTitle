@@ -63,10 +63,23 @@ local is_pathchooser = false
 local meta_browse_mode = false
 
 local good_serif = "source/SourceSerif4-Regular.ttf"
+local good_sans = "source/SourceSans3-Regular"
 
 -- Do some collectgarbage() every few drawings
 local NB_DRAWINGS_BETWEEN_COLLECTGARBAGE = 5
 local nb_drawings_since_last_collectgarbage = 0
+
+local function onFolderUp()
+    logger.info(current_path)
+    logger.info(previous_path)
+    if current_path then -- file browser or PathChooser
+        if current_path == "favorites" then current_path = previous_path end
+        if not (G_reader_settings:isTrue("lock_home_folder") and
+                current_path == G_reader_settings:readSetting("home_dir")) then
+            FileManager.instance.file_chooser:changeToPath(string.format("%s/..", current_path), current_path)
+        end
+    end
+end
 
 -- Simple holder of methods that will replace those
 -- in the real Menu class or instance
@@ -135,9 +148,9 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     -- Set the local variables with the things we know
     -- These are used only by extractBooksInDirectory(), which should
     -- use the cover_specs set for FileBrowser, and not those from History.
-    -- Hopefully, we get self.path=nil when called from History -- and self.path ~= "favorites" 
+    -- Hopefully, we get self.path=nil when called from History
     if self.path and is_pathchooser == false then
-        previous_path = current_path
+        if current_path ~= "favorites" then previous_path = current_path end
         current_path = self.path
     end
 
@@ -333,16 +346,6 @@ function CoverMenu:genItemTable(dirs, files, path)
             })
         end
         return item_table
-    end
-end
-
-local function onFolderUp()
-    if current_path then -- file browser or PathChooser
-        if current_path == "favorites" then current_path = previous_path end
-        if not (G_reader_settings:isTrue("lock_home_folder") and
-                current_path == G_reader_settings:readSetting("home_dir")) then
-            FileManager.instance.file_chooser:changeToPath(string.format("%s/..", current_path), current_path)
-        end
     end
 end
 
@@ -632,7 +635,7 @@ function CoverMenu:menuInit()
     CoverMenu._Menu_init_orig(self)
 
     -- pagination controls
-    local pagination_width = self.page_info:getSize().w -- get width before changing anything
+    -- local pagination_width = self.page_info:getSize().w -- get width before changing anything
     self.page_info = HorizontalGroup:new {
         self.page_info_first_chev,
         self.page_info_left_chev,
@@ -662,18 +665,23 @@ function CoverMenu:menuInit()
     }
 
     -- current folder text
-    local path = ""
-    if type(self.path) == "string" then path = self.path end
+    local text = "" -- this gets set via :updatePageInfo()
     local cur_folder_container
     local cur_folder_geom = Geom:new {
         w = self.screen_w * 0.94,
         h = self.page_info:getSize().h,
     }
+    local footer_font_face = good_serif
+    local footer_font_size = 20
+    if BookInfoManager:getSetting("replace_footer_text") then
+        footer_font_face = good_sans
+        footer_font_size = 18
+    end
     if not BookInfoManager:getSetting("reverse_footer") then
         self.cur_folder_text = TextWidget:new {
-            text = path,
-            face = Font:getFace(good_serif, 20),
-            max_width = self.screen_w * 0.94 - pagination_width,
+            text = text,
+            face = Font:getFace(footer_font_face, footer_font_size),
+            max_width = (self.screen_w * 0.94) - self.page_info:getSize().w, -- pagination_width,
             truncate_with_ellipsis = true,
             truncate_left = true,
         }
@@ -683,9 +691,9 @@ function CoverMenu:menuInit()
         }
     else
         self.cur_folder_text = TextWidget:new {
-            text = path,
-            face = Font:getFace(good_serif, 20),
-            max_width = self.screen_w * 0.94 - pagination_width,
+            text = text,
+            face = Font:getFace(footer_font_face, footer_font_size),
+            max_width = (self.screen_w * 0.94) - self.page_info:getSize().w, -- pagination_width,
             truncate_with_ellipsis = true,
         }
         cur_folder_container = RightContainer:new {
@@ -754,7 +762,6 @@ function CoverMenu:menuInit()
         padding = 0,
         margin = 0,
         bordersize = 0,
-        radius = self.is_popout and math.floor(self.dimen.w * (1 / 20)) or 0,
         footer
     }
 
@@ -774,45 +781,118 @@ end
 
 function CoverMenu:updatePageInfo(select_number)
     CoverMenu._Menu_updatePageInfo_orig(self, select_number)
-    -- slim down text to just "X of Y" numbers
-    local no_page_text = string.gsub(self.page_info_text.text, "Page ", "")
-    self.page_info_text:setText(no_page_text)
+    -- slim down text, regexes would be much smarter here
+    local page_numerals_only = string.gsub(self.page_info_text.text, "Page ", "")
+    page_numerals_only = string.gsub(page_numerals_only, "No items", "")
+    self.page_info_text:setText(page_numerals_only)
 
-    -- test to see what items to draw (pathchooser vs "detailed list view mode")
-    if not is_pathchooser then
-        local display_path = ""
-        if self.cur_folder_text and type(self.path) == "string" and self.path ~= '' then
-            self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
-            if (self.path == filemanagerutil.getDefaultDir() or
-                    self.path == G_reader_settings:readSetting("home_dir")) and
-                G_reader_settings:nilOrTrue("shorten_home_dir") then
-                display_path = "Home"
-            elseif self._manager and type(self._manager.name) == "string" then
-                display_path = ""
-            else
-                -- show only the current folder name, not the whole path
-                local folder_name = "/"
-                local crumbs = {}
-                for crumb in string.gmatch(self.path, "[^/]+") do
-                    table.insert(crumbs, crumb)
-                end
-                if #crumbs > 1 then
-                    folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
-                end
-                -- add a star if folder is in shortcuts
-                if FileManagerShortcuts:hasFolderShortcut(self.path) then
-                    folder_name = "★ " .. folder_name
-                end
-                display_path = folder_name
+    if not is_pathchooser and self.cur_folder_text and type(self.path) == "string" and self.path ~= '' then
+        self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
+        if BookInfoManager:getSetting("replace_footer_text") then
+            local config = {
+                order = {
+                    "clock",
+                    "wifi",
+                    "battery",
+                    "frontlight",
+                    "frontlight_warmth",
+                },
+                wifi_show_disabled = true,
+                frontlight_show_off = true,
+            }
+            local genItemText = {
+                battery = function()
+                    if Device:hasBattery() then
+                        local powerd = Device:getPowerDevice()
+                        local batt_lvl = powerd:getCapacity()
+                        local batt_symbol = powerd:getBatterySymbol(powerd:isCharged(), powerd:isCharging(), batt_lvl)
+                        local text = BD.wrap(batt_symbol) .. BD.wrap(batt_lvl .. "%")
+                        if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
+                            local aux_batt_lvl = powerd:getAuxCapacity()
+                            local aux_batt_symbol =
+                                powerd:getBatterySymbol(powerd:isAuxCharged(), powerd:isAuxCharging(), aux_batt_lvl)
+                            text = text .. " " .. BD.wrap("+") .. BD.wrap(aux_batt_symbol) .. BD.wrap(aux_batt_lvl .. "%")
+                        end
+                        return text
+                    end
+                end,
+                clock = function()
+                    local datetime = require("datetime")
+                    return datetime.secondsToHour(os.time(), G_reader_settings:isTrue("twelve_hour_clock"))
+                end,
+                frontlight = function()
+                    local T = require("ffi/util").template
+                    if Device:hasFrontlight() then
+                        local prefix = "✺"
+                        local powerd = Device:getPowerDevice()
+                        if powerd:isFrontlightOn() then
+                            if Device:isCervantes() or Device:isKobo() then
+                                return (prefix .. "%d%%"):format(powerd:frontlightIntensity())
+                            else
+                                return (prefix .. "%d"):format(powerd:frontlightIntensity())
+                            end
+                        else
+                            return config.frontlight_show_off and T(_("%1Off"), prefix)
+                        end
+                    end
+                end,
+                frontlight_warmth = function()
+                    local T = require("ffi/util").template
+                    if Device:hasNaturalLight() then
+                        local prefix = "⊛"
+                        local powerd = Device:getPowerDevice()
+                        if powerd:isFrontlightOn() then
+                            local warmth = powerd:frontlightWarmth()
+                            if warmth then return (prefix .. "%d%%"):format(warmth) end
+                        else
+                            return config.frontlight_show_off and T(_("%1Off"), prefix)
+                        end
+                    end
+                end,
+                wifi = function()
+                    local NetworkMgr = require("ui/network/manager")
+                    return NetworkMgr:isWifiOn() and "" or (config.wifi_show_disabled and "")
+                end,
+            }
+            local device_statuses = {}
+            local alt_footer = nil
+            for _, item in ipairs(config.order) do
+                local text = genItemText[item]()
+                if text then table.insert(device_statuses, text) end
             end
-            if meta_browse_mode == true then display_path = "Library" end
-            self.cur_folder_text:setText(display_path)
-        elseif self.cur_folder_text and type(self.path) == "boolean" then
-            display_path = ""
+            if #device_statuses > 0 then alt_footer = table.concat(device_statuses, " · ") end
+            if self._manager and type(self._manager.name) == "string" then
+                self.cur_folder_text:setText("")
+            else
+                self.cur_folder_text:setText(alt_footer)
+            end
+        else
+            local display_path = ""
+                if (self.path == filemanagerutil.getDefaultDir() or
+                        self.path == G_reader_settings:readSetting("home_dir")) and
+                    G_reader_settings:nilOrTrue("shorten_home_dir") then
+                    display_path = "Home"
+                elseif self._manager and type(self._manager.name) == "string" then
+                    display_path = ""
+                else
+                    -- show only the current folder name, not the whole path
+                    local folder_name = "/"
+                    local crumbs = {}
+                    for crumb in string.gmatch(self.path, "[^/]+") do
+                        table.insert(crumbs, crumb)
+                    end
+                    if #crumbs > 1 then
+                        folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
+                    end
+                    -- add a star if folder is in shortcuts
+                    if FileManagerShortcuts:hasFolderShortcut(self.path) then
+                        folder_name = "★ " .. folder_name
+                    end
+                    display_path = folder_name
+                end
+                if meta_browse_mode == true then display_path = "Library" end
             self.cur_folder_text:setText(display_path)
         end
-    else
-        self.cur_folder_text:setText("")
     end
 end
 

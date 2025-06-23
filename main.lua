@@ -200,6 +200,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("opened_at_top_of_library", true)
         BookInfoManager:saveSetting("reverse_footer", false)
         BookInfoManager:saveSetting("use_custom_bookstatus", true)
+        BookInfoManager:saveSetting("replace_footer_text", false)
         BookInfoManager:saveSetting("config_version", "2")
     end
 
@@ -209,7 +210,6 @@ function CoverBrowser:init()
     series_mode = BookInfoManager:getSetting("series_mode")
 
     if BookInfoManager:getSetting("use_custom_bookstatus") then
-        logger.info("enabling custom boostatus")
         BookStatusWidget.genHeader = AltBookStatusWidget.genHeader
         BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
         BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
@@ -439,12 +439,19 @@ function CoverBrowser:addToMainMenu(menu_items)
                 separator = true,
             },
             {
-                text = _("Show page controls in left corner"),
-                checked_func = function() return BookInfoManager:getSetting("reverse_footer") end,
-                callback = function()
-                    BookInfoManager:toggleSetting("reverse_footer")
-                    UIManager:askForRestart()
-                end,
+                text = _("Folder display"),
+                sub_item_table = {
+                    {
+                        text = _("Auto-generate cover images for folders from books"),
+                        checked_func = function()
+                            return not BookInfoManager:getSetting("disable_auto_foldercovers")
+                        end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("disable_auto_foldercovers")
+                            fc:updateItems()
+                        end,
+                    },
+                },
             },
             {
                 text = _("Book display"),
@@ -505,7 +512,28 @@ function CoverBrowser:addToMainMenu(menu_items)
                 },
             },
             {
-                text = _("Library view"),
+                text = _("Footer"),
+                sub_item_table = {
+                    {
+                        text = _("Replace folder name with device info"),
+                        checked_func = function() return BookInfoManager:getSetting("replace_footer_text") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("replace_footer_text")
+                            UIManager:askForRestart()
+                        end,
+                    },
+                    {
+                        text = _("Show page controls in left corner"),
+                        checked_func = function() return BookInfoManager:getSetting("reverse_footer") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("reverse_footer")
+                            UIManager:askForRestart()
+                        end,
+                    },
+                },
+            },
+            {
+                text = _("Library mode"),
                 sub_item_table = {
                     {
                         text = _("Show opened books first"),
@@ -522,18 +550,8 @@ function CoverBrowser:addToMainMenu(menu_items)
                 },
             },
             {
-                text = _("Covers and cache database"),
+                text = _("Cache database"),
                 sub_item_table = {
-                    {
-                        text = _("Auto-generate cover images for folders from books"),
-                        checked_func = function()
-                            return not BookInfoManager:getSetting("disable_auto_foldercovers")
-                        end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("disable_auto_foldercovers")
-                            fc:updateItems()
-                        end,
-                    },
                     {
                         text = _("Scan home folder for new books automatically"),
                         checked_func = function() return BookInfoManager:getSetting("autoscan_on_eject") end,
