@@ -525,13 +525,22 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                 -- so instead, try finding pagecount in filename or calibre metadata
                 local function getEstimatedPagecount(fname)
                     local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(fname)
+
                     local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
                     if fn_pagecount and fn_pagecount ~= "0" then
+                        logger.dbg("PT: pagecount found in filename " .. fname)
+                        logger.dbg(fn_pagecount)
                         return fn_pagecount
                     end
-                    if filetype ~= "epub" then return nil end
-                    local std_out = io.popen("unzip " .. "-lqq \"" .. fname .. "\" \"*.opf\"")
-                    local opf_file
+
+                    if filetype ~= "epub" then
+                        logger.dbg("PT: skipping pagecount, not epub " .. fname)
+                        return nil
+                    end
+
+                    local std_out = nil
+                    local opf_file = nil
+                    std_out = io.popen("unzip " .. "-lqq \"" .. fname .. "\" \"*.opf\"")
                     if std_out then
                         opf_file = string.match(std_out:read(), "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
                         std_out:close()
@@ -557,14 +566,18 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                                 end
                             end
                             std_out:close()
-                            if found_value ~= "0" then
+                            if found_value and found_value ~= "0" then
+                                logger.dbg("PT: epub pagecount found in opf metadata " .. fname)
+                                logger.dbg(found_value)
                                 return found_value
                             end
                         end
                     end
+                    logger.dbg("PT: epub pagecount not found " .. fname)
                     return nil
                 end
-                pages = getEstimatedPagecount(filepath)
+                local success, response = pcall(getEstimatedPagecount, filepath)
+                if success then pages = response end
             end
         else
             -- for all others than crengine, we seem to get an accurate nb of pages
