@@ -70,8 +70,6 @@ local NB_DRAWINGS_BETWEEN_COLLECTGARBAGE = 5
 local nb_drawings_since_last_collectgarbage = 0
 
 local function onFolderUp()
-    logger.info(current_path)
-    logger.info(previous_path)
     if current_path then -- file browser or PathChooser
         if current_path == "favorites" then current_path = previous_path end
         if not (G_reader_settings:isTrue("lock_home_folder") and
