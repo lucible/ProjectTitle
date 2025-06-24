@@ -704,6 +704,14 @@ function MosaicMenuItem:update()
                 nbitems_frame,
             }
 
+            local widget_parts        = OverlapGroup:new {
+                dimen = dimen,
+                CenterContainer:new { dimen = dimen, subfolder_cover_image },
+            }
+            if BookInfoManager:getSetting("show_name_grid_folders") then
+                table.insert(widget_parts, TopContainer:new { dimen = dimen, directory })
+                table.insert(widget_parts, BottomContainer:new { dimen = dimen, nbitems })
+            end
             widget              = FrameContainer:new {
                 width = dimen.w,
                 height = dimen.h,
@@ -711,12 +719,7 @@ function MosaicMenuItem:update()
                 padding = 0,
                 bordersize = 0,
                 radius = nil,
-                OverlapGroup:new {
-                    dimen = dimen,
-                    CenterContainer:new { dimen = dimen, subfolder_cover_image },
-                    TopContainer:new { dimen = dimen, directory },
-                    BottomContainer:new { dimen = dimen, nbitems },
-                },
+                widget_parts,
             }
         else
             local margin = Screen:scaleBySize(5) -- make directories less wide

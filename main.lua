@@ -201,6 +201,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("reverse_footer", false)
         BookInfoManager:saveSetting("use_custom_bookstatus", true)
         BookInfoManager:saveSetting("replace_footer_text", false)
+        BookInfoManager:saveSetting("show_name_grid_folders", true)
         BookInfoManager:saveSetting("config_version", "2")
     end
 
@@ -442,13 +443,21 @@ function CoverBrowser:addToMainMenu(menu_items)
                 text = _("Folder display"),
                 sub_item_table = {
                     {
-                        text = _("Auto-generate cover images for folders from books"),
+                        text = _("Auto-generate cover images from books"),
                         checked_func = function()
                             return not BookInfoManager:getSetting("disable_auto_foldercovers")
                         end,
                         callback = function()
                             BookInfoManager:toggleSetting("disable_auto_foldercovers")
                             fc:updateItems()
+                        end,
+                    },
+                    {
+                        text = _("Overlay name and details in cover grid"),
+                        checked_func = function() return BookInfoManager:getSetting("show_name_grid_folders") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("show_name_grid_folders")
+                            fc:updateItems(1, true)
                         end,
                     },
                 },
