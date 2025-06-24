@@ -11,3 +11,4 @@ Anton Kalashnyk CC BY 4.0: https://www.iconfinder.com/Kalash
 
 Code:
 2-foldercover by ebanDev AGPL v2: https://github.com/ebanDev
+2-filemanager-titlebar.lua by sebdelsol MIT: https://github.com/sebdelsol
