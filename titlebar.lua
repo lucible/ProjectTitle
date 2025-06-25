@@ -69,6 +69,12 @@ function TitleBar:init()
         end
     end
     self.width = Screen:getWidth()
+    local center_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.center_icon_size_ratio)
+    local center_icon_reserved_width = 0
+    if self.center_icon then
+        self.has_center_icon = true
+        center_icon_reserved_width = center_icon_size + self.button_padding
+    end
     -- Dummy text widget to enforce vertical height
     self.title_widget = TextWidget:new {
         face = Font:getFace("smalltfont"),
@@ -223,8 +229,8 @@ function TitleBar:init()
         self.center_button = IconButton:new {
             icon = self.center_icon,
             icon_rotation_angle = 0,
-            width = icon_size * 1.25, -- larger size for hero icon
-            height = icon_size * 1.25,-- larger size for hero icon
+            width = center_icon_reserved_width,
+            height = center_icon_size,
             padding = 0, -- manual padding for hero icon needed
             padding_left = 0,
             padding_right = 0,
