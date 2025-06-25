@@ -68,22 +68,16 @@ function TitleBar:init()
             self.right_icon_hold_callback = function() self.close_hold_callback() end
         end
     end
-    self.width = Screen:getWidth()
-    local center_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.center_icon_size_ratio)
-    local center_icon_reserved_width = 0
-    if self.center_icon then
-        self.has_center_icon = true
-        center_icon_reserved_width = center_icon_size + self.button_padding
-    end
-    -- Dummy text widget to enforce vertical height
-    self.title_widget = TextWidget:new {
+
+    local icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE)
+    local icon_height = icon_size
+    local icon_baseline = icon_height * 0.8 + self.button_padding
+
+    self.title_widget = TextWidget:new { -- Dummy textwidget to enforce vertical height
         face = Font:getFace("smalltfont"),
         text = "",
     }
     local text_baseline = self.title_widget:getBaseline()
-    local icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE)
-    local icon_height = icon_size
-    local icon_baseline = icon_height * 0.8 + self.button_padding
     local title_top_padding = Math.round(math.max(0, icon_baseline - text_baseline))
     self.title_group = VerticalGroup:new {
         align = "center",
@@ -94,24 +88,30 @@ function TitleBar:init()
     self.titlebar_height = self.title_group:getSize().h
     self.bottom_v_padding = Screen:scaleBySize(6)
     self.titlebar_height = self.titlebar_height + self.bottom_v_padding
+
+    self.width = Screen:getWidth()
     self.dimen = Geom:new {
         x = 0,
         y = 0,
         w = self.width,
         h = self.titlebar_height, -- buttons can overflow this
     }
+
+    local center_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.center_icon_size_ratio)
+    local center_icon_reserved_width = center_icon_size + self.button_padding
     local icon_reserved_width = icon_size + self.button_padding
     local icon_padding_width = icon_reserved_width * 0.65
     local icon_padding_height = Screen:scaleBySize(6)
     local icon_padding_side_offset = Screen:scaleBySize(14)
-    self.has_left_icon = true
-    self.has_left2_icon = true
-    self.has_left3_icon = true
-    self.has_right_icon = true
-    self.has_right2_icon = true
-    self.has_right3_icon = true
-    self.has_center_icon = true
-    if self.has_left_icon then
+
+    -- self.has_left_icon = true
+    -- self.has_left2_icon = true
+    -- self.has_left3_icon = true
+    -- self.has_right_icon = true
+    -- self.has_right2_icon = true
+    -- self.has_right3_icon = true
+    -- self.has_center_icon = true
+    -- if self.has_left_icon then
         self.left_button = IconButton:new {
             icon = self.left_icon,
             icon_rotation_angle = 0,
@@ -129,8 +129,8 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.left_button)
-    end
-    if self.has_left2_icon then
+    -- end
+    -- if self.has_left2_icon then
         self.left2_button = IconButton:new {
             icon = self.left2_icon,
             icon_rotation_angle = 0,
@@ -148,8 +148,8 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.left2_button)
-    end
-    if self.has_left3_icon then
+    -- end
+    -- if self.has_left3_icon then
         self.left3_button = IconButton:new {
             icon = self.left3_icon,
             icon_rotation_angle = 0,
@@ -167,8 +167,8 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.left3_button)
-    end
-    if self.has_right_icon then
+    -- end
+    -- if self.has_right_icon then
         self.right_button = IconButton:new {
             icon = self.right_icon,
             icon_rotation_angle = 0,
@@ -186,8 +186,8 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.right_button)
-    end
-    if self.has_right2_icon then
+    -- end
+    -- if self.has_right2_icon then
         self.right2_button = IconButton:new {
             icon = self.right2_icon,
             icon_rotation_angle = 0,
@@ -205,8 +205,8 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.right2_button)
-    end
-    if self.has_right3_icon then
+    -- end
+    -- if self.has_right3_icon then
         self.right3_button = IconButton:new {
             icon = self.right3_icon,
             icon_rotation_angle = 0,
@@ -224,8 +224,8 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.right3_button)
-    end
-    if self.has_center_icon then
+    -- end
+    -- if self.has_center_icon then
         self.center_button = IconButton:new {
             icon = self.center_icon,
             icon_rotation_angle = 0,
@@ -243,7 +243,7 @@ function TitleBar:init()
             show_parent = self.show_parent,
         }
         table.insert(self, self.center_button)
-    end
+    -- end
 
     -- Call our base class's init (especially since OverlapGroup has very peculiar self.dimen semantics...)
     OverlapGroup.init(self)
