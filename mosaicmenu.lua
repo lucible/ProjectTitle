@@ -595,15 +595,17 @@ function MosaicMenuItem:update()
                         local dirpath = directories[i]
                         local f = filename
                         local fullpath = dirpath .. f
-                        local subfolder_book = BookInfoManager:getBookInfo(fullpath, self.do_cover_image)
-                        if subfolder_book and lfs.attributes(fullpath, "mode") == "file" then
-                            local _, _, scale_factor = BookInfoManager.getCachedCoverSize(subfolder_book.cover_w,
-                                subfolder_book.cover_h,
-                                max_img_w / 2.05, max_img_h / 2.05)
-                            table.insert(subfolder_images, ImageWidget:new {
-                                image = subfolder_book.cover_bb,
-                                scale_factor = scale_factor,
-                            })
+                        if lfs.attributes(fullpath, "mode") == "file" then
+                            local subfolder_book = BookInfoManager:getBookInfo(fullpath, self.do_cover_image)
+                            if subfolder_book then
+                                local _, _, scale_factor = BookInfoManager.getCachedCoverSize(subfolder_book.cover_w,
+                                    subfolder_book.cover_h,
+                                    max_img_w / 2.05, max_img_h / 2.05)
+                                table.insert(subfolder_images, ImageWidget:new {
+                                    image = subfolder_book.cover_bb,
+                                    scale_factor = scale_factor,
+                                })
+                            end
                         end
                         if #subfolder_images == 4 then
                             break
