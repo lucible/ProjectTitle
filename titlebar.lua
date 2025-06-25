@@ -104,146 +104,125 @@ function TitleBar:init()
     local icon_padding_height = Screen:scaleBySize(6)
     local icon_padding_side_offset = Screen:scaleBySize(14)
 
-    -- self.has_left_icon = true
-    -- self.has_left2_icon = true
-    -- self.has_left3_icon = true
-    -- self.has_right_icon = true
-    -- self.has_right2_icon = true
-    -- self.has_right3_icon = true
-    -- self.has_center_icon = true
-    -- if self.has_left_icon then
-        self.left_button = IconButton:new {
-            icon = self.left_icon,
-            icon_rotation_angle = 0,
-            width = icon_reserved_width,
-            height = icon_size,
-            padding = self.button_padding,
-            padding_left = icon_padding_side_offset,
-            padding_right = icon_padding_width / 2,
-            padding_bottom = icon_size * 0.2,
-            padding_top = icon_padding_height,
-            overlap_align = "left",
-            callback = self.left_icon_tap_callback,
-            hold_callback = self.left_icon_hold_callback,
-            allow_flash = self.left_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.left_button)
-    -- end
-    -- if self.has_left2_icon then
-        self.left2_button = IconButton:new {
-            icon = self.left2_icon,
-            icon_rotation_angle = 0,
-            width = icon_reserved_width,
-            height = icon_size,
-            padding = self.button_padding,
-            padding_left = icon_padding_side_offset + icon_reserved_width + icon_padding_width,
-            padding_right = icon_padding_width / 2,
-            padding_bottom = icon_size * 0.2,
-            padding_top = icon_padding_height,
-            overlap_align = "left",
-            callback = self.left2_icon_tap_callback,
-            hold_callback = self.left2_icon_hold_callback,
-            allow_flash = self.left2_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.left2_button)
-    -- end
-    -- if self.has_left3_icon then
-        self.left3_button = IconButton:new {
-            icon = self.left3_icon,
-            icon_rotation_angle = 0,
-            width = icon_reserved_width,
-            height = icon_size,
-            padding = self.button_padding,
-            padding_left = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width),
-            padding_right = icon_padding_width / 2,
-            padding_bottom = icon_size * 0.2,
-            padding_top = icon_padding_height,
-            overlap_align = "left",
-            callback = self.left3_icon_tap_callback,
-            hold_callback = self.left3_icon_hold_callback,
-            allow_flash = self.left3_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.left3_button)
-    -- end
-    -- if self.has_right_icon then
-        self.right_button = IconButton:new {
-            icon = self.right_icon,
-            icon_rotation_angle = 0,
-            width = icon_reserved_width,
-            height = icon_size,
-            padding = self.button_padding,
-            padding_left = icon_padding_width / 2,
-            padding_right = icon_padding_side_offset,
-            padding_bottom = icon_size * 0.2,
-            padding_top = icon_padding_height,
-            overlap_align = "right",
-            callback = self.right_icon_tap_callback,
-            hold_callback = self.right_icon_hold_callback,
-            allow_flash = self.right_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.right_button)
-    -- end
-    -- if self.has_right2_icon then
-        self.right2_button = IconButton:new {
-            icon = self.right2_icon,
-            icon_rotation_angle = 0,
-            width = icon_reserved_width,
-            height = icon_size,
-            padding = self.button_padding,
-            padding_left = icon_padding_width / 2,
-            padding_right = icon_padding_side_offset + icon_reserved_width + icon_padding_width,
-            padding_bottom = icon_size * 0.2,
-            padding_top = icon_padding_height,
-            overlap_align = "right",
-            callback = self.right2_icon_tap_callback,
-            hold_callback = self.right2_icon_hold_callback,
-            allow_flash = self.right2_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.right2_button)
-    -- end
-    -- if self.has_right3_icon then
-        self.right3_button = IconButton:new {
-            icon = self.right3_icon,
-            icon_rotation_angle = 0,
-            width = icon_reserved_width,
-            height = icon_size,
-            padding = self.button_padding,
-            padding_left = icon_padding_width / 2,
-            padding_right = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width),
-            padding_bottom = icon_size * 0.2,
-            padding_top = icon_padding_height,
-            overlap_align = "right",
-            callback = self.right3_icon_tap_callback,
-            hold_callback = self.right3_icon_hold_callback,
-            allow_flash = self.right3_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.right3_button)
-    -- end
-    -- if self.has_center_icon then
-        self.center_button = IconButton:new {
-            icon = self.center_icon,
-            icon_rotation_angle = 0,
-            width = center_icon_reserved_width,
-            height = center_icon_size,
-            padding = 0, -- manual padding for hero icon needed
-            padding_left = 0,
-            padding_right = 0,
-            padding_bottom = 0,
-            padding_top = Screen:scaleBySize(3),
-            overlap_align = "center",
-            callback = self.center_icon_tap_callback,
-            hold_callback = self.center_icon_hold_callback,
-            allow_flash = self.center_icon_allow_flash,
-            show_parent = self.show_parent,
-        }
-        table.insert(self, self.center_button)
-    -- end
+    self.left_button = IconButton:new {
+        icon = self.left_icon,
+        icon_rotation_angle = 0,
+        width = icon_reserved_width,
+        height = icon_size,
+        padding = self.button_padding,
+        padding_left = icon_padding_side_offset,
+        padding_right = icon_padding_width / 2,
+        padding_bottom = icon_size * 0.2,
+        padding_top = icon_padding_height,
+        overlap_align = "left",
+        callback = self.left_icon_tap_callback,
+        hold_callback = self.left_icon_hold_callback,
+        allow_flash = self.left_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.left_button)
+    self.left2_button = IconButton:new {
+        icon = self.left2_icon,
+        icon_rotation_angle = 0,
+        width = icon_reserved_width,
+        height = icon_size,
+        padding = self.button_padding,
+        padding_left = icon_padding_side_offset + icon_reserved_width + icon_padding_width,
+        padding_right = icon_padding_width / 2,
+        padding_bottom = icon_size * 0.2,
+        padding_top = icon_padding_height,
+        overlap_align = "left",
+        callback = self.left2_icon_tap_callback,
+        hold_callback = self.left2_icon_hold_callback,
+        allow_flash = self.left2_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.left2_button)
+    self.left3_button = IconButton:new {
+        icon = self.left3_icon,
+        icon_rotation_angle = 0,
+        width = icon_reserved_width,
+        height = icon_size,
+        padding = self.button_padding,
+        padding_left = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width),
+        padding_right = icon_padding_width / 2,
+        padding_bottom = icon_size * 0.2,
+        padding_top = icon_padding_height,
+        overlap_align = "left",
+        callback = self.left3_icon_tap_callback,
+        hold_callback = self.left3_icon_hold_callback,
+        allow_flash = self.left3_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.left3_button)
+    self.right_button = IconButton:new {
+        icon = self.right_icon,
+        icon_rotation_angle = 0,
+        width = icon_reserved_width,
+        height = icon_size,
+        padding = self.button_padding,
+        padding_left = icon_padding_width / 2,
+        padding_right = icon_padding_side_offset,
+        padding_bottom = icon_size * 0.2,
+        padding_top = icon_padding_height,
+        overlap_align = "right",
+        callback = self.right_icon_tap_callback,
+        hold_callback = self.right_icon_hold_callback,
+        allow_flash = self.right_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.right_button)
+    self.right2_button = IconButton:new {
+        icon = self.right2_icon,
+        icon_rotation_angle = 0,
+        width = icon_reserved_width,
+        height = icon_size,
+        padding = self.button_padding,
+        padding_left = icon_padding_width / 2,
+        padding_right = icon_padding_side_offset + icon_reserved_width + icon_padding_width,
+        padding_bottom = icon_size * 0.2,
+        padding_top = icon_padding_height,
+        overlap_align = "right",
+        callback = self.right2_icon_tap_callback,
+        hold_callback = self.right2_icon_hold_callback,
+        allow_flash = self.right2_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.right2_button)
+    self.right3_button = IconButton:new {
+        icon = self.right3_icon,
+        icon_rotation_angle = 0,
+        width = icon_reserved_width,
+        height = icon_size,
+        padding = self.button_padding,
+        padding_left = icon_padding_width / 2,
+        padding_right = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width),
+        padding_bottom = icon_size * 0.2,
+        padding_top = icon_padding_height,
+        overlap_align = "right",
+        callback = self.right3_icon_tap_callback,
+        hold_callback = self.right3_icon_hold_callback,
+        allow_flash = self.right3_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.right3_button)
+    self.center_button = IconButton:new {
+        icon = self.center_icon,
+        icon_rotation_angle = 0,
+        width = center_icon_reserved_width,
+        height = center_icon_size,
+        padding = 0,     -- manual padding for hero icon needed
+        padding_left = 0,
+        padding_right = 0,
+        padding_bottom = 0,
+        padding_top = Screen:scaleBySize(3),
+        overlap_align = "center",
+        callback = self.center_icon_tap_callback,
+        hold_callback = self.center_icon_hold_callback,
+        allow_flash = self.center_icon_allow_flash,
+        show_parent = self.show_parent,
+    }
+    table.insert(self, self.center_button)
 
     -- Call our base class's init (especially since OverlapGroup has very peculiar self.dimen semantics...)
     OverlapGroup.init(self)
