@@ -211,7 +211,7 @@ function TitleBar:init()
         icon_rotation_angle = 0,
         width = center_icon_reserved_width,
         height = center_icon_size,
-        padding = 0,     -- manual padding for hero icon needed
+        padding = 0, -- manual padding for hero icon needed
         padding_left = 0,
         padding_right = 0,
         padding_bottom = 0,
