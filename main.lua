@@ -135,7 +135,7 @@ local CoverBrowser = WidgetContainer:extend {
     modes = {
         { _("Cover List"),    "list_image_meta" },
         { _("Cover Grid"),    "mosaic_image" },
-        { _("Details List"), "list_only_meta" },
+        { _("Details List"),  "list_only_meta" },
         { _("Filenames List") },
     },
 }
@@ -166,17 +166,21 @@ function CoverBrowser:init()
         return
     end
 
-    -- Set up default display modes on first launch
+    -- on first ever run and occasionally afterward it will be necessary to create
+    -- new settings keys in the 'config' table and some of them require restarting
+    -- koreader to fully apply.
+    local restart_needed = false
     if not G_reader_settings:isTrue("aaaProjectTitle_initial_default_setup_done2") then
         logger.info("Initalizing Project: Title settings")
-        -- Only if no display mode has been set yet
+        -- Set up default display modes on first launch
+        -- but only if no display mode has been set yet
         if not BookInfoManager:getSetting("filemanager_display_mode")
             and not BookInfoManager:getSetting("history_display_mode") then
             BookInfoManager:saveSetting("filemanager_display_mode", "list_image_meta")
             BookInfoManager:saveSetting("history_display_mode", "list_image_meta")
             BookInfoManager:saveSetting("collection_display_mode", "list_image_meta")
         end
-        -- set up a few default settings
+        -- initalize settings with their defaults
         BookInfoManager:saveSetting("config_version", "1")
         BookInfoManager:saveSetting("series_mode", "series_in_separate_line")
         BookInfoManager:saveSetting("hide_file_info", true)
@@ -184,12 +188,13 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("show_progress_in_mosaic", true)
         BookInfoManager:saveSetting("autoscan_on_eject", false)
         G_reader_settings:makeTrue("aaaProjectTitle_initial_default_setup_done2")
-        UIManager:restartKOReader()
-        FFIUtil.sleep(2)
+
+        restart_needed = true
     end
 
-    -- migrate settings as needed
+    -- initalize additional settings with their defaults
     if BookInfoManager:getSetting("config_version") == nil then
+        -- catch installs done before setting versioning
         logger.info("Migrating Project: Title settings to version 1")
         BookInfoManager:saveSetting("config_version", "1")
     end
@@ -203,6 +208,15 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("replace_footer_text", false)
         BookInfoManager:saveSetting("show_name_grid_folders", true)
         BookInfoManager:saveSetting("config_version", "2")
+
+        restart_needed = true
+    end
+
+    -- restart if needed
+    if restart_needed then
+        logger.info("Restarting KOReader as requested by Project: Title")
+        UIManager:restartKOReader()
+        FFIUtil.sleep(2)
     end
 
     self:setupFileManagerDisplayMode(BookInfoManager:getSetting("filemanager_display_mode"))
