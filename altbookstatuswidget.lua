@@ -26,11 +26,6 @@ local Screen = Device.screen
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
--- local function findLast(haystack, needle)
---     local i = haystack:match(".*" .. needle .. "()")
---     if i == nil then return nil else return i - 1 end
--- end
-
 local AltBookStatusWidget = {}
 
 function AltBookStatusWidget:getStatusContent(width)
@@ -297,7 +292,6 @@ function AltBookStatusWidget:genSummaryGroup(width)
     local props = self.ui.doc_props
     if props.description then
         html_contents = "<html lang='" .. props.language .. "'><body>" .. props.description .. "</body></html>"
-        --html_contents = "<html><body>" .. props.description .. "</body></html>"
     else
         html_contents = "<html><body><h2 style='font-style: italic; color: #CCCCCC;'>No description.</h3></body></html>"
     end

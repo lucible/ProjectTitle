@@ -96,11 +96,6 @@ function ItemShortCutIcon:init()
     }
 end
 
--- local function findLast(haystack, needle)
---     local i = haystack:match(".*" .. needle .. "()")
---     if i == nil then return nil else return i - 1 end
--- end
-
 -- Based on menu.lua's MenuItem
 local ListMenuItem = InputContainer:extend {
     entry = nil, -- hash, mandatory
