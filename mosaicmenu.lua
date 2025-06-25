@@ -582,8 +582,9 @@ function MosaicMenuItem:update()
                 self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
                 self.db_conn = SQ3.open(self.db_location)
                 self.db_conn:set_busy_timeout(5000)
-                local query = string.format("SELECT directory, filename FROM bookinfo WHERE directory IS '%s/' AND has_cover = 'Y' ORDER BY RANDOM() LIMIT 16;",
-                    self.filepath:gsub("'","''"))
+                local query = string.format(
+                    "SELECT directory, filename FROM bookinfo WHERE directory IS '%s/' AND has_cover = 'Y' ORDER BY RANDOM() LIMIT 16;",
+                    self.filepath:gsub("'", "''"))
                 local res = self.db_conn:exec(query)
                 local subfolder_images = {}
                 if res then
@@ -685,7 +686,7 @@ function MosaicMenuItem:update()
                 directory_frame,
             }
 
-            local nbitems_text  = TextWidget:new {
+            local nbitems_text = TextWidget:new {
                 text = " " .. nbitems_string .. " ",
                 face = Font:getFace("infont", 15),
                 max_width = dimen.w,
@@ -699,12 +700,12 @@ function MosaicMenuItem:update()
                 margin = 0,
                 nbitems_text,
             }
-            local nbitems       = AlphaContainer:new {
+            local nbitems = AlphaContainer:new {
                 alpha = 0.84,
                 nbitems_frame,
             }
 
-            local widget_parts        = OverlapGroup:new {
+            local widget_parts = OverlapGroup:new {
                 dimen = dimen,
                 CenterContainer:new { dimen = dimen, subfolder_cover_image },
             }
@@ -712,7 +713,7 @@ function MosaicMenuItem:update()
                 table.insert(widget_parts, TopContainer:new { dimen = dimen, directory })
                 table.insert(widget_parts, BottomContainer:new { dimen = dimen, nbitems })
             end
-            widget              = FrameContainer:new {
+            widget = FrameContainer:new {
                 width = dimen.w,
                 height = dimen.h,
                 margin = 0,

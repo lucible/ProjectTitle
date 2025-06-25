@@ -378,8 +378,9 @@ function ListMenuItem:update()
                 self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
                 self.db_conn = SQ3.open(self.db_location)
                 self.db_conn:set_busy_timeout(5000)
-                local query = string.format("SELECT directory, filename FROM bookinfo WHERE directory IS '%s/' AND has_cover = 'Y' ORDER BY RANDOM() LIMIT 16;",
-                    self.filepath:gsub("'","''"))
+                local query = string.format(
+                    "SELECT directory, filename FROM bookinfo WHERE directory IS '%s/' AND has_cover = 'Y' ORDER BY RANDOM() LIMIT 16;",
+                    self.filepath:gsub("'", "''"))
                 local res = self.db_conn:exec(query)
                 local subfolder_images = {}
                 if res then
@@ -886,7 +887,7 @@ function ListMenuItem:update()
             local series_mode = BookInfoManager:getSetting("series_mode")
             local show_series = bookinfo.series and bookinfo.series_index and
                 bookinfo.series_index ~=
-                0                      -- suppress series if index is "0"
+                0 -- suppress series if index is "0"
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them
