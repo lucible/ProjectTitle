@@ -3,7 +3,6 @@ local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local BookList = require("ui/widget/booklist")
 local ButtonDialog = require("ui/widget/buttondialog")
-local DocSettings = require("docsettings")
 local DocumentRegistry = require("document/documentregistry")
 local FileChooser = require("ui/widget/filechooser")
 local Geom = require("ui/geometry")
@@ -19,21 +18,20 @@ local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local UIManager = require("ui/uimanager")
 local LineWidget = require("ui/widget/linewidget")
-local logger = require("logger")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("titlebar")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local FileManagerMenu = require("apps/filemanager/filemanagermenu")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("gettext")
 local Device = require("device")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local util = require("util")
-local time = require("ui/time")
 local ffiUtil = require("ffi/util")
 local C_ = _.pgettext
+local logger = require("logger")
+local time = require("ui/time")
 
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
@@ -286,32 +284,40 @@ function CoverMenu:genItemTable(dirs, files, path)
         local SQ3 = require("lua-ljsqlite3/init")
         local DataStorage = require("datastorage")
         local custom_item_table = {}
-        local opened_items = {}
+        local items_place_at_top = {}
         self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
         self.db_conn = SQ3.open(self.db_location)
         self.db_conn:set_busy_timeout(5000)
-        local query = string.format("SELECT directory, filename FROM bookinfo WHERE directory LIKE '%s%%' ORDER BY authors ASC, series ASC, series_index ASC, title ASC;",
-            G_reader_settings:readSetting("home_dir"):gsub("'","''"))
+        local query = string.format(
+            "SELECT directory, filename FROM bookinfo WHERE directory LIKE '%s%%' ORDER BY authors ASC, series ASC, series_index ASC, title ASC;",
+            G_reader_settings:readSetting("home_dir"):gsub("'", "''"))
         local res = self.db_conn:exec(query)
         if res then
             local directories = res[1]
             local filenames = res[2]
             for i, filename in ipairs(filenames) do
                 local dirpath = directories[i]
-                local fullpath = dirpath..filename
-                if lfs.attributes(fullpath, "mode") == "file" and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
-                    local attributes = lfs.attributes(fullpath) or {}
+                local fullpath = dirpath .. filename
+                local attributes = lfs.attributes(fullpath) or {}
+                local place_at_top = false
+                if attributes.mode == "file" and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
                     local collate = { can_collate_mixed = nil, item_func = nil }
                     local item = Filechooser:getListItem(dirpath, filename, fullpath, attributes, collate)
-                    if BookList.hasBookBeenOpened(fullpath) and BookInfoManager:getSetting("opened_at_top_of_library") then
-                        table.insert(opened_items, item)
+                    if BookInfoManager:getSetting("opened_at_top_of_library") then
+                        local book_info = BookList.getBookInfo(fullpath)
+                        if book_info.status == "reading" and (book_info.percent_finished ~= nil and book_info.percent_finished < 100) then
+                            place_at_top = true
+                        end
+                    end
+                    if place_at_top then
+                        table.insert(items_place_at_top, item)
                     else
                         table.insert(custom_item_table, item)
                     end
                 end
-                if util.tableSize(opened_items) > 0 then
-                    util.tableMerge(custom_item_table, opened_items)
-                end
+            end
+            if util.tableSize(items_place_at_top) > 0 then
+                util.tableMerge(custom_item_table, items_place_at_top)
             end
         end
         self.db_conn:close()
@@ -809,7 +815,8 @@ function CoverMenu:updatePageInfo(select_number)
                             local aux_batt_lvl = powerd:getAuxCapacity()
                             local aux_batt_symbol =
                                 powerd:getBatterySymbol(powerd:isAuxCharged(), powerd:isAuxCharging(), aux_batt_lvl)
-                            text = text .. " " .. BD.wrap("+") .. BD.wrap(aux_batt_symbol) .. BD.wrap(aux_batt_lvl .. "%")
+                            text = text ..
+                                " " .. BD.wrap("+") .. BD.wrap(aux_batt_symbol) .. BD.wrap(aux_batt_lvl .. "%")
                         end
                         return text
                     end
@@ -821,7 +828,7 @@ function CoverMenu:updatePageInfo(select_number)
                 frontlight = function()
                     local T = require("ffi/util").template
                     if Device:hasFrontlight() then
-                        local prefix = "✺"
+                        local prefix = "✺" -- "☼"
                         local powerd = Device:getPowerDevice()
                         if powerd:isFrontlightOn() then
                             if Device:isCervantes() or Device:isKobo() then
@@ -837,7 +844,7 @@ function CoverMenu:updatePageInfo(select_number)
                 frontlight_warmth = function()
                     local T = require("ffi/util").template
                     if Device:hasNaturalLight() then
-                        local prefix = "⊛"
+                        local prefix = "⊛" -- "💡"
                         local powerd = Device:getPowerDevice()
                         if powerd:isFrontlightOn() then
                             local warmth = powerd:frontlightWarmth()
@@ -866,29 +873,29 @@ function CoverMenu:updatePageInfo(select_number)
             end
         else
             local display_path = ""
-                if (self.path == filemanagerutil.getDefaultDir() or
-                        self.path == G_reader_settings:readSetting("home_dir")) and
-                    G_reader_settings:nilOrTrue("shorten_home_dir") then
-                    display_path = "Home"
-                elseif self._manager and type(self._manager.name) == "string" then
-                    display_path = ""
-                else
-                    -- show only the current folder name, not the whole path
-                    local folder_name = "/"
-                    local crumbs = {}
-                    for crumb in string.gmatch(self.path, "[^/]+") do
-                        table.insert(crumbs, crumb)
-                    end
-                    if #crumbs > 1 then
-                        folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
-                    end
-                    -- add a star if folder is in shortcuts
-                    if FileManagerShortcuts:hasFolderShortcut(self.path) then
-                        folder_name = "★ " .. folder_name
-                    end
-                    display_path = folder_name
+            if (self.path == filemanagerutil.getDefaultDir() or
+                    self.path == G_reader_settings:readSetting("home_dir")) and
+                G_reader_settings:nilOrTrue("shorten_home_dir") then
+                display_path = "Home"
+            elseif self._manager and type(self._manager.name) == "string" then
+                display_path = ""
+            else
+                -- show only the current folder name, not the whole path
+                local folder_name = "/"
+                local crumbs = {}
+                for crumb in string.gmatch(self.path, "[^/]+") do
+                    table.insert(crumbs, crumb)
                 end
-                if meta_browse_mode == true then display_path = "Library" end
+                if #crumbs > 1 then
+                    folder_name = table.concat(crumbs, "", #crumbs, #crumbs)
+                end
+                -- add a star if folder is in shortcuts
+                if FileManagerShortcuts:hasFolderShortcut(self.path) then
+                    folder_name = "★ " .. folder_name
+                end
+                display_path = folder_name
+            end
+            if meta_browse_mode == true then display_path = "Library" end
             self.cur_folder_text:setText(display_path)
         end
     end
