@@ -111,7 +111,7 @@ local AltBookStatusWidget = require("altbookstatuswidget")
 
 -- Available display modes
 local DISPLAY_MODES = {
-    -- nil or ""                -- classic : filename only
+    -- nil or ""            -- classic : filename only
     mosaic_image    = true, -- 3x3 grid covers with images
     list_image_meta = true, -- image with metadata (title/authors)
     list_only_meta  = true, -- metadata with no image
@@ -133,9 +133,9 @@ local series_mode = nil  -- defaults to not display series
 local CoverBrowser = WidgetContainer:extend {
     name = "coverbrowserclean",
     modes = {
-        { _("Detailed List"),               "list_only_meta" },
-        { _("Detailed List (with covers)"), "list_image_meta" },
-        { _("Cover Grid"),                  "mosaic_image" },
+        { _("Cover List"),    "list_image_meta" },
+        { _("Cover Grid"),    "mosaic_image" },
+        { _("Details List"), "list_only_meta" },
         { _("Filenames List") },
     },
 }
