@@ -31,9 +31,6 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 * KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames, I don't think you'll like what we're offering. Good news is that KOReader already does this extremely well!
 * People who absolutely love one of the features we removed from CoverBrowser. We made this plugin for ourselves by adding and also removing. We didn't remove much, but someone is bound to miss one of the things we took out.
 
-## Demonstration Video
-[![Demo Video](https://img.youtube.com/vi/oEsZY8JGXfo/0.jpg)](https://www.youtube.com/watch?v=oEsZY8JGXfo)
-
 ## Installation & Instructions
 **To Download:** Visit the [Releases Page](../../releases) and find the version of Project: Title that exactly matches the version of KOReader you want to use. Not all versions of KOReader are supported or will be supported. If you upgrade KOReader, you will need to upgrade Project: Title, and if there is no version of Project: Title yet for that version, it will be blocked from loading.
 
