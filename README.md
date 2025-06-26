@@ -10,24 +10,24 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 
 * **A Fresh Book Listing**: New fonts, new text, new icons for books without covers and unsupported files. An [optional](../../wiki/Configure-Calibre-Page-Counts) progress bar that shows the relative length of each book in lieu of just a raw percentage. Books are presented in a tasteful, distinct manner that adjusts to the screen size and how many items are on screen.
 
-* **A Fitting Folder**: Folders no longer show slashes in their names, and instead are shown with a brand new icon. The arrow to move up a folder has been moved up into the title bar, to give more space for your books.
+* **A Fitting Folder**: Folders no longer show slashes in their names, and instead are shown your choice of cover image, thumbnails, or a generic icon. The arrow to move up a folder has been moved up into the title bar, to give more space for your books.
 
-* **An Informative Footer**: Shows the current folder name as well as the page controls.
+* **An Informative Footer**: Shows the page controls and your choice of either the current folder or a device status bar showing time, wifi, battery, and frontlight states. The location of the page controls can be set to either the lower right or the lower left.
 
-* **A Matching Book Status Page**: The default book status page (available as a screensaver) have been updated to show the book's description and your current progress, as well as having its design updated to match the new book listings.
+* **A Matching Book Status Page**: The default book status page (available as a screensaver) have been updated to show the book's description and your current progress, as well as having its design updated to match the new book listings. A setting is available to restore the original one, if needed.
 
 * **A Few Nice Extras**: Autoscan for new books on USB eject, make list and grid items larger or smaller with gestures (pinch/spread), a trophy icon to mark finished books, and more (I think).
 
 ## Who this (hopefully) is for:
 * Kobo device owners. We designed this on two Kobos (Aura One, Sage) so we feel pretty confident about the experience there.
 * Jailbroken Kindle owners. With new support for KOReader 2025.04 we've seen and heard from many Kindle owners running this plugin.
+* Android owners. as of version 2025.04 v2, the Android edition of KOReader is supported.
 * Calibre users. We both sync books using Calibre, and at least one feature (the book-sized progress bars) requires Calibre and a plugin.
 * People with tidy EPUB/PDF libraries. We make sure every EPUB we sync has a title, author, series and cover image, so we designed around books always having that metadata.
 * Readers who like browsing for their next book and being able to see how long a book is before starting it.
 
 ## Who this (probably) is not for:
-* ~~Android users.~~ Android should be working now, give it a try!
-* Non-English speakers. Many UI strings were added, some were rewritten and we did not design with an eye toward the localization. PRs welcome here as well, though we prefer to distribute any additional translations with this plugin. Ideally, nothing added to the plugin would ever need a PR against KOReader itself.
+* Non-English speakers. Many UI strings were added, some were rewritten and we did not design with an eye toward localization. If you know how KOReader handles localization and can help contribute, please reach out!
 * KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames, I don't think you'll like what we're offering. Good news is that KOReader already does this extremely well!
 * People who absolutely love one of the features we removed from CoverBrowser. We made this plugin for ourselves by adding and also removing. We didn't remove much, but someone is bound to miss one of the things we took out.
 
