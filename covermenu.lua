@@ -27,12 +27,12 @@ local FileManagerMenu = require("apps/filemanager/filemanagermenu")
 local _ = require("gettext")
 local Device = require("device")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local logger = require("logger")
+local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 local ffiUtil = require("ffi/util")
 local C_ = _.pgettext
-local logger = require("logger")
 local time = require("ui/time")
-
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
 
@@ -60,6 +60,8 @@ local current_path = nil
 local is_pathchooser = false
 local meta_browse_mode = false
 
+-- declare 3 fonts included with our plugin
+local title_serif = "source/SourceSerif4-BoldIt.ttf"
 local good_serif = "source/SourceSerif4-Regular.ttf"
 local good_sans = "source/SourceSans3-Regular"
 
@@ -279,8 +281,6 @@ end
 function CoverMenu:genItemTable(dirs, files, path)
     if meta_browse_mode == true and is_pathchooser == false and G_reader_settings:readSetting("home_dir") ~= nil then
         -- build item tables from coverbrowser-style sqlite db
-        local Filechooser = require("ui/widget/filechooser")
-        local lfs = require("libs/libkoreader-lfs")
         local SQ3 = require("lua-ljsqlite3/init")
         local DataStorage = require("datastorage")
         local custom_item_table = {}
@@ -302,7 +302,7 @@ function CoverMenu:genItemTable(dirs, files, path)
                 local place_at_top = false
                 if attributes.mode == "file" and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
                     local collate = { can_collate_mixed = nil, item_func = nil }
-                    local item = Filechooser:getListItem(dirpath, filename, fullpath, attributes, collate)
+                    local item = FileChooser:getListItem(dirpath, filename, fullpath, attributes, collate)
                     if BookInfoManager:getSetting("opened_at_top_of_library") then
                         local book_info = BookList.getBookInfo(fullpath)
                         if book_info.status == "reading" and (book_info.percent_finished ~= nil and book_info.percent_finished < 100) then
@@ -325,15 +325,18 @@ function CoverMenu:genItemTable(dirs, files, path)
 
         -- build item tables from calibre json database
         -- local CalibreMetadata = require("metadata")
-        -- local Filechooser = require("ui/widget/filechooser")
-        -- local lfs = require("libs/libkoreader-lfs")
         -- local custom_item_table = {}
         -- local root = "/mnt/onboard" -- would need to replace with a generic
         -- CalibreMetadata:init(root, true)
         -- for _, book in ipairs(CalibreMetadata.books) do
-        --     local fullpath = root.."/"..book.lpath
-        --     local dirpath, f = util.splitFilePathName(fullpath)
-        --     -- if file, then insert in custom_item_table
+        --     local fullpath = root .. "/" .. book.lpath
+        --     local dirpath, filename = util.splitFilePathName(fullpath)
+        --     local attributes = lfs.attributes(fullpath) or {}
+        --     if attributes.mode == "file" and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
+        --         local collate = { can_collate_mixed = nil, item_func = nil }
+        --         local item = FileChooser:getListItem(dirpath, filename, fullpath, attributes, collate)
+        --         table.insert(custom_item_table, item)
+        --     end
         -- end
         -- CalibreMetadata:clean()
         -- return custom_item_table
