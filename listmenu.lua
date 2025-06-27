@@ -27,6 +27,7 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local logger = require("logger")
+local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 local _ = require("gettext")
 local Screen = Device.screen
@@ -641,12 +642,11 @@ function ListMenuItem:update()
             -- right widget, first line
             local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
             local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(filename)
-            local fileinfo_str
+            local fileinfo_str = self.mandatory or ""
             if bookinfo._no_provider then
                 -- for unsupported files: don't show extension on the right,
                 -- keep it in filename
                 filename_without_suffix = filename
-                fileinfo_str = self.mandatory or ""
             else
                 local mark = has_highlight and "\u{2592}  " or "" -- "medium shade"
                 fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(fileinfo_str)
