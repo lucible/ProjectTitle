@@ -246,10 +246,11 @@ function ListMenuItem:update()
 
         if is_pathchooser == false then
             -- replace the stock tiny file and folder glyphs with text
-            local folder_count = string.match(self.mandatory, "(%d+) \u{F114}")
-            local file_count = string.match(self.mandatory, "(%d+) \u{F016}")
             local folder_text = "Folder"
             local file_text = "Book"
+            local mandatory_str = self.mandatory or ""
+            local folder_count = string.match(mandatory_str, "(%d+) \u{F114}")
+            local file_count = string.match(mandatory_str, "(%d+) \u{F016}")
             wright_font_face = Font:getFace(good_sans, _fontSize(15, 19))
 
             -- add file or folder counts as necessary with pluralization (english)
@@ -271,7 +272,6 @@ function ListMenuItem:update()
             end
         else
             local wmandatory = TextWidget:new {
-                -- self.mandatory CAN be nil, usually in pathchooser
                 text = self.mandatory or "",
                 face = wright_font_face,
             }
@@ -646,10 +646,10 @@ function ListMenuItem:update()
                 -- for unsupported files: don't show extension on the right,
                 -- keep it in filename
                 filename_without_suffix = filename
-                fileinfo_str = self.mandatory
+                fileinfo_str = self.mandatory or ""
             else
                 local mark = has_highlight and "\u{2592}  " or "" -- "medium shade"
-                fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(self.mandatory)
+                fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(fileinfo_str)
             end
             -- right widget, second line
             local wright_right_padding = 0
