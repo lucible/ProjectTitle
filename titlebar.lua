@@ -52,6 +52,8 @@ local TitleBar = OverlapGroup:extend {
     -- Internal: remember first sizes computed when title_shrink_font_to_fit=true,
     -- and keep using them after :setTitle() in case a smaller font size is needed,
     -- to keep the TitleBar geometry stable.
+    title = "",
+    subtitle = "",
     _initial_title_top_padding = nil,
     _initial_title_text_baseline = nil,
     _initial_titlebar_height = nil,
@@ -75,7 +77,7 @@ function TitleBar:init()
 
     self.title_widget = TextWidget:new { -- Dummy textwidget to enforce vertical height
         face = Font:getFace("smalltfont"),
-        text = "",
+        text = self.title,
     }
     local text_baseline = self.title_widget:getBaseline()
     local title_top_padding = Math.round(math.max(0, icon_baseline - text_baseline))
@@ -242,13 +244,11 @@ function TitleBar:getHeight()
 end
 
 function TitleBar:setTitle(title, no_refresh)
-    -- We do nothing here, as we do not render a Title
-    -- Do not delete function as it may be called from elsewhere
+    self.title = ""
 end
 
 function TitleBar:setSubTitle(subtitle, no_refresh)
-    -- We do nothing here, as we do not render a subTitle
-    -- Do not delete function as it may be called from elsewhere
+    self.subtitle = ""
 end
 
 function TitleBar:setLeftIcon(icon)

@@ -233,10 +233,13 @@ function ListMenuItem:update()
 
     -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
-    if (self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it")) or
-        (self.menu and util.stringEndsWith(self.menu.title, "name to choose it")) then
+    -- if (self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it")) or
+    --     (self.menu and util.stringEndsWith(self.menu.title, "name to choose it")) then
+    if (self.title_bar and self.title_bar.title ~= "") or (self.menu and self.menu.title ~= "") then
         is_pathchooser = true
     end
+    -- if self.title_bar then logger.info(self.title_bar.title .. " title_bar") end
+    -- if self.menu then logger.info(self.menu.title .. " menu") end
 
     self.is_directory = not (self.entry.is_file or self.entry.file)
     if self.is_directory then
@@ -1437,7 +1440,8 @@ function ListMenu:_recalculateDimen()
 
     -- test to see what style to draw (pathchooser vs "detailed list view mode")
     is_pathchooser = false
-    if self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it") then
+    -- if self.title_bar and util.stringEndsWith(self.title_bar.title, "name to choose it") then
+    if self.title_bar.title ~= "" then
         is_pathchooser = true
     end
 

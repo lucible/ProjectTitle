@@ -625,16 +625,12 @@ function CoverMenu:setupLayout()
         background = Blitbuffer.COLOR_WHITE,
         file_chooser,
     }
-
     self[1] = fm_ui
-
     self.menu = FileManagerMenu:new {
-        ui = self
+        ui = self,
     }
-
     -- No need to reinvent the wheel, use FileChooser's layout
     self.layout = file_chooser.layout
-
     self:registerKeyEvents()
 end
 
@@ -774,9 +770,11 @@ function CoverMenu:menuInit()
 
     -- set and update pathchooser status
     is_pathchooser = false
-    if util.stringEndsWith(self.title_bar.title, "name to choose it") then
+    -- if util.stringEndsWith(self.title_bar.title, "name to choose it") then
+    if self.title_bar.title ~= "" then
         is_pathchooser = true
     end
+    -- logger.info(self.title_bar.title .. " from covermenu")
 
     if self.item_table.current then
         self.page = self:getPageNumber(self.item_table.current)
