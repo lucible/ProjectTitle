@@ -69,6 +69,18 @@ local good_sans = "source/SourceSans3-Regular"
 local NB_DRAWINGS_BETWEEN_COLLECTGARBAGE = 5
 local nb_drawings_since_last_collectgarbage = 0
 
+local function getSourceDir()
+    local callerSource = debug.getinfo(2, "S").source
+    if callerSource:find("^@") then
+        return callerSource:gsub("^@(.*)/[^/]*", "%1")
+    end
+end
+
+-- redirect gettext to our mo files, and force a reload
+_.dirname = getSourceDir() .. "/l10n"
+_.textdomain = "projecttitle"
+_.changeLang(_.current_lang)
+
 local function onFolderUp()
     if current_path then -- file browser or PathChooser
         if current_path == "favorites" then current_path = previous_path end
@@ -879,7 +891,7 @@ function CoverMenu:updatePageInfo(select_number)
             if (self.path == filemanagerutil.getDefaultDir() or
                     self.path == G_reader_settings:readSetting("home_dir")) and
                 G_reader_settings:nilOrTrue("shorten_home_dir") then
-                display_path = "Home"
+                display_path = _("Home")
             elseif self._manager and type(self._manager.name) == "string" then
                 display_path = ""
             else
@@ -898,7 +910,7 @@ function CoverMenu:updatePageInfo(select_number)
                 end
                 display_path = folder_name
             end
-            if meta_browse_mode == true then display_path = "Library" end
+            if meta_browse_mode == true then display_path = _("Library") end
             self.cur_folder_text:setText(display_path)
         end
     end

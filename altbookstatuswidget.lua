@@ -26,6 +26,18 @@ local Screen = Device.screen
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
+local function getSourceDir()
+    local callerSource = debug.getinfo(2, "S").source
+    if callerSource:find("^@") then
+        return callerSource:gsub("^@(.*)/[^/]*", "%1")
+    end
+end
+
+-- redirect gettext to our mo files, and force a reload
+_.dirname = getSourceDir() .. "/l10n"
+_.textdomain = "projecttitle"
+_.changeLang(_.current_lang)
+
 local AltBookStatusWidget = {}
 
 function AltBookStatusWidget:getStatusContent(width)
@@ -39,9 +51,9 @@ function AltBookStatusWidget:getStatusContent(width)
         align = "left",
         title_bar,
         self:genBookInfoGroup(),
-        self:genHeader("Progress"),
+        self:genHeader(_("Progress")),
         self:genStatisticsGroup(width),
-        self:genHeader("Description"),
+        self:genHeader(_("Description")),
         self:genSummaryGroup(width),
     }
     return content
@@ -195,9 +207,9 @@ function AltBookStatusWidget:genBookInfoGroup()
     }
 
     -- progress text
+    local read_text = _("Reading")
     local progress_text = TextWidget:new {
-        text = T(_("%1% Read"),
-            string.format("%1.f", read_percentage * 100)),
+        text = read_text .. " - " .. T(_("%1%"),string.format("%1.f", read_percentage * 100)),
         face = self.small_serif_font,
     }
 

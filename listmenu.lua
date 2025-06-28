@@ -33,8 +33,19 @@ local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local getMenuText = require("ui/widget/menu").getMenuText
-
 local BookInfoManager = require("bookinfomanager")
+
+local function getSourceDir()
+    local callerSource = debug.getinfo(2, "S").source
+    if callerSource:find("^@") then
+        return callerSource:gsub("^@(.*)/[^/]*", "%1")
+    end
+end
+
+-- redirect gettext to our mo files, and force a reload
+_.dirname = getSourceDir() .. "/l10n"
+_.textdomain = "projecttitle"
+_.changeLang(_.current_lang)
 
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)
@@ -56,13 +67,6 @@ local ItemShortCutIcon = WidgetContainer:extend {
     radius = 0,
     style = "square",
 }
-
-local function getSourceDir()
-    local callerSource = debug.getinfo(2, "S").source
-    if callerSource:find("^@") then
-        return callerSource:gsub("^@(.*)/[^/]*", "%1")
-    end
-end
 
 function ItemShortCutIcon:init()
     if not self.key then
@@ -250,16 +254,16 @@ function ListMenuItem:update()
 
         if is_pathchooser == false then
             -- replace the stock tiny file and folder glyphs with text
-            local folder_text = "Folder"
-            local file_text = "Book"
+            local folder_text = _("Folder")
+            local file_text = _("Book")
             local mandatory_str = self.mandatory or ""
             local folder_count = string.match(mandatory_str, "(%d+) \u{F114}")
             local file_count = string.match(mandatory_str, "(%d+) \u{F016}")
             wright_font_face = Font:getFace(good_sans, _fontSize(15, 19))
 
-            -- add file or folder counts as necessary with pluralization (english)
+            -- add file or folder counts as necessary with pluralization
             if folder_count and tonumber(folder_count) > 0 then
-                if tonumber(folder_count) > 1 then folder_text = folder_text .. "s" end
+                if tonumber(folder_count) > 1 then folder_text =  _("Folders") end
                 local wfoldercount = TextWidget:new {
                     text = folder_count .. " " .. folder_text,
                     face = wright_font_face,
@@ -267,7 +271,7 @@ function ListMenuItem:update()
                 table.insert(wright_items, wfoldercount)
             end
             if file_count and tonumber(file_count) > 0 then
-                if tonumber(file_count) > 1 then file_text = file_text .. "s" end
+                if tonumber(file_count) > 1 then file_text = _("Books") end
                 local wfilecount = TextWidget:new {
                     text = file_count .. " " .. file_text,
                     face = wright_font_face,
@@ -629,10 +633,10 @@ function ListMenuItem:update()
                 self.menu.cover_info_cache = {}
             end
 
-            local finished_text = "Finished"
-            local abandoned_string = "On Hold"
-            local read_text = "Read"
-            local unread_text = "New"
+            local finished_text = _("Finished")
+            local abandoned_string = _("On hold")
+            local read_text = _("Reading")
+            local unread_text = _("New")
             local pages_str = ""
             local pages_left_str = ""
             local percent_str = ""
@@ -797,7 +801,7 @@ function ListMenuItem:update()
                 progress_str = abandoned_string
             elseif percent_finished then
                 progress_str = ""
-                percent_str = math.floor(100 * percent_finished) .. "% " .. read_text
+                percent_str = read_text .. " - " .. math.floor(100 * percent_finished) .. "%"
                 if pages then
                     if BookInfoManager:getSetting("show_pages_read_as_progress") then
                         pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)

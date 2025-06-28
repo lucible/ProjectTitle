@@ -19,6 +19,18 @@ local _ = require("gettext")
 local N_ = _.ngettext
 local T = FFIUtil.template
 
+local function getSourceDir()
+    local callerSource = debug.getinfo(2, "S").source
+    if callerSource:find("^@") then
+        return callerSource:gsub("^@(.*)/[^/]*", "%1")
+    end
+end
+
+-- redirect gettext to our mo files, and force a reload
+_.dirname = getSourceDir() .. "/l10n"
+_.textdomain = "projecttitle"
+_.changeLang(_.current_lang)
+
 -- Database definition
 local BOOKINFO_DB_VERSION = 20201210
 local BOOKINFO_DB_SCHEMA = [[
@@ -258,7 +270,7 @@ function BookInfoManager:compactDb()
         return T(_("Failed compacting database: %1"), errmsg)
     end
     local cur_size = self:getDbSize()
-    return T(_("Cache size reduced from\n%1\nto\n%2."), prev_size, cur_size)
+    return T(_("Cache database size reduced from %1 to %2."), prev_size, cur_size)
 end
 
 -- Settings management, stored in 'config' table
@@ -904,7 +916,7 @@ Do you want to prune the cache of removed books?]]
     end
 
     local confirm_abort = function()
-        return Trapper:confirm(_("Do you want to stop?"), _("Keep Indexing"), _("Stop Indexing"))
+        return Trapper:confirm(_("Do you want to stop?"), _("Continue Indexing"), _("Stop Indexing"))
     end
     -- Cancel any background job, before we launch new ones
     self:terminateBackgroundJobs()
@@ -1032,7 +1044,7 @@ Do you want to prune the cache of removed books?]]
 
         local orig_moved_offset = info.movable:getMovedOffset()
         info:free()
-        info.text = T(_("Indexing %1 / %2…\n\nTap anywhere to stop.\n\n%3"), i, nb_files, BD.filename(filename))
+        info.text = T(_("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename)) .. "\n\n" .. _("Tap anywhere to stop")
         info:init()
         local text_widget = table.remove(info.movable[1][1], 3)
         local text_widget_size = text_widget:getSize()

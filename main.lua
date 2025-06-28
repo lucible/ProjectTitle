@@ -74,6 +74,18 @@ local _ = require("gettext")
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
+local function getSourceDir()
+    local callerSource = debug.getinfo(2, "S").source
+    if callerSource:find("^@") then
+        return callerSource:gsub("^@(.*)/[^/]*", "%1")
+    end
+end
+
+-- redirect gettext to our mo files, and force a reload
+_.dirname = getSourceDir() .. "/l10n"
+_.textdomain = "projecttitle"
+_.changeLang(_.current_lang)
+
 -- We need to save the original methods early here as locals.
 -- For some reason, saving them as attributes in init() does not allow
 -- us to get back to classic mode
@@ -584,7 +596,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Prune cache…"),
+                        text = _("Prune cache"),
                         keep_menu_open = false,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
@@ -608,19 +620,19 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Empty cache…"),
+                        text = _("Empty cache"),
                         keep_menu_open = false,
                         callback = function()
                             local ConfirmBox = require("ui/widget/confirmbox")
                             UIManager:close(self.file_dialog)
                             UIManager:show(ConfirmBox:new {
-                                text = _("Are you sure that you want to delete cover and metadata cache for all books?"),
+                                text = _("Are you sure that you want to delete cover and metadata cache?"),
                                 ok_text = _("Empty cache"),
                                 ok_callback = function()
                                     BookInfoManager:deleteDb()
                                     BookInfoManager:compactDb() -- compact
                                     local InfoMessage = require("ui/widget/infomessage")
-                                    UIManager:show(InfoMessage:new { text = "Cache emptied." })
+                                    UIManager:show(InfoMessage:new { text = _("Cache emptied.") })
                                 end
                             })
                         end,
@@ -629,7 +641,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                     {
                         text_func = function() -- add current db size to menu text
                             local sstr = BookInfoManager:getDbSize()
-                            return _("Cache Size: ") .. sstr
+                            return _("Cache size") .. ": " .. sstr
                         end,
                         keep_menu_open = true,
                         callback = function() end, -- no callback, only for information

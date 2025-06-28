@@ -34,8 +34,19 @@ local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local getMenuText = require("ui/widget/menu").getMenuText
-
 local BookInfoManager = require("bookinfomanager")
+
+local function getSourceDir()
+    local callerSource = debug.getinfo(2, "S").source
+    if callerSource:find("^@") then
+        return callerSource:gsub("^@(.*)/[^/]*", "%1")
+    end
+end
+
+-- redirect gettext to our mo files, and force a reload
+_.dirname = getSourceDir() .. "/l10n"
+_.textdomain = "projecttitle"
+_.changeLang(_.current_lang)
 
 -- Here is the specific UI implementation for "mosaic" display modes
 -- (see covermenu.lua for the generic code)
@@ -55,13 +66,6 @@ local corner_mark_size
 local corner_mark
 local complete_mark
 local progress_widget
-
-local function getSourceDir()
-    local callerSource = debug.getinfo(2, "S").source
-    if callerSource:find("^@") then
-        return callerSource:gsub("^@(.*)/[^/]*", "%1")
-    end
-end
 
 -- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
 -- so we need to redefine it
