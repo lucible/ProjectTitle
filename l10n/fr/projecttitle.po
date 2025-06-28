@@ -62,13 +62,13 @@ msgid "Show series"
 msgstr "Montrer les séries"
 
 msgid "Show pages read instead of progress %"
-msgstr "Montrer les pages lues au lieu du pourcentage de progression"
+msgstr "Montrer les pages lues au lieu du % de progression"
 
 msgid "Show file info instead of pages or progress %"
-msgstr "Montrer les infos du fichier au lieu des pages ou du % de progression"
+msgstr "Montrer les infos du fichier au lieu de pages ou % de prog."
 
 msgid "Always show maximum length progress bars"
-msgstr "Toujours montrer la longueur maximale de la barre de progression"
+msgstr "Toujours montrer la longueur max de la barre de progression"
 
 msgid "Use custom book status screen"
 msgstr "Utiliser un affichage de status du livre personnalisé"
@@ -77,10 +77,10 @@ msgid "Footer"
 msgstr "Pied de page"
 
 msgid "Replace folder name with device info"
-msgstr "Remplacer le nom du dossier courant par les infos de l'appareil"
+msgstr "Remplacer le nom du dossier par les infos de l'appareil"
 
 msgid "Show page controls in left corner"
-msgstr "Montrer les contrôles de changement page dans le coin gauche"
+msgstr "Montrer les contrôles de changement de page à gauche"
 
 msgid "Library mode"
 msgstr "Mode Bibliothèque"
@@ -92,7 +92,7 @@ msgid "Cache database"
 msgstr "Cache de la base de données"
 
 msgid "Scan home folder for new books automatically"
-msgstr "Scanner automatiquement le dossier accueil pour de nouveaux livres "
+msgstr "Scan auto. du dossier accueil pour de nouveaux livres "
 
 msgid "Empty cache"
 msgstr "Vider le cache"

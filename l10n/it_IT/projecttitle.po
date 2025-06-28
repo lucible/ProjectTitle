@@ -59,19 +59,19 @@ msgid "Book display"
 msgstr "Visualizzazione libri"
 
 msgid "Show series"
-msgstr "Mostra serie"
+msgstr "Mostra le serie"
 
 msgid "Show pages read instead of progress %"
-msgstr "Mostra pagine lette invece della percentuale"
+msgstr "Mostra pagine lette invece del progresso %"
 
 msgid "Show file info instead of pages or progress %"
-msgstr "Mostra info file invece di pagine o percentuale"
+msgstr "Mostra info file invece di pagine o progresso %"
 
 msgid "Always show maximum length progress bars"
-msgstr "Mostra sempre barre di avanzamento a lunghezza massima"
+msgstr "Mostra barre di avanzamento a lunghezza massima"
 
 msgid "Use custom book status screen"
-msgstr "Usa schermata stato libro personalizzata"
+msgstr "Usa schermata personalizzata di stato libro"
 
 msgid "Footer"
 msgstr "Piè di pagina"
@@ -92,13 +92,13 @@ msgid "Cache database"
 msgstr "Cache del database"
 
 msgid "Scan home folder for new books automatically"
-msgstr "Scansiona automaticamente la cartella home per nuovi libri"
+msgstr "Scansiona automaticamente la home per nuovi libri"
 
 msgid "Empty cache"
 msgstr "Svuota cache"
 
 msgid "Are you sure that you want to delete cover and metadata cache?"
-msgstr "Vuoi davvero eliminare la cache delle copertine e dei metadati?"
+msgstr "Vuoi eliminare la cache delle copertine e dei metadati?"
 
 msgid "Cache emptied."
 msgstr "Cache svuotata."
@@ -119,7 +119,7 @@ msgstr ""
 "L'estrazione potrebbe richiedere tempo e consumare batteria: potresti voler tenere il dispositivo collegato all'alimentazione."
 
 msgid "Found %1 books.\nLooking for new books…"
-msgstr "Trovati %1 libri.\nRicerca di nuovi libri in corso…"
+msgstr "Trovati %1 libri.\nRicerca  nuovi libri…"
 
 msgid "No new books found."
 msgstr "Nessun nuovo libro trovato."
@@ -134,7 +134,7 @@ msgid "Stop Indexing"
 msgstr "Interrompi Indicizzazione"
 
 msgid "Tap anywhere to stop"
-msgstr "Tocca dovunque per interrompere"
+msgstr "Tocca ovunque per interrompere"
 
 # Below is the original po file from koreader
 

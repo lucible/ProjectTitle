@@ -1,11 +1,11 @@
 # This is the template for localizing the additional strings found in Project: Title.
-
-# The strings below will be added to the full l10n file from KOReader and 
-# new .mo will be generated that includes both.
+# The strings below will be added to the full l10n file from KOReader.
 
 # When submitting this file, please indicate what KOReader language code the
 # translation is for. See: https://github.com/koreader/koreader-translations for a list.
 
+# Keep translations as concise. Due to screen space limits, long strings may be truncated.
+# This is especially true of the setting names located in main.lua
 
 # covermenu.lua
 msgid "Library"

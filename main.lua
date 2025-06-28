@@ -70,6 +70,7 @@ local Dispatcher = require("dispatcher")
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local util = require("util")
 local _ = require("gettext")
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
@@ -83,6 +84,7 @@ end
 
 -- redirect gettext to our mo files, and force a reload
 -- only switch for translations we provide (todo: better conditional code)
+-- if util.arrayContains()
 if _.current_lang == "fr" or _.current_lang == "it_IT" then
     _.dirname = getSourceDir() .. "/l10n"
     _.textdomain = "projecttitle"
