@@ -69,20 +69,6 @@ local good_sans = "source/SourceSans3-Regular"
 local NB_DRAWINGS_BETWEEN_COLLECTGARBAGE = 5
 local nb_drawings_since_last_collectgarbage = 0
 
-local function getSourceDir()
-    local callerSource = debug.getinfo(2, "S").source
-    if callerSource:find("^@") then
-        return callerSource:gsub("^@(.*)/[^/]*", "%1")
-    end
-end
-
--- redirect gettext to our mo files, and force a reload
-if _.current_lang == "fr" or _.current_lang == "it_IT" then
-    _.dirname = getSourceDir() .. "/l10n"
-    _.textdomain = "projecttitle"
-    _.changeLang(_.current_lang)
-end
-
 local function onFolderUp()
     if current_path then -- file browser or PathChooser
         if current_path == "favorites" then current_path = previous_path end

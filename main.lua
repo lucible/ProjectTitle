@@ -65,8 +65,16 @@ end
 logger.info("All tests passed, loading Project: Title on KOReader ver ", tostring(cv_int))
 
 -- carry on...
+local BookStatusWidget = require("ui/widget/bookstatuswidget")
+local AltBookStatusWidget = require("altbookstatuswidget")
+local FileChooser = require("ui/widget/filechooser")
+local FileManager = require("apps/filemanager/filemanager")
+local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
+local FileManagerCollection = require("apps/filemanager/filemanagercollection")
+local FileManagerFileSearcher = require("apps/filemanager/filemanagerfilesearcher")
 local FFIUtil = require("ffi/util")
 local Dispatcher = require("dispatcher")
+local Menu = require("ui/widget/menu")
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -83,10 +91,12 @@ local function getSourceDir()
 end
 
 -- redirect gettext to our mo files, and force a reload
--- only switch for translations we provide (todo: better conditional code)
--- if util.arrayContains()
-if _.current_lang == "fr" or _.current_lang == "it_IT" then
-    _.dirname = getSourceDir() .. "/l10n"
+-- but only do this for translations we provide
+local l10nfolder = getSourceDir() .. "/l10n"
+local l10nexists = util.directoryExists(l10nfolder.."/".._.current_lang)
+if l10nexists then
+    logger.info("Loading Project: Title l10n file for " .. _.current_lang)
+    _.dirname = l10nfolder
     _.textdomain = "projecttitle"
     _.changeLang(_.current_lang)
 end
@@ -94,16 +104,13 @@ end
 -- We need to save the original methods early here as locals.
 -- For some reason, saving them as attributes in init() does not allow
 -- us to get back to classic mode
-local FileChooser = require("ui/widget/filechooser")
 local _FileChooser__recalculateDimen_orig = FileChooser._recalculateDimen
 local _FileChooser_updateItems_orig = FileChooser.updateItems
 local _FileChooser_onCloseWidget_orig = FileChooser.onCloseWidget
 local _FileChooser_genItemTable_orig = FileChooser.genItemTable
-
-local FileManager = require("apps/filemanager/filemanager")
-local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
-local FileManagerCollection = require("apps/filemanager/filemanagercollection")
-local FileManagerFileSearcher = require("apps/filemanager/filemanagerfilesearcher")
+local _FileManager_setupLayout_orig = FileManager.setupLayout
+local _Menu_init_orig = Menu.init
+local _Menu_updatePageInfo_orig = Menu.updatePageInfo
 
 local _modified_widgets = {
     filemanager  = FileManager,
@@ -116,15 +123,6 @@ local _updateItemTable_orig_funcs = {
     collections  = FileManagerCollection.updateItemTable,
     filesearcher = FileManagerFileSearcher.updateItemTable,
 }
-
-local _FileManager_setupLayout_orig = FileManager.setupLayout
-
-local Menu = require("ui/widget/menu")
-local _Menu_init_orig = Menu.init
-local _Menu_updatePageInfo_orig = Menu.updatePageInfo
-
-local BookStatusWidget = require("ui/widget/bookstatuswidget")
-local AltBookStatusWidget = require("altbookstatuswidget")
 
 -- Available display modes
 local DISPLAY_MODES = {

@@ -26,20 +26,6 @@ local Screen = Device.screen
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
-local function getSourceDir()
-    local callerSource = debug.getinfo(2, "S").source
-    if callerSource:find("^@") then
-        return callerSource:gsub("^@(.*)/[^/]*", "%1")
-    end
-end
-
--- redirect gettext to our mo files, and force a reload
-if _.current_lang == "fr" or _.current_lang == "it_IT" then
-    _.dirname = getSourceDir() .. "/l10n"
-    _.textdomain = "projecttitle"
-    _.changeLang(_.current_lang)
-end
-
 local AltBookStatusWidget = {}
 
 function AltBookStatusWidget:getStatusContent(width)

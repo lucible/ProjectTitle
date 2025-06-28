@@ -42,22 +42,15 @@ local function getSourceDir()
     end
 end
 
--- redirect gettext to our mo files, and force a reload
-if _.current_lang == "fr" or _.current_lang == "it_IT" then
-    _.dirname = getSourceDir() .. "/l10n"
-    _.textdomain = "projecttitle"
-    _.changeLang(_.current_lang)
-end
-
--- Here is the specific UI implementation for "list" display modes
--- (see covermenu.lua for the generic code)
-
 -- declare 3 fonts included with our plugin
 local title_serif = "source/SourceSerif4-BoldIt.ttf"
 local good_serif = "source/SourceSerif4-Regular.ttf"
 local good_sans = "source/SourceSans3-Regular"
 
 local is_pathchooser = false
+
+-- Here is the specific UI implementation for "list" display modes
+-- (see covermenu.lua for the generic code)
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
 
 -- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
