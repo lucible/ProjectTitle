@@ -82,9 +82,12 @@ local function getSourceDir()
 end
 
 -- redirect gettext to our mo files, and force a reload
-_.dirname = getSourceDir() .. "/l10n"
-_.textdomain = "projecttitle"
-_.changeLang(_.current_lang)
+-- only switch for translations we provide (todo: better conditional code)
+if _.current_lang == "fr" or _.current_lang == "it_IT" then
+    _.dirname = getSourceDir() .. "/l10n"
+    _.textdomain = "projecttitle"
+    _.changeLang(_.current_lang)
+end
 
 -- We need to save the original methods early here as locals.
 -- For some reason, saving them as attributes in init() does not allow

@@ -27,9 +27,11 @@ local function getSourceDir()
 end
 
 -- redirect gettext to our mo files, and force a reload
-_.dirname = getSourceDir() .. "/l10n"
-_.textdomain = "projecttitle"
-_.changeLang(_.current_lang)
+if _.current_lang == "fr" or _.current_lang == "it_IT" then
+    _.dirname = getSourceDir() .. "/l10n"
+    _.textdomain = "projecttitle"
+    _.changeLang(_.current_lang)
+end
 
 -- Database definition
 local BOOKINFO_DB_VERSION = 20201210
