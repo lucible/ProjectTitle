@@ -4,7 +4,7 @@
 # When submitting this file, please indicate what KOReader language code the
 # translation is for. See: https://github.com/koreader/koreader-translations for a list.
 
-# Keep translations as concise. Due to screen space limits, long strings may be truncated.
+# Keep translations concise. Due to screen space limits, long strings may be truncated.
 # This is especially true of the setting names located in main.lua
 
 # covermenu.lua
