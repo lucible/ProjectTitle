@@ -93,7 +93,7 @@ end
 -- redirect gettext to our mo files, and force a reload
 -- but only do this for translations we provide
 local l10nfolder = getSourceDir() .. "/l10n"
-local l10nexists = util.directoryExists(l10nfolder.."/".._.current_lang)
+local l10nexists = util.directoryExists(l10nfolder .. "/" .. _.current_lang)
 if l10nexists then
     logger.info("Loading Project: Title l10n file for " .. _.current_lang)
     _.dirname = l10nfolder
@@ -332,141 +332,146 @@ function CoverBrowser:addToMainMenu(menu_items)
         separator = true,
         sub_item_table = {
             {
-                text_func = function()
-                    return T(_("Items per page in portrait cover grid mode: %1 × %2"), fc.nb_cols_portrait,
-                        fc.nb_rows_portrait)
-                end,
-                -- Best to not "keep_menu_open = true", to see how this apply on the full view
-                callback = function()
-                    local nb_cols = fc.nb_cols_portrait
-                    local nb_rows = fc.nb_rows_portrait
-                    local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
-                    local widget = DoubleSpinWidget:new {
-                        title_text = _("Portrait cover grid mode"),
-                        width_factor = 0.6,
-                        left_text = _("Columns"),
-                        left_value = nb_cols,
-                        left_min = min_cols,
-                        left_max = max_cols,
-                        left_default = default_cols,
-                        left_precision = "%01d",
-                        right_text = _("Rows"),
-                        right_value = nb_rows,
-                        right_min = min_rows,
-                        right_max = max_rows,
-                        right_default = default_rows,
-                        right_precision = "%01d",
-                        keep_shown_on_apply = true,
-                        callback = function(left_value, right_value)
-                            fc.nb_cols_portrait = left_value
-                            fc.nb_rows_portrait = right_value
-                            if fc.display_mode_type == "mosaic" and fc.portrait_mode then
-                                fc.no_refresh_covers = true
-                                fc:updateItems()
-                            end
+                text = _("Items per page"),
+                sub_item_table = {
+                    {
+                        text_func = function()
+                            return _("Portrait cover grid mode") .. T(_(": %1 × %2"), fc.nb_cols_portrait,
+                                fc.nb_rows_portrait)
                         end,
-                        close_callback = function()
-                            if fc.nb_cols_portrait ~= nb_cols or fc.nb_rows_portrait ~= nb_rows then
-                                BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
-                                BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
-                                FileChooser.nb_cols_portrait = fc.nb_cols_portrait
-                                FileChooser.nb_rows_portrait = fc.nb_rows_portrait
-                                if fc.display_mode_type == "mosaic" and fc.portrait_mode then
-                                    fc.no_refresh_covers = nil
-                                    fc:updateItems()
-                                end
-                            end
+                        -- Best to not "keep_menu_open = true", to see how this apply on the full view
+                        callback = function()
+                            local nb_cols = fc.nb_cols_portrait
+                            local nb_rows = fc.nb_rows_portrait
+                            local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
+                            local widget = DoubleSpinWidget:new {
+                                title_text = _("Portrait cover grid mode"),
+                                width_factor = 0.6,
+                                left_text = _("Columns"),
+                                left_value = nb_cols,
+                                left_min = min_cols,
+                                left_max = max_cols,
+                                left_default = default_cols,
+                                left_precision = "%01d",
+                                right_text = _("Rows"),
+                                right_value = nb_rows,
+                                right_min = min_rows,
+                                right_max = max_rows,
+                                right_default = default_rows,
+                                right_precision = "%01d",
+                                keep_shown_on_apply = true,
+                                callback = function(left_value, right_value)
+                                    fc.nb_cols_portrait = left_value
+                                    fc.nb_rows_portrait = right_value
+                                    if fc.display_mode_type == "mosaic" and fc.portrait_mode then
+                                        fc.no_refresh_covers = true
+                                        fc:updateItems()
+                                    end
+                                end,
+                                close_callback = function()
+                                    if fc.nb_cols_portrait ~= nb_cols or fc.nb_rows_portrait ~= nb_rows then
+                                        BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
+                                        BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
+                                        FileChooser.nb_cols_portrait = fc.nb_cols_portrait
+                                        FileChooser.nb_rows_portrait = fc.nb_rows_portrait
+                                        if fc.display_mode_type == "mosaic" and fc.portrait_mode then
+                                            fc.no_refresh_covers = nil
+                                            fc:updateItems()
+                                        end
+                                    end
+                                end,
+                            }
+                            UIManager:show(widget)
                         end,
-                    }
-                    UIManager:show(widget)
-                end,
-            },
-            {
-                text_func = function()
-                    return T(_("Items per page in landscape cover grid mode: %1 × %2"), fc.nb_cols_landscape,
-                        fc.nb_rows_landscape)
-                end,
-                callback = function()
-                    local nb_cols = fc.nb_cols_landscape
-                    local nb_rows = fc.nb_rows_landscape
-                    local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
-                    local widget = DoubleSpinWidget:new {
-                        title_text = _("Landscape cover grid mode"),
-                        width_factor = 0.6,
-                        left_text = _("Columns"),
-                        left_value = nb_cols,
-                        left_min = min_cols,
-                        left_max = max_cols,
-                        left_default = default_cols,
-                        left_precision = "%01d",
-                        right_text = _("Rows"),
-                        right_value = nb_rows,
-                        right_min = min_rows,
-                        right_max = max_rows,
-                        right_default = default_cols,
-                        right_precision = "%01d",
-                        keep_shown_on_apply = true,
-                        callback = function(left_value, right_value)
-                            fc.nb_cols_landscape = left_value
-                            fc.nb_rows_landscape = right_value
-                            if fc.display_mode_type == "mosaic" and not fc.portrait_mode then
-                                fc.no_refresh_covers = true
-                                fc:updateItems()
-                            end
+                    },
+                    {
+                        text_func = function()
+                            return _("Landscape cover grid mode") .. T(_(": %1 × %2"), fc.nb_cols_landscape,
+                                fc.nb_rows_landscape)
                         end,
-                        close_callback = function()
-                            if fc.nb_cols_landscape ~= nb_cols or fc.nb_rows_landscape ~= nb_rows then
-                                BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
-                                BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
-                                FileChooser.nb_cols_landscape = fc.nb_cols_landscape
-                                FileChooser.nb_rows_landscape = fc.nb_rows_landscape
-                                if fc.display_mode_type == "mosaic" and not fc.portrait_mode then
-                                    fc.no_refresh_covers = nil
-                                    fc:updateItems()
-                                end
-                            end
+                        callback = function()
+                            local nb_cols = fc.nb_cols_landscape
+                            local nb_rows = fc.nb_rows_landscape
+                            local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
+                            local widget = DoubleSpinWidget:new {
+                                title_text = _("Landscape cover grid mode"),
+                                width_factor = 0.6,
+                                left_text = _("Columns"),
+                                left_value = nb_cols,
+                                left_min = min_cols,
+                                left_max = max_cols,
+                                left_default = default_cols,
+                                left_precision = "%01d",
+                                right_text = _("Rows"),
+                                right_value = nb_rows,
+                                right_min = min_rows,
+                                right_max = max_rows,
+                                right_default = default_cols,
+                                right_precision = "%01d",
+                                keep_shown_on_apply = true,
+                                callback = function(left_value, right_value)
+                                    fc.nb_cols_landscape = left_value
+                                    fc.nb_rows_landscape = right_value
+                                    if fc.display_mode_type == "mosaic" and not fc.portrait_mode then
+                                        fc.no_refresh_covers = true
+                                        fc:updateItems()
+                                    end
+                                end,
+                                close_callback = function()
+                                    if fc.nb_cols_landscape ~= nb_cols or fc.nb_rows_landscape ~= nb_rows then
+                                        BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
+                                        BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
+                                        FileChooser.nb_cols_landscape = fc.nb_cols_landscape
+                                        FileChooser.nb_rows_landscape = fc.nb_rows_landscape
+                                        if fc.display_mode_type == "mosaic" and not fc.portrait_mode then
+                                            fc.no_refresh_covers = nil
+                                            fc:updateItems()
+                                        end
+                                    end
+                                end,
+                            }
+                            UIManager:show(widget)
                         end,
-                    }
-                    UIManager:show(widget)
-                end,
-            },
-            {
-                text_func = function()
-                    -- default files_per_page should be calculated by ListMenu on the first drawing,
-                    -- use 7 if ListMenu has not been drawn yet
-                    return T(_("Items per page in portrait list mode: %1"), fc.files_per_page or default_items_per_page)
-                end,
-                callback = function()
-                    local files_per_page = fc.files_per_page or default_items_per_page
-                    local SpinWidget = require("ui/widget/spinwidget")
-                    local widget = SpinWidget:new {
-                        title_text = _("Portrait list mode"),
-                        value = files_per_page,
-                        value_min = min_items_per_page,
-                        value_max = max_items_per_page,
-                        default_value = default_items_per_page,
-                        keep_shown_on_apply = true,
-                        callback = function(spin)
-                            fc.files_per_page = spin.value
-                            if fc.display_mode_type == "list" then
-                                fc.no_refresh_covers = true
-                                fc:updateItems()
-                            end
+                    },
+                    {
+                        text_func = function()
+                            -- default files_per_page should be calculated by ListMenu on the first drawing,
+                            -- use 7 if ListMenu has not been drawn yet
+                            return _("List modes") .. T(_(": %1"),
+                                fc.files_per_page or default_items_per_page)
                         end,
-                        close_callback = function()
-                            if fc.files_per_page ~= files_per_page then
-                                BookInfoManager:saveSetting("files_per_page", fc.files_per_page)
-                                FileChooser.files_per_page = fc.files_per_page
-                                if fc.display_mode_type == "list" then
-                                    fc.no_refresh_covers = nil
-                                    fc:updateItems()
-                                end
-                            end
+                        callback = function()
+                            local files_per_page = fc.files_per_page or default_items_per_page
+                            local SpinWidget = require("ui/widget/spinwidget")
+                            local widget = SpinWidget:new {
+                                title_text = _("List modes"),
+                                value = files_per_page,
+                                value_min = min_items_per_page,
+                                value_max = max_items_per_page,
+                                default_value = default_items_per_page,
+                                keep_shown_on_apply = true,
+                                callback = function(spin)
+                                    fc.files_per_page = spin.value
+                                    if fc.display_mode_type == "list" then
+                                        fc.no_refresh_covers = true
+                                        fc:updateItems()
+                                    end
+                                end,
+                                close_callback = function()
+                                    if fc.files_per_page ~= files_per_page then
+                                        BookInfoManager:saveSetting("files_per_page", fc.files_per_page)
+                                        FileChooser.files_per_page = fc.files_per_page
+                                        if fc.display_mode_type == "list" then
+                                            fc.no_refresh_covers = nil
+                                            fc:updateItems()
+                                        end
+                                    end
+                                end,
+                            }
+                            UIManager:show(widget)
                         end,
-                    }
-                    UIManager:show(widget)
-                end,
-                separator = true,
+                    },
+                },
             },
             {
                 text = _("Folder display"),

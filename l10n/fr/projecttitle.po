@@ -34,17 +34,14 @@ msgstr "Liste triée par noms de fichier"
 msgid "Project: Title settings"
 msgstr "Paramètres Project: Title"
 
-msgid "Items per page in portrait cover grid mode: %1 × %2"
-msgstr "Elements par page en mode mosaïque - Portrait: %1 × %2"
-
 msgid "Portrait cover grid mode"
 msgstr "Mode mosaïque - Portrait"
 
-msgid "Items per page in landscape cover grid mode: %1 × %2"
-msgstr "Elements par page en mode mosaïque - Paysage: %1 × %2"
-
 msgid "Landscape cover grid mode"
 msgstr "Mode mosaïque - Paysage"
+
+msgid "List modes"
+msgstr "Modes Liste"
 
 msgid "Folder display"
 msgstr "Paramètres d'affichage des dossiers"
@@ -65,10 +62,10 @@ msgid "Show pages read instead of progress %"
 msgstr "Montrer les pages lues au lieu du % de progression"
 
 msgid "Show file info instead of pages or progress %"
-msgstr "Montrer les infos du fichier au lieu de pages ou % de prog."
+msgstr "Montrer les infos du fichier au lieu des pages ou % de prog."
 
 msgid "Always show maximum length progress bars"
-msgstr "Toujours montrer la longueur max de la barre de progression"
+msgstr "Toujours montrer la longueur maxi de la barre de prog."
 
 msgid "Use custom book status screen"
 msgstr "Utiliser un affichage de status du livre personnalisé"
@@ -92,7 +89,7 @@ msgid "Cache database"
 msgstr "Cache de la base de données"
 
 msgid "Scan home folder for new books automatically"
-msgstr "Scan auto. du dossier accueil pour de nouveaux livres "
+msgstr "Scan auto. du dossier Accueil pour de nouveaux livres "
 
 msgid "Empty cache"
 msgstr "Vider le cache"

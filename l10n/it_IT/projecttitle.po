@@ -34,17 +34,14 @@ msgstr "Lista Nomi File"
 msgid "Project: Title settings"
 msgstr "Impostazioni Project: Title"
 
-msgid "Items per page in portrait cover grid mode: %1 × %2"
-msgstr "Elementi per pagina in modalità griglia verticale: %1 × %2"
-
 msgid "Portrait cover grid mode"
 msgstr "Modalità griglia copertine verticale"
 
-msgid "Items per page in landscape cover grid mode: %1 × %2"
-msgstr "Elementi per pagina in modalità griglia orizzontale: %1 × %2"
-
 msgid "Landscape cover grid mode"
 msgstr "Modalità griglia copertine orizzontale"
+
+msgid "List modes"
+msgstr "Modalità lista"
 
 msgid "Folder display"
 msgstr "Visualizzazione cartelle"

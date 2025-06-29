@@ -34,16 +34,13 @@ msgstr ""
 msgid "Project: Title settings"
 msgstr ""
 
-msgid "Items per page in portrait cover grid mode: %1 × %2"
-msgstr ""
-
 msgid "Portrait cover grid mode"
 msgstr ""
 
-msgid "Items per page in landscape cover grid mode: %1 × %2"
+msgid "Landscape cover grid mode"
 msgstr ""
 
-msgid "Landscape cover grid mode"
+msgid "List modes"
 msgstr ""
 
 msgid "Folder display"
