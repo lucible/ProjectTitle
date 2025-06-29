@@ -13,7 +13,7 @@ msgstr "Bibliothèque"
 
 # listmenu.lua
 msgid "Folders"
-msgstr "Dossier"
+msgstr "Dossiers"
 
 msgid "Book"
 msgstr "Livre"
@@ -41,7 +41,7 @@ msgid "Landscape cover grid mode"
 msgstr "Mode mosaïque - Paysage"
 
 msgid "List modes"
-msgstr "Modes Liste"
+msgstr "Modes liste"
 
 msgid "Folder display"
 msgstr "Paramètres d'affichage des dossiers"
@@ -50,7 +50,7 @@ msgid "Auto-generate cover images from books"
 msgstr "Génération auto des images de couverture à partir des livres"
 
 msgid "Overlay name and details in cover grid"
-msgstr "Recouvrir les noms et détails en mode mosaïque"
+msgstr "Afficher les noms et détails des dossiers en mode mosaïque"
 
 msgid "Book display"
 msgstr "Paramètres d'affichage des livres"
@@ -71,13 +71,13 @@ msgid "Use custom book status screen"
 msgstr "Utiliser un affichage de status du livre personnalisé"
 
 msgid "Footer"
-msgstr "Pied de page"
+msgstr "Barre d'état inférieure"
 
 msgid "Replace folder name with device info"
 msgstr "Remplacer le nom du dossier par les infos de l'appareil"
 
 msgid "Show page controls in left corner"
-msgstr "Montrer les contrôles de changement de page à gauche"
+msgstr "Positionner les contrôles de changement de page à gauche"
 
 msgid "Library mode"
 msgstr "Mode Bibliothèque"
