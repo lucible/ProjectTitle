@@ -41,7 +41,7 @@ msgid "Landscape cover grid mode"
 msgstr "Modo de cuadrícula de portadas en horizontal"
 
 msgid "List modes"
-msgstr "Lista de modos"
+msgstr "Modos de lista"
 
 msgid "Folder display"
 msgstr "Vista de carpetas"
@@ -53,7 +53,7 @@ msgid "Overlay name and details in cover grid"
 msgstr "Superponer nombre y detalles en la vista de cuadrícula de portadas"
 
 msgid "Book display"
-msgstr "Vista de libros"
+msgstr "Vista de portadas"
 
 msgid "Show series"
 msgstr "Mostrar colecciones"
