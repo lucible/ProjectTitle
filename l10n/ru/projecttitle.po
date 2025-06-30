@@ -46,7 +46,7 @@ msgid "List modes"
 msgstr "Режимы списка"
 
 msgid "Folder display"
-msgstr "Отображение папок"
+msgstr "Отображение папки"
 
 msgid "Auto-generate cover images from books"
 msgstr "Автоматически создавать обложки из книг"
