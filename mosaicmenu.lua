@@ -30,6 +30,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
+local time = require("ui/time")
 local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -42,6 +43,7 @@ local function getSourceDir()
         return callerSource:gsub("^@(.*)/[^/]*", "%1")
     end
 end
+local sourcedir = getSourceDir()
 
 -- declare 3 fonts included with our plugin
 local title_serif = "source/SourceSerif4-BoldIt.ttf"
@@ -377,6 +379,8 @@ local MosaicMenuItem = InputContainer:extend {
 }
 
 function MosaicMenuItem:init()
+    -- logger.info("PTPT item start")
+    -- local start_time = time.now()
     -- filepath may be provided as 'file' (history) or 'path' (filechooser)
     -- store it as attribute so we can use it elsewhere
     self.filepath = self.entry.file or self.entry.path
@@ -442,6 +446,7 @@ function MosaicMenuItem:init()
     -- have to do it more than once if item not found in db
     self:update()
     self.init_done = true
+    -- logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function MosaicMenuItem:update()
@@ -570,6 +575,7 @@ function MosaicMenuItem:update()
                         bordersize = 0,
                         folder_image
                     }
+                    -- logger.info("folder cover image")
                 end
             end
 
@@ -611,10 +617,24 @@ function MosaicMenuItem:update()
                     end
                 end
                 self.db_conn:close()
-                if #subfolder_images == 4 then
-                    subfolder_cover_image = VerticalGroup:new { dimen = dimen, }
+                if #subfolder_images > 1 then
+                    local blank_cover = HorizontalSpan:new { width = Size.padding.small }
+                    if #subfolder_images == 3 then
+                        blank_cover.width = subfolder_images[3]:getSize().w
+                        table.insert(subfolder_images, 2, blank_cover)
+                        -- logger.info("folder 3 mini covers")
+                    elseif #subfolder_images == 2 then
+                        blank_cover.width = subfolder_images[1]:getSize().w
+                        table.insert(subfolder_images, 2, blank_cover)
+                        blank_cover.width = subfolder_images[2]:getSize().w
+                        table.insert(subfolder_images, 3, blank_cover)
+                        -- logger.info("folder 2 mini covers")
+                    else
+                        -- logger.info("folder 4 mini covers")
+                    end
                     local subfolder_image_row1 = HorizontalGroup:new {}
                     local subfolder_image_row2 = HorizontalGroup:new {}
+                    subfolder_cover_image = VerticalGroup:new { dimen = dimen, }
                     for i, subfolder_image in ipairs(subfolder_images) do
                         if i < 3 then
                             table.insert(subfolder_image_row1, subfolder_image)
@@ -646,7 +666,7 @@ function MosaicMenuItem:update()
                     bordersize = 0,
                     dim = self.file_deleted,
                     ImageWidget:new({
-                        file = getSourceDir() .. "/resources/folder.svg",
+                        file = sourcedir .. "/resources/folder.svg",
                         alpha = true,
                         scale_factor = scale_factor,
                         width = max_img_w,
@@ -654,6 +674,7 @@ function MosaicMenuItem:update()
                         original_in_nightmode = false,
                     }),
                 }
+                -- logger.info("stock folder cover")
             end
 
             -- build final widget with whatever we assembled from above
@@ -1039,7 +1060,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
         if large_book then
             local bar_icon_size = Screen:scaleBySize(18)
             local max_widget = ImageWidget:new({
-                file = getSourceDir() .. "/resources/large_book.svg",
+                file = sourcedir .. "/resources/large_book.svg",
                 width = bar_icon_size,
                 height = bar_icon_size,
                 scale_factor = 0,

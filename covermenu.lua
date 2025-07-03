@@ -234,7 +234,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         end
         UIManager:scheduleIn(1, self.items_update_action)
     end
-    -- logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
+    -- logger.info(string.format("PTPT update items done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function CoverMenu:onCloseWidget()

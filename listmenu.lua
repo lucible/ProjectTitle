@@ -29,6 +29,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local logger = require("logger")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
+local time = require("ui/time")
 local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -41,6 +42,7 @@ local function getSourceDir()
         return callerSource:gsub("^@(.*)/[^/]*", "%1")
     end
 end
+local sourcedir = getSourceDir()
 
 -- declare 3 fonts included with our plugin
 local title_serif = "source/SourceSerif4-BoldIt.ttf"
@@ -116,6 +118,8 @@ local ListMenuItem = InputContainer:extend {
 }
 
 function ListMenuItem:init()
+    -- logger.info("PTPT item start")
+    -- local start_time = time.now()
     -- filepath may be provided as 'file' (history, collection) or 'path' (filechooser)
     -- store it as attribute so we can use it elsewhere
     self.filepath = self.entry.file or self.entry.path
@@ -178,6 +182,7 @@ function ListMenuItem:init()
     -- have to do it more than once if item not found in db
     self:update()
     self.init_done = true
+    -- logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function ListMenuItem:update()
@@ -406,10 +411,24 @@ function ListMenuItem:update()
                     end
                 end
                 self.db_conn:close()
-                if #subfolder_images == 4 then
-                    subfolder_cover_image = VerticalGroup:new {}
+                if #subfolder_images > 1 then
+                    local blank_cover = HorizontalSpan:new { width = Size.padding.small }
+                    if #subfolder_images == 3 then
+                        blank_cover.width = subfolder_images[3]:getSize().w
+                        table.insert(subfolder_images, 2, blank_cover)
+                        -- logger.info("folder 3 mini covers")
+                    elseif #subfolder_images == 2 then
+                        blank_cover.width = subfolder_images[1]:getSize().w
+                        table.insert(subfolder_images, 2, blank_cover)
+                        blank_cover.width = subfolder_images[2]:getSize().w
+                        table.insert(subfolder_images, 3, blank_cover)
+                        -- logger.info("folder 2 mini covers")
+                    else
+                        -- logger.info("folder 4 mini covers")
+                    end
                     local subfolder_image_row1 = HorizontalGroup:new {}
                     local subfolder_image_row2 = HorizontalGroup:new {}
+                    subfolder_cover_image = VerticalGroup:new { dimen = dimen, }
                     for i, subfolder_image in ipairs(subfolder_images) do
                         if i < 3 then
                             table.insert(subfolder_image_row1, subfolder_image)
@@ -426,10 +445,6 @@ function ListMenuItem:update()
                     table.insert(subfolder_cover_image, subfolder_image_row1)
                     table.insert(subfolder_cover_image, VerticalSpan:new { width = Size.padding.small, })
                     table.insert(subfolder_cover_image, subfolder_image_row2)
-                    subfolder_cover_image = CenterContainer:new {
-                        dimen = Geom:new { w = max_img_w, h = max_img_h },
-                        subfolder_cover_image,
-                    }
                 end
             end
 
@@ -437,7 +452,7 @@ function ListMenuItem:update()
             if subfolder_cover_image == nil then
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
                 subfolder_cover_image = ImageWidget:new {
-                    file = getSourceDir() .. "/resources/folder.svg",
+                    file = sourcedir .. "/resources/folder.svg",
                     alpha = true,
                     scale_factor = scale_factor,
                     width = max_img_w,
@@ -446,9 +461,8 @@ function ListMenuItem:update()
                 }
             end
 
-            folder_cover = FrameContainer:new {
-                width = dimen.h, -- using h here to create a square dimen
-                height = dimen.h,
+            folder_cover = CenterContainer:new {
+                dimen = Geom:new { w = dimen.h, h = dimen.h },
                 margin = 0,
                 padding = 0,
                 color = Blitbuffer.COLOR_WHITE,
@@ -571,14 +585,14 @@ function ListMenuItem:update()
                     local wimage
                     if bookinfo._no_provider then
                         wimage = ImageWidget:new({
-                            file = getSourceDir() .. "/resources/file-unsupported.svg",
+                            file = sourcedir .. "/resources/file-unsupported.svg",
                             alpha = true,
                             scale_factor = scale_factor,
                             original_in_nightmode = false,
                         })
                     else
                         wimage = ImageWidget:new({
-                            file = getSourceDir() .. "/resources/file.svg",
+                            file = sourcedir .. "/resources/file.svg",
                             alpha = true,
                             scale_factor = scale_factor,
                             original_in_nightmode = false,
@@ -736,7 +750,7 @@ function ListMenuItem:update()
                 -- books with fn_page_count larger than the max get an indicator at the left edge of the progress bar
                 if fn_pages > (max_progress_size * pixels_per_page) then
                     local max_widget = ImageWidget:new({
-                        file = getSourceDir() .. "/resources/large_book.svg",
+                        file = sourcedir .. "/resources/large_book.svg",
                         width = bar_icon_size,
                         height = bar_icon_size,
                         scale_factor = 0,
@@ -753,7 +767,7 @@ function ListMenuItem:update()
                     progress_bar.percentage = 1
                     -- books marked as "Finished" get a little trophy at the right edge of the progress bar
                     local trophy_widget = ImageWidget:new({
-                        file = getSourceDir() .. "/resources/trophy.svg",
+                        file = sourcedir .. "/resources/trophy.svg",
                         width = bar_icon_size,
                         height = bar_icon_size,
                         scale_factor = 0,
@@ -1120,22 +1134,22 @@ function ListMenuItem:update()
 
             -- enable this to debug "flow mode"
             -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-            --     logger.info("BUFFER UNDERRUN")
-            --     logger.info("dimen.h ", dimen.h )
-            --     logger.info("avail_dimen_h ", avail_dimen_h)
-            --     logger.info("title ", title)
-            --     logger.info("title_ismultiline ", title_ismultiline)
-            --     logger.info("wtitle:getSize().h ", wtitle:getSize().h)
-            --     logger.info("fontsize_title ", fontsize_title)
-            --     logger.info("authors ", authors)
-            --     logger.info("wauthors_iswider ", wauthors_iswider)
-            --     logger.info("wauthors:getSize().h ", wauthors:getSize().h)
-            --     logger.info("wauthors:getSize().w ", wauthors:getSize().w)
-            --     logger.info("wauthors_padding ", wauthors_padding)
-            --     logger.info("authors_width ", authors_width)
-            --     logger.info("fontsize_authors ", fontsize_authors)
-            --     logger.info("wright_height ", wright_height)
-            --     logger.info("wright_width ", wright_width)
+                -- logger.info("BUFFER UNDERRUN")
+                -- logger.info("dimen.h ", dimen.h )
+                -- logger.info("avail_dimen_h ", avail_dimen_h)
+                -- logger.info("title ", title)
+                -- logger.info("title_ismultiline ", title_ismultiline)
+                -- logger.info("wtitle:getSize().h ", wtitle:getSize().h)
+                -- logger.info("fontsize_title ", fontsize_title)
+                -- logger.info("authors ", authors)
+                -- logger.info("wauthors_iswider ", wauthors_iswider)
+                -- logger.info("wauthors:getSize().h ", wauthors:getSize().h)
+                -- logger.info("wauthors:getSize().w ", wauthors:getSize().w)
+                -- logger.info("wauthors_padding ", wauthors_padding)
+                -- logger.info("authors_width ", authors_width)
+                -- logger.info("fontsize_authors ", fontsize_authors)
+                -- logger.info("wright_height ", wright_height)
+                -- logger.info("wright_width ", wright_width)
             -- end
 
             -- style files differently in pathchooser
