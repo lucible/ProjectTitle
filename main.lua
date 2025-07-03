@@ -52,14 +52,12 @@ else
 end
 local safe_version = 202504000000
 local cv_int, cv_hash = Version:getNormalizedCurrentVersion()
---[[
 local version_unsafe = true
 if (cv_int == safe_version) then
     version_unsafe = false
 else
     logger.warn("Version not safe ", tostring(cv_int))
 end
---]]
 if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
     logger.warn("therefore refusing to load Project: Title")
     return { disabled = true, }
