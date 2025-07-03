@@ -83,13 +83,6 @@ local _ = require("l10n.gettext")
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
-local function getSourceDir()
-    local callerSource = debug.getinfo(2, "S").source
-    if callerSource:find("^@") then
-        return callerSource:gsub("^@(.*)/[^/]*", "%1")
-    end
-end
-
 -- We need to save the original methods early here as locals.
 -- For some reason, saving them as attributes in init() does not allow
 -- us to get back to classic mode
