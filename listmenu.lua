@@ -353,12 +353,18 @@ function ListMenuItem:update()
                     local orig_w = temp_image:getOriginalWidth()
                     local orig_h = temp_image:getOriginalHeight()
                     temp_image:free()
-                    local _, _, scale_factor = BookInfoManager.getCachedCoverSize(orig_w, orig_h, max_img_w, max_img_h)
+                    max_img_w = max_img_w * 0.82 -- Emulate the aspect ratio of grid mode for consistency in fill
+                    local scale_to_fill = 0
+                    if orig_w and orig_h then
+                        local scale_x = max_img_w / orig_w
+                        local scale_y = max_img_h / orig_h
+                        scale_to_fill = math.max(scale_x, scale_y)
+                    end
                     return ImageWidget:new {
                         file = folder_image_file,
                         width = max_img_w,
                         height = max_img_h,
-                        scale_factor = scale_factor,
+                        scale_factor = scale_to_fill,
                         center_x_ratio = 0.5,
                         center_y_ratio = 0.5,
                     }
