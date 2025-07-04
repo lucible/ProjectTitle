@@ -372,6 +372,10 @@ function ListMenuItem:update()
                         bordersize = 0,
                         folder_image
                     }
+                    -- logger.info("folder cover image")
+                else
+                    logger.info("Project: Title found a folder cover image but it failed to render. Could be too large or bad image.")
+                    logger.info(folder_image_file)
                 end
             end
 
@@ -449,10 +453,14 @@ function ListMenuItem:update()
             end
 
             -- use stock folder icon
+            local stock_image = sourcedir .. "/resources/folder.svg"
+            if folder_image_file ~= nil then
+                stock_image = sourcedir .. "/resources/file-unsupported.svg"
+            end
             if subfolder_cover_image == nil then
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
                 subfolder_cover_image = ImageWidget:new {
-                    file = sourcedir .. "/resources/folder.svg",
+                    file = stock_image,
                     alpha = true,
                     scale_factor = scale_factor,
                     width = max_img_w,
