@@ -36,7 +36,7 @@ local changeLang = function(new_lang)
                 end
         end
     else
-        logger.warn(string.format("Failed to parse the PO file for lang %s: %s", tostring(new_lang), tostring(err)))
+        logger.info(string.format("Failed to parse the PO file for lang %s: %s", tostring(new_lang), tostring(err)))
     end
 
     GetText.context = original_context
@@ -51,7 +51,7 @@ end
 
 local function createGetTextProxy(new_gettext, gettext)
     if not (new_gettext.wrapUntranslated and new_gettext.translation and new_gettext.current_lang) then
-        logger.warn(string.format("debug_dump: NewGetText was not loaded correctly for lang %s", tostring(gettext.current_lang)))
+        logger.dbg(string.format("debug_dump: NewGetText was not loaded correctly for lang %s", tostring(gettext.current_lang)))
         return gettext
     end
 
