@@ -685,6 +685,7 @@ function MosaicMenuItem:update()
             end
 
             -- build final widget with whatever we assembled from above
+            local alpha_level = 0.84
             local dir_font_size = 22
             local directory_text = TextWidget:new {
                 text = " " .. directory_string .. " ",
@@ -696,21 +697,21 @@ function MosaicMenuItem:update()
                 color = Blitbuffer.COLOR_BLACK,
             }
             local directory_frame = UnderlineContainer:new {
-                linesize = Screen:scaleBySize(2),
-                color = Blitbuffer.COLOR_GRAY_2,
+                linesize = Screen:scaleBySize(1),
+                color = Blitbuffer.COLOR_BLACK,
                 bordersize = 0,
                 padding = 0,
                 margin = 0,
                 HorizontalGroup:new {
                     directory_text,
                     LineWidget:new {
-                        dimen = Geom:new { w = Screen:scaleBySize(2), h = directory_text:getSize().h, },
-                        background = Blitbuffer.COLOR_GRAY_2,
+                        dimen = Geom:new { w = Screen:scaleBySize(1), h = directory_text:getSize().h, },
+                        background = Blitbuffer.COLOR_BLACK,
                     },
                 },
             }
             local directory = AlphaContainer:new {
-                alpha = 0.84,
+                alpha = alpha_level,
                 directory_frame,
             }
 
@@ -722,15 +723,29 @@ function MosaicMenuItem:update()
                 padding = Size.padding.tiny,
                 bgcolor = Blitbuffer.COLOR_WHITE,
             }
-            local nbitems_frame = FrameContainer:new {
-                bordersize = Size.border.thin,
+            local nbitems_frame = UnderlineContainer:new {
+                linesize = Screen:scaleBySize(1),
+                color = Blitbuffer.COLOR_BLACK,
+                bordersize = 0,
                 padding = 0,
                 margin = 0,
-                nbitems_text,
+                HorizontalGroup:new {
+                    nbitems_text,
+                    LineWidget:new {
+                        dimen = Geom:new { w = Screen:scaleBySize(1), h = directory_text:getSize().h, },
+                        background = Blitbuffer.COLOR_BLACK,
+                    },
+                },
             }
-            local nbitems = AlphaContainer:new {
-                alpha = 0.84,
-                nbitems_frame,
+            local nbitems = HorizontalGroup:new {
+                dimen = dimen,
+                HorizontalSpan:new {
+                    width = dimen.w - nbitems_frame:getSize().w - Size.padding.small
+                },
+                AlphaContainer:new {
+                    alpha = alpha_level,
+                    nbitems_frame,
+                }
             }
 
             local widget_parts = OverlapGroup:new {
