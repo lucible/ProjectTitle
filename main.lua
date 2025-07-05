@@ -2,20 +2,23 @@
     Project: Title builds upon the work in the Cover Browser plugin to dramatically
     alter the way list and mosaic views appear.
 
-    Additional provided files must be installed for this plugin to work. See the
-    installation wiki page on the Project: Title github for details.
+    Additional provided files must be installed for this plugin to work. Please
+    read the installation steps at the link below:
+
+    https://github.com/joshuacant/ProjectTitle/wiki/Installation
 --]]
 
--- Disable this entire plugin if: fonts missing. icons missing. coverbrowser enabled. wrong version of koreader.
 local DataStorage = require("datastorage")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Version = require("version")
--- data_dir is separate from lfs.currentdir() on Android.  Will be `.`
--- on Kobo devices but a full path on Android.
+
+-- data_dir is separate from lfs.currentdir() on Android.
+-- Will be `.` on Kobo devices but a full path on Android.
 local data_dir = DataStorage:getDataDir()
 logger.info("Checking Project: Title requirements in '" .. data_dir .. "'")
 
+-- Disable this entire plugin if: fonts missing
 local font1_missing = true
 if lfs.attributes(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
     font1_missing = false
@@ -34,12 +37,16 @@ if lfs.attributes(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil th
 else
     logger.warn("Font3 missing")
 end
+
+-- Disable this entire plugin if: icons missing
 local icons_missing = true
 if lfs.attributes(data_dir .. "/icons/hero.svg") ~= nil then
     icons_missing = false -- check for one icon and assume the rest are there too
 else
     logger.warn("Icons missing")
 end
+
+-- Disable this entire plugin if: Cover Browser is enabled
 local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
 if type(plugins_disabled) ~= "table" then
     plugins_disabled = {}
@@ -50,14 +57,22 @@ if plugins_disabled["coverbrowser"] == true then
 else
     logger.warn("CoverBrowser enabled")
 end
+
+--[[
+    Directly editing this file to disable the version check is no longer required,
+    please use the new method at the link below:
+
+    https://github.com/joshuacant/ProjectTitle/wiki/Use-With-Nightly-KOReader-Builds
+--]]
 local safe_version = 202504000000
 local cv_int, cv_hash = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
-if (cv_int == safe_version) then
+if (cv_int == safe_version or lfs.attributes(data_dir .. "/settings/pt-skipversioncheck.txt") ~= nil) then
     version_unsafe = false
 else
     logger.warn("Version not safe ", tostring(cv_int))
 end
+
 if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
     logger.warn("therefore refusing to load Project: Title")
     return { disabled = true, }
