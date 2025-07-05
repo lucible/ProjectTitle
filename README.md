@@ -27,9 +27,9 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 * Readers who like browsing for their next book and being able to see how long a book is before starting it.
 
 ## Who this (probably) is not for:
-* Non-English speakers. Many UI strings were added, some were rewritten and we did not design with an eye toward localization. If you know how KOReader handles localization and can help contribute, please reach out!
+* ~~Non-English speakers.~~ Localization is coming in the next version. Check out this issue to see if your language is supported and if not, please consider helping out by doing the translation: https://github.com/joshuacant/ProjectTitle/issues/30
 * KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames, I don't think you'll like what we're offering. Good news is that KOReader already does this extremely well!
-* People who absolutely love one of the features we removed from CoverBrowser. We made this plugin for ourselves by adding and also removing. We didn't remove much, but someone is bound to miss one of the things we took out.
+* People who absolutely love one of the features we removed from Cover Browser. We made this plugin for ourselves by adding and also removing. We didn't remove much, but someone is bound to miss one of the things we took out.
 
 ## Installation & Instructions
 **To Download:** Visit the [Releases Page](../../releases) and find the version of Project: Title that exactly matches the version of KOReader you want to use. Not all versions of KOReader are supported or will be supported. If you upgrade KOReader, you will need to upgrade Project: Title, and if there is no version of Project: Title yet for that version, it will be blocked from loading.
