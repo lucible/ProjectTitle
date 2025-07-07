@@ -1128,7 +1128,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 }
             }
             local txtprogress_widget = AlphaContainer:new {
-                alpha = alpha_level,
+                alpha = 1.0,
                 txtprogress_widget_frame,
             }
             local progress_widget_margin = math.floor((corner_mark_size - txtprogress_widget:getSize().h) / 2)
@@ -1233,7 +1233,7 @@ function MosaicMenu:_recalculateDimen()
             bordersize = Size.border.thin,
             padding = Size.padding.small,
             margin = 0,
-            background = Blitbuffer.COLOR_GRAY_E,
+            background = Blitbuffer.COLOR_WHITE,
             ImageWidget:new {
                 file = sourcedir .. "/resources/trophy.svg",
                 alpha = true,
