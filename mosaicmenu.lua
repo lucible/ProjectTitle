@@ -63,6 +63,7 @@ local corner_mark_size
 local corner_mark
 local complete_mark
 local progress_widget
+local alpha_level = 0.84
 
 -- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
 -- so we need to redefine it
@@ -685,7 +686,6 @@ function MosaicMenuItem:update()
             end
 
             -- build final widget with whatever we assembled from above
-            local alpha_level = 0.84
             local dir_font_size = 22
             local directory_text = TextWidget:new {
                 text = " " .. directory_string .. " ",
@@ -1076,8 +1076,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
         progress_widget.width = self.width * progress_widget_width_mult
         progress_widget:setPercentage(self.percent_finished or 0)
         local pos_x = x
-        local pos_y = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size +
-            progress_widget_margin
+        local pos_y = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + progress_widget_margin
         progress_widget:paintTo(bb, pos_x, pos_y)
         if large_book then
             local bar_icon_size = Screen:scaleBySize(18)
@@ -1113,20 +1112,29 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 padding = Size.padding.tiny,
                 bgcolor = Blitbuffer.COLOR_WHITE,
             }
-            local txtprogress_widget_frame = FrameContainer:new {
-                bordersize = Size.border.thin,
+            local txtprogress_widget_frame = UnderlineContainer:new {
+                linesize = Screen:scaleBySize(1),
+                color = Blitbuffer.COLOR_BLACK,
+                bordersize = 0,
                 padding = 0,
                 margin = 0,
-                txtprogress_widget_text,
+                HorizontalGroup:new {
+                    HorizontalSpan:new { width = ((self.width * 0.4) - txtprogress_widget_text:getSize().w) },
+                    txtprogress_widget_text,
+                    LineWidget:new {
+                        dimen = Geom:new { w = Screen:scaleBySize(1), h = txtprogress_widget_text:getSize().h, },
+                        background = Blitbuffer.COLOR_BLACK,
+                    },
+                }
             }
             local txtprogress_widget = AlphaContainer:new {
-                alpha = 0.84,
+                alpha = alpha_level,
                 txtprogress_widget_frame,
             }
             local progress_widget_margin = math.floor((corner_mark_size - txtprogress_widget:getSize().h) / 2)
-            local pos_x = x + math.ceil((self.width - txtprogress_widget:getSize().w) / 2)
+            local pos_x = x
             local pos_y = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size +
-                progress_widget_margin
+                progress_widget_margin - (txtprogress_widget:getSize().h / 3)
             txtprogress_widget:paintTo(bb, pos_x, pos_y)
         end
     end
@@ -1198,9 +1206,14 @@ function MosaicMenu:_recalculateDimen()
 
     -- Set our items target size
     self.item_margin = Screen:scaleBySize(10)
-    self.item_height = math.floor((self.inner_dimen.h - self.others_height - (1 + self.nb_rows) * self.item_margin) /
-        self.nb_rows)
-    self.item_width = math.floor((self.inner_dimen.w - (1 + self.nb_cols) * self.item_margin) / self.nb_cols)
+    self.item_height = math.floor(
+        ((self.inner_dimen.h - self.others_height) -
+        (self.nb_rows + 0.5) * self.item_margin)
+        / self.nb_rows)
+    self.item_width = math.floor(
+        (self.inner_dimen.w -
+        (self.nb_cols + 0.5) * self.item_margin)
+        / self.nb_cols)
     self.item_dimen = Geom:new {
         x = 0, y = 0,
         w = self.item_width,
@@ -1215,16 +1228,25 @@ function MosaicMenu:_recalculateDimen()
         if corner_mark then
             complete_mark:free()
         end
-        complete_mark = IconWidget:new {
-            icon = BD.mirroredUILayout() and "dogear.complete.rtl" or "dogear.complete",
-            alpha = true,
-            width = corner_mark_size,
-            height = corner_mark_size,
+        complete_mark = FrameContainer:new {
+            radius = Size.radius.default,
+            bordersize = Size.border.thin,
+            padding = Size.padding.small,
+            margin = 0,
+            background = Blitbuffer.COLOR_GRAY_E,
+            ImageWidget:new {
+                file = sourcedir .. "/resources/trophy.svg",
+                alpha = true,
+                width = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+                height = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+                scale_factor = 0,
+                original_in_nightmode = false,
+            }
         }
     end
 
     -- Create or replace progress_widget if needed
-    local progress_bar_width = self.item_width * 0.60;
+    local progress_bar_width = self.item_width * 0.60
     if not progress_widget or progress_widget.width ~= progress_bar_width then
         progress_widget = ProgressWidget:new {
             width = progress_bar_width,
@@ -1254,25 +1276,28 @@ function MosaicMenu:_updateItemsBuildUI()
     table.insert(self.item_group, line_widget)
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
-    local line_layout = {}
+    local small_line_width = line_width * 0.60
+    local small_line_widget = LineWidget:new {
+        dimen = Geom:new { w = small_line_width, h = Size.line.thin },
+        background = Blitbuffer.COLOR_GRAY,
+    }
     for idx = 1, self.perpage do
         local index = idx_offset + idx
         local entry = self.item_table[index]
         if entry == nil then break end
         entry.idx = index
-        -- Keyboard shortcuts, as done in Menu
-        local item_shortcut, shortcut_style
-        if self.is_enable_shortcut then
-            item_shortcut = self.item_shortcuts[idx]
-            shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
-        end
-
+        -- -- Keyboard shortcuts, as done in Menu
+        -- local item_shortcut, shortcut_style
+        -- if self.is_enable_shortcut then
+        --     item_shortcut = self.item_shortcuts[idx]
+        --     shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+        -- end
         if idx % self.nb_cols == 1 then -- new row
+            table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             if idx > 1 then
-                table.insert(self.layout, line_layout)
+                table.insert(self.item_group, small_line_widget)
+                table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             end
-            line_layout = {}
-            table.insert(self.item_group, VerticalSpan:new { width = self.item_margin })
             cur_row = HorizontalGroup:new {}
             -- Have items on the possibly non-fully filled last row aligned to the left
             local container = self._do_center_partial_rows and CenterContainer or LeftContainer
@@ -1285,7 +1310,6 @@ function MosaicMenu:_updateItemsBuildUI()
             })
             table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
         end
-
         local item_tmp = MosaicMenuItem:new {
             height = self.item_height,
             width = self.item_width,
@@ -1294,8 +1318,8 @@ function MosaicMenu:_updateItemsBuildUI()
             show_parent = self.show_parent,
             mandatory = entry.mandatory,
             dimen = self.item_dimen:copy(),
-            shortcut = item_shortcut,
-            shortcut_style = shortcut_style,
+            -- shortcut = item_shortcut,
+            -- shortcut_style = shortcut_style,
             menu = self,
             do_cover_image = self._do_cover_images,
             do_hint_opened = self._do_hint_opened,
@@ -1303,16 +1327,12 @@ function MosaicMenu:_updateItemsBuildUI()
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
 
-        -- this is for focus manager
-        table.insert(line_layout, item_tmp)
-
         if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
         end
     end
-    table.insert(self.layout, line_layout)
-    table.insert(self.item_group, VerticalSpan:new { width = self.item_margin }) -- bottom padding
+    table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 }) -- bottom padding
 end
 
 return MosaicMenu

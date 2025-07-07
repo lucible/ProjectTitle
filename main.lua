@@ -931,7 +931,7 @@ function CoverBrowser.getUpdateItemTableFunc(display_mode)
                 booklist_menu._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
                 -- Set MosaicMenu behaviour:
                 booklist_menu._do_cover_images = display_mode ~= "mosaic_text"
-                booklist_menu._do_center_partial_rows = true -- nicer looking when few elements
+                booklist_menu._do_center_partial_rows = false -- nicer looking when few elements
             elseif booklist_menu.display_mode_type == "list" then
                 -- Replace some other original methods with those from our ListMenu
                 local ListMenu = require("listmenu")

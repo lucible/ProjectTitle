@@ -1569,13 +1569,21 @@ function ListMenu:_updateItemsBuildUI()
         local entry = self.item_table[index]
         if entry == nil then break end
         entry.idx = index
-        -- Keyboard shortcuts, as done in Menu
-        local item_shortcut, shortcut_style
-        if self.is_enable_shortcut then
-            item_shortcut = self.item_shortcuts[idx]
-            shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+        -- -- Keyboard shortcuts, as done in Menu
+        -- local item_shortcut, shortcut_style
+        -- if self.is_enable_shortcut then
+        --     item_shortcut = self.item_shortcuts[idx]
+        --     shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+        -- end
+        -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
+        if idx > 1 then
+            local small_line_width = line_width * 0.60
+            local small_line_widget = LineWidget:new {
+                dimen = Geom:new { w = small_line_width, h = Size.line.thin },
+                background = Blitbuffer.COLOR_GRAY,
+            }
+            table.insert(self.item_group, small_line_widget)
         end
-
         local item_tmp = ListMenuItem:new {
             height = self.item_height,
             width = self.item_width,
@@ -1584,26 +1592,14 @@ function ListMenu:_updateItemsBuildUI()
             show_parent = self.show_parent,
             mandatory = entry.mandatory,
             dimen = self.item_dimen:copy(),
-            shortcut = item_shortcut,
-            shortcut_style = shortcut_style,
+            -- shortcut = item_shortcut,
+            -- shortcut_style = shortcut_style,
             menu = self,
             do_cover_image = self._do_cover_images,
             do_hint_opened = self._do_hint_opened,
             do_filename_only = self._do_filename_only,
         }
         table.insert(self.item_group, item_tmp)
-        -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
-        if idx < self.perpage then
-            local small_line_width = line_width * 0.60
-            local small_line_widget = LineWidget:new {
-                dimen = Geom:new { w = small_line_width, h = Size.line.thin },
-                background = Blitbuffer.COLOR_GRAY,
-            }
-            table.insert(self.item_group, small_line_widget)
-        end
-
-        -- this is for focus manager
-        table.insert(self.layout, { item_tmp })
 
         if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
             -- Register this item for update
