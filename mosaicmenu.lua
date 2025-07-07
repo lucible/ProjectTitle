@@ -1046,7 +1046,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
         else
             ix = self.width - math.ceil((self.width - target.dimen.w) / 2) - corner_mark_size
         end
-        local iy = self.height - math.ceil((self.height - target.dimen.h) / 2) - corner_mark_size
+        local iy = self.height - math.ceil((self.height - target.dimen.h) / 2) - (corner_mark_size * 1.4)
         -- math.ceil() makes it looks better than math.floor()
         if self.status == "complete" then
             corner_mark = complete_mark
