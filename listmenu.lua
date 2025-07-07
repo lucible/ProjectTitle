@@ -911,9 +911,7 @@ function ListMenuItem:update()
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
-            local show_series = bookinfo.series and bookinfo.series_index and
-                bookinfo.series_index ~=
-                0 -- suppress series if index is "0"
+            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them

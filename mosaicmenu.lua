@@ -388,21 +388,21 @@ function MosaicMenuItem:init()
 
     -- As done in MenuItem
     -- Squared letter for keyboard navigation
-    if self.shortcut then
-        local icon_width = math.floor(self.dimen.h * 1 / 5)
-        local shortcut_icon_dimen = Geom:new {
-            x = 0, y = 0,
-            w = icon_width,
-            h = icon_width,
-        }
-        -- To keep a simpler widget structure, this shortcut icon will not
-        -- be part of it, but will be painted over the widget in our paintTo
-        self.shortcut_icon = ItemShortCutIcon:new {
-            dimen = shortcut_icon_dimen,
-            key = self.shortcut,
-            style = self.shortcut_style,
-        }
-    end
+    -- if self.shortcut then
+    --     local icon_width = math.floor(self.dimen.h * 1 / 5)
+    --     local shortcut_icon_dimen = Geom:new {
+    --         x = 0, y = 0,
+    --         w = icon_width,
+    --         h = icon_width,
+    --     }
+    --     -- To keep a simpler widget structure, this shortcut icon will not
+    --     -- be part of it, but will be painted over the widget in our paintTo
+    --     self.shortcut_icon = ItemShortCutIcon:new {
+    --         dimen = shortcut_icon_dimen,
+    --         key = self.shortcut,
+    --         style = self.shortcut_style,
+    --     }
+    -- end
 
     self.percent_finished = nil
     self.status = nil
@@ -1022,30 +1022,24 @@ function MosaicMenuItem:paintTo(bb, x, y)
     InputContainer.paintTo(self, bb, x, y)
 
     -- to which we paint over the shortcut icon
-    if self.shortcut_icon and is_pathchooser == false then
-        -- align it on top left corner of widget
-        local target = self
-        local ix
-        if BD.mirroredUILayout() then
-            ix = target.dimen.w - self.shortcut_icon.dimen.w
-        else
-            ix = 0
-        end
-        local iy = 0
-        self.shortcut_icon:paintTo(bb, x + ix, y + iy)
-    end
+    -- if self.shortcut_icon and is_pathchooser == false then
+    --     -- align it on top left corner of widget
+    --     local target = self
+    --     local ix
+    --     if BD.mirroredUILayout() then
+    --         ix = target.dimen.w - self.shortcut_icon.dimen.w
+    --     else
+    --         ix = 0
+    --     end
+    --     local iy = 0
+    --     self.shortcut_icon:paintTo(bb, x + ix, y + iy)
+    -- end
 
     -- other paintings are anchored to the sub-widget (cover image)
     local target = self[1][1][1]
 
     if self.do_hint_opened and self.been_opened and is_pathchooser == false then
-        -- bottom right corner
-        local ix
-        if BD.mirroredUILayout() then
-            ix = math.floor((self.width - target.dimen.w) / 2)
-        else
-            ix = self.width - math.ceil((self.width - target.dimen.w) / 2) - corner_mark_size
-        end
+        local ix = math.floor((self.width - target.dimen.w) / 2) - (corner_mark_size * 0.2 )
         local iy = self.height - math.ceil((self.height - target.dimen.h) / 2) - (corner_mark_size * 1.4)
         -- math.ceil() makes it looks better than math.floor()
         if self.status == "complete" then
@@ -1056,6 +1050,48 @@ function MosaicMenuItem:paintTo(bb, x, y)
 
     local bookinfo = BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
     self.is_directory = not (self.entry.is_file or self.entry.file)
+
+    -- overlay series index (number) ... not sure if this is useful and i don't love the way it looks
+    -- local series_mode = BookInfoManager:getSetting("series_mode")
+    -- local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
+    -- if series_mode == "series_in_separate_line" and show_series then
+    --     local series_widget_text = TextWidget:new {
+    --         text = " " .. bookinfo.series_index,
+    --         face = Font:getFace(good_serif, 14),
+    --         alignment = "center",
+    --         padding = Size.padding.tiny,
+    --         bgcolor = Blitbuffer.COLOR_WHITE,
+    --     }
+    --     local series_widget_frame = FrameContainer:new {
+    --         -- linesize = Screen:scaleBySize(1),
+    --         color = Blitbuffer.COLOR_BLACK,
+    --         bordersize = 0,
+    --         padding = 0,
+    --         margin = 0,
+    --         HorizontalGroup:new {
+    --             LineWidget:new {
+    --                 dimen = Geom:new { w = Screen:scaleBySize(1), h = series_widget_text:getSize().h, },
+    --                 background = Blitbuffer.COLOR_BLACK,
+    --             },
+    --             series_widget_text,
+    --             HorizontalSpan:new { width = ((self.width * 0.2) - series_widget_text:getSize().w) },
+    --         }
+    --     }
+    --     local series_widget = AlphaContainer:new {
+    --         alpha = 1.0,
+    --         VerticalGroup:new {
+    --             LineWidget:new {
+    --                 dimen = Geom:new { w = series_widget_frame:getSize().w, h = Screen:scaleBySize(1), },
+    --                 background = Blitbuffer.COLOR_BLACK,
+    --             },
+    --             series_widget_frame,
+    --         }
+    --     }
+    --     local pos_x = x + self.width - series_widget:getSize().w
+    --     local pos_y = y + series_widget:getSize().h
+    --     series_widget:paintTo(bb, pos_x, pos_y)
+    -- end
+
     if self.show_progress_bar and is_pathchooser == false and not self.is_directory then
         local progress_widget_width_mult = 1.0
         local est_page_count = bookinfo.pages or nil
@@ -1071,15 +1107,14 @@ function MosaicMenuItem:paintTo(bb, x, y)
             progress_widget_width_mult = total_pixels / max_progress_size
             if fn_pages > (max_progress_size * pixels_per_page) then large_book = true end
         end
-        local progress_widget_margin = math.floor((corner_mark_size - progress_widget.height) / 2)
-        -- progress_widget.width = (self.width - 2 * progress_widget_margin) * progress_widget_width_mult
+        local progress_widget_margin = math.floor((corner_mark_size - progress_widget.height) / 4)
         progress_widget.width = self.width * progress_widget_width_mult
         progress_widget:setPercentage(self.percent_finished or 0)
         local pos_x = x
         local pos_y = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + progress_widget_margin
         progress_widget:paintTo(bb, pos_x, pos_y)
         if large_book then
-            local bar_icon_size = Screen:scaleBySize(18)
+            local bar_icon_size = Screen:scaleBySize(19)
             local max_widget = ImageWidget:new({
                 file = sourcedir .. "/resources/large_book.svg",
                 width = bar_icon_size,
@@ -1088,7 +1123,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 alpha = true,
                 original_in_nightmode = false,
             })
-            max_widget:paintTo(bb, (pos_x - (bar_icon_size / 2)), (pos_y - (bar_icon_size / 4.5)))
+            max_widget:paintTo(bb, (pos_x - bar_icon_size / 2), (pos_y - progress_widget:getSize().h / 3))
         end
     elseif not self.is_directory and is_pathchooser == false then
         local progresstxt = nil
@@ -1221,8 +1256,7 @@ function MosaicMenu:_recalculateDimen()
     }
 
     -- Create or replace corner_mark if needed
-    -- 1/12 (larger) or 1/16 (smaller) of cover looks allright
-    local mark_size = math.floor(math.min(self.item_width, self.item_height) / 8)
+    local mark_size = Screen:scaleBySize(21)
     if mark_size ~= corner_mark_size then
         corner_mark_size = mark_size
         if corner_mark then
@@ -1250,7 +1284,7 @@ function MosaicMenu:_recalculateDimen()
     if not progress_widget or progress_widget.width ~= progress_bar_width then
         progress_widget = ProgressWidget:new {
             width = progress_bar_width,
-            height = Screen:scaleBySize(10),
+            height = Screen:scaleBySize(11),
             margin_v = 0,
             margin_h = 0,
             bordersize = Screen:scaleBySize(0.5),
