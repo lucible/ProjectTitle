@@ -862,7 +862,7 @@ function MosaicMenuItem:update()
 
             self.percent_finished = percent_finished
             self.status = status
-            self.show_progress_bar = self.status ~= "complete" and bookinfo.pages ~= nil and
+            self.show_progress_bar = bookinfo.pages ~= nil and -- self.status ~= "complete" and 
                 not BookInfoManager:getSetting("show_pages_read_as_progress") and
                 not BookInfoManager:getSetting("hide_page_info")
             local cover_bb_used = false
@@ -1039,19 +1039,19 @@ function MosaicMenuItem:paintTo(bb, x, y)
     local target = self[1][1][1]
 
     if self.do_hint_opened and self.been_opened and is_pathchooser == false then
-        local ix = math.floor((self.width - target.dimen.w) / 2) - (corner_mark_size * 0.2 )
-        local iy = self.height - math.ceil((self.height - target.dimen.h) / 2) - (corner_mark_size * 1.4)
-        -- math.ceil() makes it looks better than math.floor()
-        if self.status == "complete" then
+        if self.status == "complete" and not self.show_progress_bar then
             corner_mark = complete_mark
-            corner_mark:paintTo(bb, x + ix, y + iy)
+            local corner_mark_margin = math.floor((corner_mark_size - corner_mark:getSize().h) / 2)
+            local ix = x
+            local iy = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + corner_mark_margin - (corner_mark:getSize().h / 3)
+            corner_mark:paintTo(bb, ix, iy)
         end
     end
 
     local bookinfo = BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
     self.is_directory = not (self.entry.is_file or self.entry.file)
 
-    -- overlay series index (number) ... not sure if this is useful and i don't love the way it looks
+    -- overlay series index (number) ... not sure if this is useful and i don't love the way it currently looks
     -- local series_mode = BookInfoManager:getSetting("series_mode")
     -- local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
     -- if series_mode == "series_in_separate_line" and show_series then
@@ -1109,10 +1109,31 @@ function MosaicMenuItem:paintTo(bb, x, y)
         end
         local progress_widget_margin = math.floor((corner_mark_size - progress_widget.height) / 4)
         progress_widget.width = self.width * progress_widget_width_mult
-        progress_widget:setPercentage(self.percent_finished or 0)
+        local percent_done = self.percent_finished or 0
+        progress_widget:setPercentage(percent_done)
+        if self.status == "complete" then progress_widget:setPercentage(1) end
         local pos_x = x
         local pos_y = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + progress_widget_margin
         progress_widget:paintTo(bb, pos_x, pos_y)
+        if self.status == "complete" then
+            local bar_icon_size = Screen:scaleBySize(17)
+            local finished_widget = FrameContainer:new {
+                radius = Size.radius.default,
+                bordersize = Size.border.thin,
+                padding = Size.padding.small,
+                margin = 0,
+                background = Blitbuffer.COLOR_WHITE,
+                ImageWidget:new {
+                    file = sourcedir .. "/resources/trophy.svg",
+                    alpha = true,
+                    width = bar_icon_size - (Size.border.thin * 2) - Size.padding.small,
+                    height = bar_icon_size - (Size.border.thin * 2) - Size.padding.small,
+                    scale_factor = 0,
+                    original_in_nightmode = false,
+                }
+            }
+            finished_widget:paintTo(bb, (pos_x + progress_widget:getSize().w - finished_widget:getSize().w), (pos_y - progress_widget:getSize().h / 2))
+        end
         if large_book then
             local bar_icon_size = Screen:scaleBySize(19)
             local max_widget = ImageWidget:new({
@@ -1154,7 +1175,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 padding = 0,
                 margin = 0,
                 HorizontalGroup:new {
-                    HorizontalSpan:new { width = ((self.width * 0.4) - txtprogress_widget_text:getSize().w) },
+                    HorizontalSpan:new { width = ((self.width * 0.35) - txtprogress_widget_text:getSize().w) },
                     txtprogress_widget_text,
                     LineWidget:new {
                         dimen = Geom:new { w = Screen:scaleBySize(1), h = txtprogress_widget_text:getSize().h, },
@@ -1262,9 +1283,8 @@ function MosaicMenu:_recalculateDimen()
         if corner_mark then
             complete_mark:free()
         end
-        complete_mark = FrameContainer:new {
-            radius = Size.radius.default,
-            bordersize = Size.border.thin,
+        local complete_mark_image = FrameContainer:new {
+            bordersize = 0,
             padding = Size.padding.small,
             margin = 0,
             background = Blitbuffer.COLOR_WHITE,
@@ -1276,6 +1296,26 @@ function MosaicMenu:_recalculateDimen()
                 scale_factor = 0,
                 original_in_nightmode = false,
             }
+        }
+        local complete_mark_frame = UnderlineContainer:new {
+            linesize = Screen:scaleBySize(1),
+            color = Blitbuffer.COLOR_BLACK,
+            background = Blitbuffer.COLOR_WHITE,
+            bordersize = 0,
+            padding = 0,
+            margin = 0,
+            HorizontalGroup:new {
+                HorizontalSpan:new { width = ((self.item_width * 0.35) - complete_mark_image:getSize().w) },
+                complete_mark_image,
+                LineWidget:new {
+                    dimen = Geom:new { w = Screen:scaleBySize(1), h = complete_mark_image:getSize().h, },
+                    background = Blitbuffer.COLOR_BLACK,
+                },
+            }
+        }
+        complete_mark = AlphaContainer:new {
+            alpha = 1.0,
+            complete_mark_frame,
         }
     end
 
