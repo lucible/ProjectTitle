@@ -1102,8 +1102,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local max_progress_size = 235
             local pixels_per_page = 3
             local min_progress_size = 25
-            local total_pixels = math.max(
-                (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
+            local total_pixels = math.max((math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
             progress_widget_width_mult = total_pixels / max_progress_size
             if fn_pages > (max_progress_size * pixels_per_page) then large_book = true end
         end
@@ -1132,7 +1131,12 @@ function MosaicMenuItem:paintTo(bb, x, y)
                     original_in_nightmode = false,
                 }
             }
-            finished_widget:paintTo(bb, (pos_x + progress_widget:getSize().w - finished_widget:getSize().w), (pos_y - progress_widget:getSize().h / 2))
+            local inset_mult = 1.25
+            if (progress_widget:getSize().w / finished_widget:getSize().w) < 2 then inset_mult = 0.1 end
+            finished_widget:paintTo(bb,
+                (pos_x + progress_widget:getSize().w - (finished_widget:getSize().w * inset_mult)),
+                (pos_y - progress_widget:getSize().h / 2)
+            )
         end
         if large_book then
             local bar_icon_size = Screen:scaleBySize(19)
@@ -1144,7 +1148,10 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 alpha = true,
                 original_in_nightmode = false,
             })
-            max_widget:paintTo(bb, (pos_x - bar_icon_size / 2), (pos_y - progress_widget:getSize().h / 3))
+            max_widget:paintTo(bb,
+                (pos_x - bar_icon_size / 2),
+                (pos_y - progress_widget:getSize().h / 3)
+            )
         end
     elseif not self.is_directory and is_pathchooser == false then
         local progresstxt = nil
