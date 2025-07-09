@@ -675,7 +675,7 @@ function ListMenuItem:update()
                 filename_without_suffix = filename
             else
                 local mark = has_highlight and "\u{2592}  " or "" -- "medium shade"
-                fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(fileinfo_str)
+                fileinfo_str = mark .. BD.wrap(filetype) .. " – " .. BD.wrap(fileinfo_str)
             end
             -- right widget, second line
             local wright_right_padding = 0
@@ -685,9 +685,12 @@ function ListMenuItem:update()
 
             local est_page_count = bookinfo.pages or nil
             if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = 700 end -- override metadata
-            if est_page_count and
-                not BookInfoManager:getSetting("hide_page_info") and
-                not BookInfoManager:getSetting("show_pages_read_as_progress") then
+            local draw_progressbar = false
+            draw_progressbar = est_page_count ~= nil and
+                                not BookInfoManager:getSetting("force_no_progressbars") and
+                                not BookInfoManager:getSetting("hide_page_info") and
+                                not BookInfoManager:getSetting("show_pages_read_as_progress")
+            if draw_progressbar then
                 local progressbar_items = { align = "center" }
 
                 local fn_pages = tonumber(est_page_count)
@@ -819,13 +822,17 @@ function ListMenuItem:update()
             elseif status == "abandoned" then
                 progress_str = abandoned_string
             elseif percent_finished then
-                progress_str = ""
-                percent_str = read_text .. " - " .. math.floor(100 * percent_finished) .. "%"
+                progress_str = read_text
+                if not draw_progressbar then
+                    percent_str = math.floor(100 * percent_finished) .. "%"
+                end
                 if pages then
                     if BookInfoManager:getSetting("show_pages_read_as_progress") then
+                        percent_str = read_text
                         pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
                     end
                     if BookInfoManager:getSetting("show_pages_left_in_progress") then
+                        percent_str = read_text
                         pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
                     end
                 end
@@ -834,15 +841,6 @@ function ListMenuItem:update()
             end
 
             if not BookInfoManager:getSetting("hide_page_info") then
-                if progress_str ~= "" then
-                    local wprogressinfo = TextWidget:new {
-                        text = progress_str,
-                        face = wright_font_face,
-                        fgcolor = fgcolor,
-                        padding = 0,
-                    }
-                    table.insert(wright_items, 1, wprogressinfo)
-                end
                 if BookInfoManager:getSetting("show_pages_read_as_progress") then
                     if pages_str ~= "" then
                         local wpageinfo = TextWidget:new {
@@ -874,6 +872,15 @@ function ListMenuItem:update()
                         }
                         table.insert(wright_items, 1, wpagesleftinfo)
                     end
+                end
+                if progress_str ~= "" then
+                    local wprogressinfo = TextWidget:new {
+                        text = progress_str,
+                        face = wright_font_face,
+                        fgcolor = fgcolor,
+                        padding = 0,
+                    }
+                    table.insert(wright_items, 1, wprogressinfo)
                 end
             end
             if not BookInfoManager:getSetting("hide_file_info") then
@@ -1136,13 +1143,14 @@ function ListMenuItem:update()
                     end
                     build_authors(authors_width)
                 end
-            else
-                -- it did fit, so now pad wright vertically
-                table.insert(wright_items, 1, VerticalSpan:new { width = wauthors:getSize().h })
             end
 
             local title_padding = wtitle:getSize().h
             local wauthors_padding = wmain_width - wright_width - wright_right_padding
+
+            -- affix wright to bottom of vertical space
+            local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
+            table.insert(wright_items, 1, VerticalSpan:new { width = (wright_vertical_padding) })
 
             -- enable this to debug "flow mode"
             -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
@@ -1551,14 +1559,14 @@ end
 function ListMenu:_updateItemsBuildUI()
     -- Build our list
     local line_width = self.width or self.screen_w
-    -- create and draw the top-most line at 94% screen width (acts like bottom line for titlebar)
+    -- create and draw the top-most line (acts like bottom line for titlebar)
     local line_widget = HorizontalGroup:new {
-        HorizontalSpan:new { width = line_width * 0.03 },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
         LineWidget:new {
-            dimen = Geom:new { w = line_width * 0.94, h = Size.line.medium },
+            dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.medium },
             background = Blitbuffer.COLOR_BLACK,
         },
-        HorizontalSpan:new { width = line_width * 0.03 },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
     }
     table.insert(self.item_group, line_widget)
     local idx_offset = (self.page - 1) * self.perpage
@@ -1575,10 +1583,13 @@ function ListMenu:_updateItemsBuildUI()
         -- end
         -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
         if idx > 1 then
-            local small_line_width = line_width * 0.60
-            local small_line_widget = LineWidget:new {
-                dimen = Geom:new { w = small_line_width, h = Size.line.thin },
-                background = Blitbuffer.COLOR_GRAY,
+            local small_line_widget = HorizontalGroup:new {
+                HorizontalSpan:new { width = self.item_height },
+                LineWidget:new {
+                    dimen = Geom:new { w = (line_width - self.item_height - Screen:scaleBySize(10)), h = Size.line.thin },
+                    background = Blitbuffer.COLOR_GRAY,
+                },
+                HorizontalSpan:new { width = Screen:scaleBySize(10) },
             }
             table.insert(self.item_group, small_line_widget)
         end

@@ -16,6 +16,7 @@ local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local FileManagerConverter = require("apps/filemanager/filemanagerconverter")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
+local HorizontalSpan = require("ui/widget/horizontalspan")
 local UIManager = require("ui/uimanager")
 local LineWidget = require("ui/widget/linewidget")
 local RightContainer = require("ui/widget/container/rightcontainer")
@@ -735,18 +736,21 @@ function CoverMenu:menuInit()
     end
 
     -- assemble final footer with horizontal line to separate from content above
+    local line_width = self.inner_dimen.w
     local footer_line = BottomContainer:new {
         dimen = Geom:new {
             x = 0, y = 0,
             w = self.inner_dimen.w,
             h = self.inner_dimen.h - self.page_info:getSize().h,
         },
-        LineWidget:new {
-            dimen = Geom:new {
-                w = self.screen_w * 0.94,
-                h = Size.line.medium },
-            background = Blitbuffer.COLOR_BLACK,
-        },
+        HorizontalGroup:new {
+            HorizontalSpan:new { width = Screen:scaleBySize(10) },
+            LineWidget:new {
+                dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.medium },
+                background = Blitbuffer.COLOR_BLACK,
+            },
+            HorizontalSpan:new { width = Screen:scaleBySize(10) },
+        }
     }
     local footer = OverlapGroup:new {
         -- This unique allow_mirroring=false looks like it's enough

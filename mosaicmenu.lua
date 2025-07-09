@@ -862,7 +862,8 @@ function MosaicMenuItem:update()
 
             self.percent_finished = percent_finished
             self.status = status
-            self.show_progress_bar = bookinfo.pages ~= nil and -- self.status ~= "complete" and 
+            self.show_progress_bar = bookinfo.pages ~= nil and
+                not BookInfoManager:getSetting("force_no_progressbars") and
                 not BookInfoManager:getSetting("show_pages_read_as_progress") and
                 not BookInfoManager:getSetting("hide_page_info")
             local cover_bb_used = false
@@ -1163,7 +1164,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 local book_info = self.menu.getBookInfo(self.filepath)
                 local pages = book_info.pages or bookinfo.pages or nil -- default to those in bookinfo db
                 if pages ~= nil then
-                    progresstxt = T(_(" %1 of %2 "), Math.round(self.percent_finished * pages), pages)
+                    progresstxt = T(("%1/%2 "), Math.round(self.percent_finished * pages), pages)
                 end
             end
         end
@@ -1175,6 +1176,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 padding = Size.padding.tiny,
                 bgcolor = Blitbuffer.COLOR_WHITE,
             }
+            local txtprogress_padding = math.max(0, ((self.width * 0.35) - txtprogress_widget_text:getSize().w))
             local txtprogress_widget_frame = UnderlineContainer:new {
                 linesize = Screen:scaleBySize(1),
                 color = Blitbuffer.COLOR_BLACK,
@@ -1182,7 +1184,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 padding = 0,
                 margin = 0,
                 HorizontalGroup:new {
-                    HorizontalSpan:new { width = ((self.width * 0.35) - txtprogress_widget_text:getSize().w) },
+                    HorizontalSpan:new { width = txtprogress_padding },
                     txtprogress_widget_text,
                     LineWidget:new {
                         dimen = Geom:new { w = Screen:scaleBySize(1), h = txtprogress_widget_text:getSize().h, },
@@ -1271,11 +1273,11 @@ function MosaicMenu:_recalculateDimen()
     self.item_margin = Screen:scaleBySize(10)
     self.item_height = math.floor(
         ((self.inner_dimen.h - self.others_height) -
-        (self.nb_rows + 0.5) * self.item_margin)
+        (self.nb_rows + 1) * self.item_margin)
         / self.nb_rows)
     self.item_width = math.floor(
         (self.inner_dimen.w -
-        (self.nb_cols + 0.5) * self.item_margin)
+        (self.nb_cols + 1) * self.item_margin)
         / self.nb_cols)
     self.item_dimen = Geom:new {
         x = 0, y = 0,
@@ -1283,54 +1285,51 @@ function MosaicMenu:_recalculateDimen()
         h = self.item_height
     }
 
-    -- Create or replace corner_mark if needed
+    -- Create or replace corner_mark
     local mark_size = Screen:scaleBySize(21)
-    if mark_size ~= corner_mark_size then
-        corner_mark_size = mark_size
-        if corner_mark then
-            complete_mark:free()
-        end
-        local complete_mark_image = FrameContainer:new {
-            bordersize = 0,
-            padding = Size.padding.small,
-            margin = 0,
-            background = Blitbuffer.COLOR_WHITE,
-            ImageWidget:new {
-                file = sourcedir .. "/resources/trophy.svg",
-                alpha = true,
-                width = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
-                height = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
-                scale_factor = 0,
-                original_in_nightmode = false,
-            }
-        }
-        local complete_mark_frame = UnderlineContainer:new {
-            linesize = Screen:scaleBySize(1),
-            color = Blitbuffer.COLOR_BLACK,
-            background = Blitbuffer.COLOR_WHITE,
-            bordersize = 0,
-            padding = 0,
-            margin = 0,
-            HorizontalGroup:new {
-                HorizontalSpan:new { width = ((self.item_width * 0.35) - complete_mark_image:getSize().w) },
-                complete_mark_image,
-                LineWidget:new {
-                    dimen = Geom:new { w = Screen:scaleBySize(1), h = complete_mark_image:getSize().h, },
-                    background = Blitbuffer.COLOR_BLACK,
-                },
-            }
-        }
-        complete_mark = AlphaContainer:new {
-            alpha = 1.0,
-            complete_mark_frame,
-        }
+    corner_mark_size = mark_size
+    if corner_mark then
+        complete_mark:free()
     end
+    local complete_mark_image = FrameContainer:new {
+        bordersize = 0,
+        padding = Size.padding.small,
+        margin = 0,
+        background = Blitbuffer.COLOR_WHITE,
+        ImageWidget:new {
+            file = sourcedir .. "/resources/trophy.svg",
+            alpha = true,
+            width = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+            height = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+            scale_factor = 0,
+            original_in_nightmode = false,
+        }
+    }
+    local complete_mark_frame = UnderlineContainer:new {
+        linesize = Screen:scaleBySize(1),
+        color = Blitbuffer.COLOR_BLACK,
+        background = Blitbuffer.COLOR_WHITE,
+        bordersize = 0,
+        padding = 0,
+        margin = 0,
+        HorizontalGroup:new {
+            HorizontalSpan:new { width = ((self.item_width * 0.35) - complete_mark_image:getSize().w) },
+            complete_mark_image,
+            LineWidget:new {
+                dimen = Geom:new { w = Screen:scaleBySize(1), h = complete_mark_image:getSize().h, },
+                background = Blitbuffer.COLOR_BLACK,
+            },
+        }
+    }
+    complete_mark = AlphaContainer:new {
+        alpha = 1.0,
+        complete_mark_frame,
+    }
 
-    -- Create or replace progress_widget if needed
-    local progress_bar_width = self.item_width * 0.60
-    if not progress_widget or progress_widget.width ~= progress_bar_width then
+    -- Create progress_widget
+    if not progress_widget then
         progress_widget = ProgressWidget:new {
-            width = progress_bar_width,
+            width = self.item_width * 0.35,
             height = Screen:scaleBySize(11),
             margin_v = 0,
             margin_h = 0,
@@ -1345,22 +1344,26 @@ end
 function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
     local line_width = self.width or self.screen_w
-    -- create and draw the top-most line at 94% screen width (acts like bottom line for titlebar)
+    -- create and draw the top-most line (acts like bottom line for titlebar)
     local line_widget = HorizontalGroup:new {
-        HorizontalSpan:new { width = line_width * 0.03 },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
         LineWidget:new {
-            dimen = Geom:new { w = line_width * 0.94, h = Size.line.medium },
+            dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.medium },
             background = Blitbuffer.COLOR_BLACK,
         },
-        HorizontalSpan:new { width = line_width * 0.03 },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
     }
     table.insert(self.item_group, line_widget)
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
-    local small_line_width = line_width * 0.60
-    local small_line_widget = LineWidget:new {
-        dimen = Geom:new { w = small_line_width, h = Size.line.thin },
-        background = Blitbuffer.COLOR_GRAY,
+
+    local small_line_widget = HorizontalGroup:new {
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
+        LineWidget:new {
+            dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.thin },
+            background = Blitbuffer.COLOR_GRAY,
+        },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
     }
     for idx = 1, self.perpage do
         local index = idx_offset + idx

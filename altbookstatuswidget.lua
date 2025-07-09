@@ -104,8 +104,8 @@ function AltBookStatusWidget:genBookInfoGroup()
     self.small_serif_font = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
     self.large_serif_font = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
 
-    -- padding at 3% per side to match the 94% total width used in listview
-    self.padding = Screen:getSize().w * 0.03
+    -- padding to match the width used in cover list and grid
+    self.padding = Screen:scaleBySize(10)
 
     local screen_width = Screen:getWidth()
     local split_span_width = math.floor(screen_width * 0.05)
