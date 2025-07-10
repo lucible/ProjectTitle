@@ -61,6 +61,9 @@ msgstr "Mostra le serie"
 msgid "Show pages read instead of progress %"
 msgstr "Mostra pagine lette invece del progresso %"
 
+msgid "Show progress % instead of progress bars"
+msgstr "Mostra progresso % al posto della barra di progresso"
+
 msgid "Show file info instead of pages or progress %"
 msgstr "Mostra info file invece di pagine o progresso %"
 

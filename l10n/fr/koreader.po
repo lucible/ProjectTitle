@@ -61,6 +61,9 @@ msgstr "Montrer les séries"
 msgid "Show pages read instead of progress %"
 msgstr "Montrer les pages lues au lieu du % de progression"
 
+msgid "Show progress % instead of progress bars"
+msgstr "Montrer le % de progression au lieu de la barre de prog."
+
 msgid "Show file info instead of pages or progress %"
 msgstr "Montrer les infos du fichier au lieu des pages ou % de prog."
 
