@@ -288,12 +288,13 @@ function AltBookStatusWidget:genSummaryGroup(width)
         height = Screen:scaleBySize(265)
     end
 
-    local html_contents
+    local html_contents = ""
     local props = self.ui.doc_props
     if props.description then
         html_contents = "<html lang='" .. props.language .. "'><body>" .. props.description .. "</body></html>"
     else
-        html_contents = "<html><body><h2 style='font-style: italic; color: #CCCCCC;'>No description.</h3></body></html>"
+        html_contents = "<html><body><h3 style='font-style: italic; color: #CCCCCC;'>" ..
+        _("No book description available.") .. "</h3></body></html>"
     end
     self.input_note = ScrollHtmlWidget:new {
         width = width - Screen:scaleBySize(60),
