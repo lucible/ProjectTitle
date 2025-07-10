@@ -51,6 +51,8 @@ local good_serif = "source/SourceSerif4-Regular.ttf"
 local good_sans = "source/SourceSans3-Regular"
 
 local is_pathchooser = false
+local alpha_level = 0.84
+local tag_width = 0.35
 
 -- Here is the specific UI implementation for "mosaic" display modes
 -- (see covermenu.lua for the generic code)
@@ -61,9 +63,9 @@ local is_pathchooser = false
 -- recreated if height changes)
 local corner_mark_size
 local corner_mark
+local abandoned_mark
 local complete_mark
 local progress_widget
-local alpha_level = 0.84
 
 -- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
 -- so we need to redefine it
@@ -1046,6 +1048,12 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local ix = x
             local iy = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + corner_mark_margin - (corner_mark:getSize().h / 3)
             corner_mark:paintTo(bb, ix, iy)
+        elseif self.status == "abandoned" and not self.show_progress_bar then
+            corner_mark = abandoned_mark
+            local corner_mark_margin = math.floor((corner_mark_size - corner_mark:getSize().h) / 2)
+            local ix = x
+            local iy = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + corner_mark_margin - (corner_mark:getSize().h / 3)
+            corner_mark:paintTo(bb, ix, iy)
         end
     end
 
@@ -1102,7 +1110,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local fn_pages = tonumber(est_page_count)
             local max_progress_size = 235
             local pixels_per_page = 3
-            local min_progress_size = 25
+            local min_progress_size = 40
             local total_pixels = math.max((math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
             progress_widget_width_mult = total_pixels / max_progress_size
             if fn_pages > (max_progress_size * pixels_per_page) then large_book = true end
@@ -1115,9 +1123,10 @@ function MosaicMenuItem:paintTo(bb, x, y)
         local pos_x = x
         local pos_y = y + self.height - math.ceil((self.height - target.height) / 2) - corner_mark_size + progress_widget_margin
         progress_widget:paintTo(bb, pos_x, pos_y)
+        local status_widget = nil
+        local status_icon_size = Screen:scaleBySize(17)
         if self.status == "complete" then
-            local bar_icon_size = Screen:scaleBySize(17)
-            local finished_widget = FrameContainer:new {
+            status_widget = FrameContainer:new {
                 radius = Size.radius.default,
                 bordersize = Size.border.thin,
                 padding = Size.padding.small,
@@ -1126,31 +1135,67 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 ImageWidget:new {
                     file = sourcedir .. "/resources/trophy.svg",
                     alpha = true,
-                    width = bar_icon_size - (Size.border.thin * 2) - Size.padding.small,
-                    height = bar_icon_size - (Size.border.thin * 2) - Size.padding.small,
+                    width = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
+                    height = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
                     scale_factor = 0,
                     original_in_nightmode = false,
                 }
             }
+        elseif self.status == "abandoned" then
+            status_widget = FrameContainer:new {
+                radius = Size.radius.default,
+                bordersize = Size.border.thin,
+                padding = Size.padding.small,
+                margin = 0,
+                background = Blitbuffer.COLOR_WHITE,
+                ImageWidget:new {
+                    file = sourcedir .. "/resources/pause.svg",
+                    alpha = true,
+                    width = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
+                    height = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
+                    scale_factor = 0,
+                    original_in_nightmode = false,
+                }
+            }
+        elseif not bookinfo._no_provider and percent_done == 0 then
+            local unopened_widget = ImageWidget:new {
+                file = sourcedir .. "/resources/new.svg",
+                alpha = true,
+                width = Screen:scaleBySize(7),
+                height = Screen:scaleBySize(7),
+                scale_factor = 0,
+                original_in_nightmode = false,
+            }
+            -- local xmult = math.random(0,120) / 100
+            -- local ymult = math.random(0,120) / 100
+            -- logger.info(string.format("%s using x: %f / y: %f", bookinfo.title, xmult, ymult))
+            local xmult = 0.63
+            local ymult = 0.51
+            unopened_widget:paintTo(bb,
+                (pos_x + (progress_widget:getSize().w - (unopened_widget:getSize().w * xmult))),
+                (pos_y - ((progress_widget:getSize().h / 2) - (unopened_widget:getSize().w * ymult)))
+            )
+        end
+        if status_widget ~= nil then
             local inset_mult = 1.25
-            if (progress_widget:getSize().w / finished_widget:getSize().w) < 2 then inset_mult = 0.1 end
-            finished_widget:paintTo(bb,
-                (pos_x + progress_widget:getSize().w - (finished_widget:getSize().w * inset_mult)),
+            if (progress_widget:getSize().w / status_widget:getSize().w) < 2 then inset_mult = 0.1 end
+            status_widget:paintTo(bb,
+                (pos_x + progress_widget:getSize().w - (status_widget:getSize().w * inset_mult)),
                 (pos_y - progress_widget:getSize().h / 2)
             )
         end
         if large_book then
-            local bar_icon_size = Screen:scaleBySize(19)
+            local large_book_icon_size = Screen:scaleBySize(19)
             local max_widget = ImageWidget:new({
                 file = sourcedir .. "/resources/large_book.svg",
-                width = bar_icon_size,
-                height = bar_icon_size,
+                width = large_book_icon_size,
+                height = large_book_icon_size,
                 scale_factor = 0,
                 alpha = true,
                 original_in_nightmode = false,
             })
             max_widget:paintTo(bb,
-                (pos_x - bar_icon_size / 2),
+                (pos_x - large_book_icon_size / 2),
                 (pos_y - progress_widget:getSize().h / 3)
             )
         end
@@ -1176,7 +1221,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 padding = Size.padding.tiny,
                 bgcolor = Blitbuffer.COLOR_WHITE,
             }
-            local txtprogress_padding = math.max(0, ((self.width * 0.35) - txtprogress_widget_text:getSize().w))
+            local txtprogress_padding = math.max(0, ((self.width * tag_width) - txtprogress_widget_text:getSize().w))
             local txtprogress_widget_frame = UnderlineContainer:new {
                 linesize = Screen:scaleBySize(1),
                 color = Blitbuffer.COLOR_BLACK,
@@ -1290,6 +1335,7 @@ function MosaicMenu:_recalculateDimen()
     corner_mark_size = mark_size
     if corner_mark then
         complete_mark:free()
+        abandoned_mark:free()
     end
     local complete_mark_image = FrameContainer:new {
         bordersize = 0,
@@ -1313,7 +1359,7 @@ function MosaicMenu:_recalculateDimen()
         padding = 0,
         margin = 0,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = ((self.item_width * 0.35) - complete_mark_image:getSize().w) },
+            HorizontalSpan:new { width = ((self.item_width * tag_width) - complete_mark_image:getSize().w) },
             complete_mark_image,
             LineWidget:new {
                 dimen = Geom:new { w = Screen:scaleBySize(1), h = complete_mark_image:getSize().h, },
@@ -1326,10 +1372,45 @@ function MosaicMenu:_recalculateDimen()
         complete_mark_frame,
     }
 
+    local abandoned_mark_image = FrameContainer:new {
+        bordersize = 0,
+        padding = Size.padding.small,
+        margin = 0,
+        background = Blitbuffer.COLOR_WHITE,
+        ImageWidget:new {
+            file = sourcedir .. "/resources/pause.svg",
+            alpha = true,
+            width = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+            height = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+            scale_factor = 0,
+            original_in_nightmode = false,
+        }
+    }
+    local abandoned_mark_frame = UnderlineContainer:new {
+        linesize = Screen:scaleBySize(1),
+        color = Blitbuffer.COLOR_BLACK,
+        background = Blitbuffer.COLOR_WHITE,
+        bordersize = 0,
+        padding = 0,
+        margin = 0,
+        HorizontalGroup:new {
+            HorizontalSpan:new { width = ((self.item_width * tag_width) - abandoned_mark_image:getSize().w) },
+            abandoned_mark_image,
+            LineWidget:new {
+                dimen = Geom:new { w = Screen:scaleBySize(1), h = abandoned_mark_image:getSize().h, },
+                background = Blitbuffer.COLOR_BLACK,
+            },
+        }
+    }
+    abandoned_mark = AlphaContainer:new {
+        alpha = 1.0,
+        abandoned_mark_frame,
+    }
+
     -- Create progress_widget
     if not progress_widget then
         progress_widget = ProgressWidget:new {
-            width = self.item_width * 0.35,
+            width = self.item_width,
             height = Screen:scaleBySize(11),
             margin_v = 0,
             margin_h = 0,
