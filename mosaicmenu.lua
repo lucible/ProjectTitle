@@ -1161,19 +1161,14 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local unopened_widget = ImageWidget:new {
                 file = sourcedir .. "/resources/new.svg",
                 alpha = true,
-                width = Screen:scaleBySize(7),
-                height = Screen:scaleBySize(7),
+                width = Screen:scaleBySize(8),
+                height = Screen:scaleBySize(8),
                 scale_factor = 0,
                 original_in_nightmode = false,
             }
-            -- local xmult = math.random(0,120) / 100
-            -- local ymult = math.random(0,120) / 100
-            -- logger.info(string.format("%s using x: %f / y: %f", bookinfo.title, xmult, ymult))
-            local xmult = 0.63
-            local ymult = 0.51
             unopened_widget:paintTo(bb,
-                (pos_x + (progress_widget:getSize().w - (unopened_widget:getSize().w * xmult))),
-                (pos_y - ((progress_widget:getSize().h / 2) - (unopened_widget:getSize().w * ymult)))
+                (pos_x + (progress_widget:getSize().w - (unopened_widget:getSize().w * 0.625))),
+                (pos_y - ((progress_widget:getSize().h / 2) - (unopened_widget:getSize().w * 0.50)))
             )
         end
         if status_widget ~= nil then
