@@ -623,24 +623,50 @@ function MosaicMenuItem:update()
                     end
                 end
                 self.db_conn:close()
-                if #subfolder_images > 1 then
-                    local blank_cover = HorizontalSpan:new { width = Size.padding.small }
+                if #subfolder_images >= 1 then
+                    local function create_blank_cover(w, h)
+                        return FrameContainer:new {
+                            width = w,
+                            height = h,
+                            margin = 0,
+                            padding = 0,
+                            bordersize = Size.border.thin,
+                            color = Blitbuffer.COLOR_BLACK, -- outline/border color
+                            CenterContainer:new {
+                                dimen = Geom:new { w = w, h = h },
+                                HorizontalSpan:new { width = w, height = h }
+                            }
+                        }
+                    end
+
                     if #subfolder_images == 3 then
-                        blank_cover.width = subfolder_images[3]:getSize().w
-                        table.insert(subfolder_images, 2, blank_cover)
+                        local w = subfolder_images[3]:getSize().w
+                        local h = subfolder_images[3]:getSize().h
+                        table.insert(subfolder_images, 2, create_blank_cover(w, h))
                         -- logger.info("folder 3 mini covers")
                     elseif #subfolder_images == 2 then
-                        blank_cover.width = subfolder_images[1]:getSize().w
-                        table.insert(subfolder_images, 2, blank_cover)
-                        blank_cover.width = subfolder_images[2]:getSize().w
-                        table.insert(subfolder_images, 3, blank_cover)
+                        local w1 = subfolder_images[1]:getSize().w
+                        local h1 = subfolder_images[1]:getSize().h
+                        local w2 = subfolder_images[2]:getSize().w
+                        local h2 = subfolder_images[2]:getSize().h
+                        table.insert(subfolder_images, 2, create_blank_cover(w1, h1))
+                        table.insert(subfolder_images, 3, create_blank_cover(w2, h2))
                         -- logger.info("folder 2 mini covers")
+                    elseif #subfolder_images == 1 then
+                        local w = subfolder_images[1]:getSize().w
+                        local h = subfolder_images[1]:getSize().h
+                        table.insert(subfolder_images, 2, create_blank_cover(w, h))
+                        table.insert(subfolder_images, 3, create_blank_cover(w, h))
+                        table.insert(subfolder_images, 4, create_blank_cover(w, h))
+                        -- logger.info("folder 1 mini cover")
                     else
                         -- logger.info("folder 4 mini covers")
                     end
+
                     local subfolder_image_row1 = HorizontalGroup:new {}
                     local subfolder_image_row2 = HorizontalGroup:new {}
                     subfolder_cover_image = VerticalGroup:new { dimen = dimen, }
+
                     for i, subfolder_image in ipairs(subfolder_images) do
                         if i < 3 then
                             table.insert(subfolder_image_row1, subfolder_image)
@@ -654,6 +680,7 @@ function MosaicMenuItem:update()
                             table.insert(subfolder_image_row2, HorizontalSpan:new { width = Size.padding.small, })
                         end
                     end
+
                     table.insert(subfolder_cover_image, subfolder_image_row1)
                     table.insert(subfolder_cover_image, VerticalSpan:new { width = Size.padding.small, })
                     table.insert(subfolder_cover_image, subfolder_image_row2)
