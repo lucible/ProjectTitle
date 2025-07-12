@@ -23,10 +23,10 @@ msgid "Project: Title"
 msgstr "Project: Title"
 
 msgid "Decrease Items Per Page"
-msgstr "Diminuer le nombre d'éléments par page"
+msgstr "Augmenter la taille des éléments"
 
 msgid "Increase Items Per Page"
-msgstr "Augmenter le nombre d'éléments par page"
+msgstr "Diminuer la taille des éléments"
 
 msgid "Cover List"
 msgstr "Liste détaillée avec couvertures"
