@@ -11,7 +11,6 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local IconWidget = require("ui/widget/iconwidget")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LeftContainer = require("ui/widget/container/leftcontainer")
@@ -26,8 +25,6 @@ local TopContainer = require("ui/widget/container/topcontainer")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local time = require("ui/time")
@@ -36,14 +33,7 @@ local Screen = Device.screen
 local T = require("ffi/util").template
 local getMenuText = require("ui/widget/menu").getMenuText
 local BookInfoManager = require("bookinfomanager")
-
-local function getSourceDir()
-    local callerSource = debug.getinfo(2, "S").source
-    if callerSource:find("^@") then
-        return callerSource:gsub("^@(.*)/[^/]*", "%1")
-    end
-end
-local sourcedir = getSourceDir()
+local ptutil = require("ptutil")
 
 -- declare 3 fonts included with our plugin
 local title_serif = "source/SourceSerif4-BoldIt.ttf"
@@ -51,6 +41,7 @@ local good_serif = "source/SourceSerif4-Regular.ttf"
 local good_sans = "source/SourceSans3-Regular"
 
 local is_pathchooser = false
+local sourcedir = ptutil.getSourceDir()
 local alpha_level = 0.84
 local tag_width = 0.35
 
@@ -66,49 +57,6 @@ local corner_mark
 local abandoned_mark
 local complete_mark
 local progress_widget
-
--- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
--- so we need to redefine it
-local ItemShortCutIcon = WidgetContainer:extend {
-    dimen = Geom:new { x = 0, y = 0, w = Screen:scaleBySize(22), h = Screen:scaleBySize(22) },
-    key = nil,
-    bordersize = Size.border.default,
-    radius = 0,
-    style = "square",
-}
-
-function ItemShortCutIcon:init()
-    if not self.key then
-        return
-    end
-    local radius = 0
-    local background = Blitbuffer.COLOR_WHITE
-    if self.style == "rounded_corner" then
-        radius = math.floor(self.width / 2)
-    elseif self.style == "grey_square" then
-        background = Blitbuffer.COLOR_LIGHT_GRAY
-    end
-    local sc_face
-    if self.key:len() > 1 then
-        sc_face = Font:getFace("ffont", 14)
-    else
-        sc_face = Font:getFace("scfont", 22)
-    end
-    self[1] = FrameContainer:new {
-        padding = 0,
-        bordersize = self.bordersize,
-        radius = radius,
-        background = background,
-        dimen = self.dimen:copy(),
-        CenterContainer:new {
-            dimen = self.dimen,
-            TextWidget:new {
-                text = self.key,
-                face = sc_face,
-            },
-        },
-    }
-end
 
 -- We may find a better algorithm, or just a set of
 -- nice looking combinations of 3 sizes to iterate thru
@@ -388,24 +336,6 @@ function MosaicMenuItem:init()
     -- store it as attribute so we can use it elsewhere
     self.filepath = self.entry.file or self.entry.path
 
-    -- As done in MenuItem
-    -- Squared letter for keyboard navigation
-    -- if self.shortcut then
-    --     local icon_width = math.floor(self.dimen.h * 1 / 5)
-    --     local shortcut_icon_dimen = Geom:new {
-    --         x = 0, y = 0,
-    --         w = icon_width,
-    --         h = icon_width,
-    --     }
-    --     -- To keep a simpler widget structure, this shortcut icon will not
-    --     -- be part of it, but will be painted over the widget in our paintTo
-    --     self.shortcut_icon = ItemShortCutIcon:new {
-    --         dimen = shortcut_icon_dimen,
-    --         key = self.shortcut,
-    --         style = self.shortcut_style,
-    --     }
-    -- end
-
     self.percent_finished = nil
     self.status = nil
 
@@ -431,7 +361,7 @@ function MosaicMenuItem:init()
     -- for compatibility with keyboard navigation
     -- (which does not seem to work well when multiple pages,
     -- even with classic menu)
-    self.underline_h = 0 -- smaller than default (3), don't waste space
+    self.underline_h = 0
     self._underline_container = UnderlineContainer:new {
         vertical_align = "top",
         padding = 0,
@@ -500,221 +430,13 @@ function MosaicMenuItem:update()
         if is_pathchooser == false then
             local subfolder_cover_image
             -- check for folder image
-            local function findCover(dir_path)
-                local COVER_CANDIDATES = { "cover", "folder", ".cover", ".folder" }
-                local COVER_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".webp", ".gif" }
-                if not dir_path or dir_path == "" or dir_path == ".." or dir_path:match("%.%.$") then
-                    return nil
-                end
-                dir_path = dir_path:gsub("[/\\]+$", "")
-                -- Try exact matches with lowercase and uppercase extensions
-                for _, candidate in ipairs(COVER_CANDIDATES) do
-                    for _, ext in ipairs(COVER_EXTENSIONS) do
-                        local exact_path = dir_path .. "/" .. candidate .. ext
-                        local f = io.open(exact_path, "rb")
-                        if f then
-                            f:close()
-                            return exact_path
-                        end
-                        local upper_path = dir_path .. "/" .. candidate .. ext:upper()
-                        if upper_path ~= exact_path then
-                            f = io.open(upper_path, "rb")
-                            if f then
-                                f:close()
-                                return upper_path
-                            end
-                        end
-                    end
-                end
-                -- Fallback: scan directory for case-insensitive matches
-                local success, handle = pcall(io.popen, 'ls -1 "' .. dir_path .. '" 2>/dev/null')
-                if success and handle then
-                    for file in handle:lines() do
-                        if file and file ~= "." and file ~= ".." and file ~= "" then
-                            local file_lower = file:lower()
-                            for _, candidate in ipairs(COVER_CANDIDATES) do
-                                for _, ext in ipairs(COVER_EXTENSIONS) do
-                                    if file_lower == candidate .. ext then
-                                        handle:close()
-                                        return dir_path .. "/" .. file
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    handle:close()
-                end
-                return nil
-            end
-            local folder_image_file = findCover(self.filepath)
-            if folder_image_file ~= nil then
-                local success, folder_image = pcall(function()
-                    local temp_image = ImageWidget:new { file = folder_image_file, scale_factor = 1 }
-                    temp_image:_render()
-                    local orig_w = temp_image:getOriginalWidth()
-                    local orig_h = temp_image:getOriginalHeight()
-                    temp_image:free()
-                    local scale_to_fill = 0
-                    if orig_w and orig_h then
-                        local scale_x = dimen.w / orig_w
-                        local scale_y = dimen.h / orig_h
-                        scale_to_fill = math.max(scale_x, scale_y)
-                    end
-                    return ImageWidget:new {
-                        file = folder_image_file,
-                        width = dimen.w,
-                        height = dimen.h,
-                        scale_factor = scale_to_fill,
-                        center_x_ratio = 0.5,
-                        center_y_ratio = 0.5,
-                    }
-                end)
-                if success then
-                    subfolder_cover_image = FrameContainer:new {
-                        width = dimen.w,
-                        height = dimen.h,
-                        margin = 0,
-                        padding = 0,
-                        bordersize = 0,
-                        folder_image
-                    }
-                    -- logger.info("folder cover image")
-                else
-                    logger.info("Project: Title found a folder cover image but it failed to render. Could be too large or bad image.")
-                    logger.info(folder_image_file)
-                end
-            end
-
+            subfolder_cover_image = ptutil.getFolderCover(self.filepath, dimen.w, dimen.h)
             -- check for books with covers in the subfolder
             if subfolder_cover_image == nil and not BookInfoManager:getSetting("disable_auto_foldercovers") then
-                local function query_cover_paths(folder, include_subfolders)
-                    local SQ3 = require("lua-ljsqlite3/init")
-                    local DataStorage = require("datastorage")
-                    local db_conn = SQ3.open(DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3")
-                    db_conn:set_busy_timeout(5000)
-
-                    local query
-                    if include_subfolders then
-                        query = string.format([[
-                            SELECT directory, filename FROM bookinfo
-                            WHERE directory LIKE '%s/%%' AND has_cover = 'Y'
-                            ORDER BY RANDOM() LIMIT 16;
-                        ]], folder:gsub("'", "''"))
-                    else
-                        query = string.format([[
-                            SELECT directory, filename FROM bookinfo
-                            WHERE directory = '%s/' AND has_cover = 'Y'
-                            ORDER BY RANDOM() LIMIT 16;
-                        ]], folder:gsub("'", "''"))
-                    end
-
-                    local res = db_conn:exec(query)
-                    db_conn:close()
-                    return res
-                end
-                local function build_cover_images(res)
-                    local covers = {}
-                    if res then
-                        local directories = res[1]
-                        local filenames = res[2]
-                        for i, filename in ipairs(filenames) do
-                            local fullpath = directories[i] .. filename
-                            if lfs.attributes(fullpath, "mode") == "file" then
-                                local book = BookInfoManager:getBookInfo(fullpath, self.do_cover_image)
-                                if book then
-                                    local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
-                                        book.cover_w, book.cover_h, max_img_w / 2.05, max_img_h / 2.05
-                                    )
-                                    table.insert(covers, ImageWidget:new {
-                                        image = book.cover_bb,
-                                        scale_factor = scale_factor,
-                                    })
-                                end
-                                if #covers == 4 then break end
-                            end
-                        end
-                    end
-                    return covers
-                end
-
-                local res = query_cover_paths(self.filepath, false)
-                local subfolder_images = build_cover_images(res)
-
-                if #subfolder_images < 4 then
-                    res = query_cover_paths(self.filepath, true)
-                    subfolder_images = build_cover_images(res)
-                end
-
-                -- Continue if we found at least one cover
-                if #subfolder_images >= 1 then
-                    local function create_blank_cover(w, h)
-                        return FrameContainer:new {
-                            width = w,
-                            height = h,
-                            margin = 0,
-                            padding = 0,
-                            bordersize = Size.border.thin,
-                            color = Blitbuffer.COLOR_BLACK,
-                            CenterContainer:new {
-                                dimen = Geom:new { w = w, h = h },
-                                HorizontalSpan:new { width = w, height = h }
-                            }
-                        }
-                    end
-
-                    if #subfolder_images == 3 then
-                        local w = subfolder_images[3]:getSize().w
-                        local h = subfolder_images[3]:getSize().h
-                        table.insert(subfolder_images, 2, create_blank_cover(w, h))
-                        -- logger.info("folder 3 mini covers")
-                    elseif #subfolder_images == 2 then
-                        local w1 = subfolder_images[1]:getSize().w
-                        local h1 = subfolder_images[1]:getSize().h
-                        local w2 = subfolder_images[2]:getSize().w
-                        local h2 = subfolder_images[2]:getSize().h
-                        table.insert(subfolder_images, 2, create_blank_cover(w1, h1))
-                        table.insert(subfolder_images, 3, create_blank_cover(w2, h2))
-                        -- logger.info("folder 2 mini covers")
-                    elseif #subfolder_images == 1 then
-                        local w = subfolder_images[1]:getSize().w
-                        local h = subfolder_images[1]:getSize().h
-                        table.insert(subfolder_images, 2, create_blank_cover(w, h))
-                        table.insert(subfolder_images, 3, create_blank_cover(w, h))
-                        table.insert(subfolder_images, 4, create_blank_cover(w, h))
-                        -- logger.info("folder 1 mini cover")
-                    else
-                        -- logger.info("folder 4 mini covers")
-                    end
-
-                    local subfolder_image_row1 = HorizontalGroup:new {}
-                    local subfolder_image_row2 = HorizontalGroup:new {}
-                    subfolder_cover_image = VerticalGroup:new { dimen = dimen, }
-
-                    for i, subfolder_image in ipairs(subfolder_images) do
-                        if i < 3 then
-                            table.insert(subfolder_image_row1, subfolder_image)
-                        else
-                            table.insert(subfolder_image_row2, subfolder_image)
-                        end
-                        if i == 1 then
-                            table.insert(subfolder_image_row1, HorizontalSpan:new { width = Size.padding.small, })
-                        end
-                        if i == 3 then
-                            table.insert(subfolder_image_row2, HorizontalSpan:new { width = Size.padding.small, })
-                        end
-                    end
-
-                    table.insert(subfolder_cover_image, subfolder_image_row1)
-                    table.insert(subfolder_cover_image, VerticalSpan:new { width = Size.padding.small, })
-                    table.insert(subfolder_cover_image, subfolder_image_row2)
-                end
+                subfolder_cover_image = ptutil.getSubfolderCoverImages(self.filepath, max_img_w, max_img_h)
             end
-
             -- use stock folder icon
             local stock_image = sourcedir .. "/resources/folder.svg"
-            if folder_image_file ~= nil then
-                stock_image = sourcedir .. "/resources/file-unsupported.svg"
-            end
             if subfolder_cover_image == nil then
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w * 1.1, max_img_h * 1.1)
                 subfolder_cover_image = FrameContainer:new {
@@ -734,7 +456,6 @@ function MosaicMenuItem:update()
                         original_in_nightmode = false,
                     }),
                 }
-                -- logger.info("stock folder cover")
             end
 
             -- build final widget with whatever we assembled from above
@@ -1070,20 +791,6 @@ function MosaicMenuItem:paintTo(bb, x, y)
 
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
-
-    -- to which we paint over the shortcut icon
-    -- if self.shortcut_icon and is_pathchooser == false then
-    --     -- align it on top left corner of widget
-    --     local target = self
-    --     local ix
-    --     if BD.mirroredUILayout() then
-    --         ix = target.dimen.w - self.shortcut_icon.dimen.w
-    --     else
-    --         ix = 0
-    --     end
-    --     local iy = 0
-    --     self.shortcut_icon:paintTo(bb, x + ix, y + iy)
-    -- end
 
     -- other paintings are anchored to the sub-widget (cover image)
     local target = self[1][1][1]
@@ -1490,12 +1197,6 @@ function MosaicMenu:_updateItemsBuildUI()
         local entry = self.item_table[index]
         if entry == nil then break end
         entry.idx = index
-        -- -- Keyboard shortcuts, as done in Menu
-        -- local item_shortcut, shortcut_style
-        -- if self.is_enable_shortcut then
-        --     item_shortcut = self.item_shortcuts[idx]
-        --     shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
-        -- end
         if idx % self.nb_cols == 1 then -- new row
             table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             if idx > 1 then
@@ -1522,8 +1223,6 @@ function MosaicMenu:_updateItemsBuildUI()
             show_parent = self.show_parent,
             mandatory = entry.mandatory,
             dimen = self.item_dimen:copy(),
-            -- shortcut = item_shortcut,
-            -- shortcut_style = shortcut_style,
             menu = self,
             do_cover_image = self._do_cover_images,
             do_hint_opened = self._do_hint_opened,
