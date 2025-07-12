@@ -592,9 +592,11 @@ function MosaicMenuItem:update()
                 self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
                 self.db_conn = SQ3.open(self.db_location)
                 self.db_conn:set_busy_timeout(5000)
-                local query = string.format(
-                    "SELECT directory, filename FROM bookinfo WHERE directory IS '%s/' AND has_cover = 'Y' ORDER BY RANDOM() LIMIT 16;",
-                    self.filepath:gsub("'", "''"))
+                local query = string.format([[
+                    SELECT directory, filename FROM bookinfo
+                    WHERE directory LIKE '%s/%%' AND has_cover = 'Y'
+                    ORDER BY RANDOM() LIMIT 16;
+                    ]], self.filepath:gsub("'", "''"))
                 local res = self.db_conn:exec(query)
                 local subfolder_images = {}
                 if res then
