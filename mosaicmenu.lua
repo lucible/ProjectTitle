@@ -587,60 +587,109 @@ function MosaicMenuItem:update()
 
             -- check for books with covers in the subfolder
             if subfolder_cover_image == nil and not BookInfoManager:getSetting("disable_auto_foldercovers") then
-                local SQ3 = require("lua-ljsqlite3/init")
-                local DataStorage = require("datastorage")
-                self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
-                self.db_conn = SQ3.open(self.db_location)
-                self.db_conn:set_busy_timeout(5000)
-                local query = string.format(
-                    "SELECT directory, filename FROM bookinfo WHERE directory IS '%s/' AND has_cover = 'Y' ORDER BY RANDOM() LIMIT 16;",
-                    self.filepath:gsub("'", "''"))
-                local res = self.db_conn:exec(query)
-                local subfolder_images = {}
-                if res then
-                    local directories = res[1]
-                    local filenames = res[2]
-                    -- db query returned up to 16 rows, find 4 that are books that still exist on filesystem or give up
-                    for i, filename in ipairs(filenames) do
-                        local dirpath = directories[i]
-                        local f = filename
-                        local fullpath = dirpath .. f
-                        if lfs.attributes(fullpath, "mode") == "file" then
-                            local subfolder_book = BookInfoManager:getBookInfo(fullpath, self.do_cover_image)
-                            if subfolder_book then
-                                local _, _, scale_factor = BookInfoManager.getCachedCoverSize(subfolder_book.cover_w,
-                                    subfolder_book.cover_h,
-                                    max_img_w / 2.05, max_img_h / 2.05)
-                                table.insert(subfolder_images, ImageWidget:new {
-                                    image = subfolder_book.cover_bb,
-                                    scale_factor = scale_factor,
-                                })
+                local function query_cover_paths(folder, include_subfolders)
+                    local SQ3 = require("lua-ljsqlite3/init")
+                    local DataStorage = require("datastorage")
+                    local db_conn = SQ3.open(DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3")
+                    db_conn:set_busy_timeout(5000)
+
+                    local query
+                    if include_subfolders then
+                        query = string.format([[
+                            SELECT directory, filename FROM bookinfo
+                            WHERE directory LIKE '%s/%%' AND has_cover = 'Y'
+                            ORDER BY RANDOM() LIMIT 16;
+                        ]], folder:gsub("'", "''"))
+                    else
+                        query = string.format([[
+                            SELECT directory, filename FROM bookinfo
+                            WHERE directory = '%s/' AND has_cover = 'Y'
+                            ORDER BY RANDOM() LIMIT 16;
+                        ]], folder:gsub("'", "''"))
+                    end
+
+                    local res = db_conn:exec(query)
+                    db_conn:close()
+                    return res
+                end
+                local function build_cover_images(res)
+                    local covers = {}
+                    if res then
+                        local directories = res[1]
+                        local filenames = res[2]
+                        for i, filename in ipairs(filenames) do
+                            local fullpath = directories[i] .. filename
+                            if lfs.attributes(fullpath, "mode") == "file" then
+                                local book = BookInfoManager:getBookInfo(fullpath, self.do_cover_image)
+                                if book then
+                                    local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
+                                        book.cover_w, book.cover_h, max_img_w / 2.05, max_img_h / 2.05
+                                    )
+                                    table.insert(covers, ImageWidget:new {
+                                        image = book.cover_bb,
+                                        scale_factor = scale_factor,
+                                    })
+                                end
+                                if #covers == 4 then break end
                             end
                         end
-                        if #subfolder_images == 4 then
-                            break
-                        end
                     end
+                    return covers
                 end
-                self.db_conn:close()
-                if #subfolder_images > 1 then
-                    local blank_cover = HorizontalSpan:new { width = Size.padding.small }
+
+                local res = query_cover_paths(self.filepath, false)
+                local subfolder_images = build_cover_images(res)
+
+                if #subfolder_images < 4 then
+                    res = query_cover_paths(self.filepath, true)
+                    subfolder_images = build_cover_images(res)
+                end
+
+                -- Continue if we found at least one cover
+                if #subfolder_images >= 1 then
+                    local function create_blank_cover(w, h)
+                        return FrameContainer:new {
+                            width = w,
+                            height = h,
+                            margin = 0,
+                            padding = 0,
+                            bordersize = Size.border.thin,
+                            color = Blitbuffer.COLOR_BLACK,
+                            CenterContainer:new {
+                                dimen = Geom:new { w = w, h = h },
+                                HorizontalSpan:new { width = w, height = h }
+                            }
+                        }
+                    end
+
                     if #subfolder_images == 3 then
-                        blank_cover.width = subfolder_images[3]:getSize().w
-                        table.insert(subfolder_images, 2, blank_cover)
+                        local w = subfolder_images[3]:getSize().w
+                        local h = subfolder_images[3]:getSize().h
+                        table.insert(subfolder_images, 2, create_blank_cover(w, h))
                         -- logger.info("folder 3 mini covers")
                     elseif #subfolder_images == 2 then
-                        blank_cover.width = subfolder_images[1]:getSize().w
-                        table.insert(subfolder_images, 2, blank_cover)
-                        blank_cover.width = subfolder_images[2]:getSize().w
-                        table.insert(subfolder_images, 3, blank_cover)
+                        local w1 = subfolder_images[1]:getSize().w
+                        local h1 = subfolder_images[1]:getSize().h
+                        local w2 = subfolder_images[2]:getSize().w
+                        local h2 = subfolder_images[2]:getSize().h
+                        table.insert(subfolder_images, 2, create_blank_cover(w1, h1))
+                        table.insert(subfolder_images, 3, create_blank_cover(w2, h2))
                         -- logger.info("folder 2 mini covers")
+                    elseif #subfolder_images == 1 then
+                        local w = subfolder_images[1]:getSize().w
+                        local h = subfolder_images[1]:getSize().h
+                        table.insert(subfolder_images, 2, create_blank_cover(w, h))
+                        table.insert(subfolder_images, 3, create_blank_cover(w, h))
+                        table.insert(subfolder_images, 4, create_blank_cover(w, h))
+                        -- logger.info("folder 1 mini cover")
                     else
                         -- logger.info("folder 4 mini covers")
                     end
+
                     local subfolder_image_row1 = HorizontalGroup:new {}
                     local subfolder_image_row2 = HorizontalGroup:new {}
                     subfolder_cover_image = VerticalGroup:new { dimen = dimen, }
+
                     for i, subfolder_image in ipairs(subfolder_images) do
                         if i < 3 then
                             table.insert(subfolder_image_row1, subfolder_image)
@@ -654,6 +703,7 @@ function MosaicMenuItem:update()
                             table.insert(subfolder_image_row2, HorizontalSpan:new { width = Size.padding.small, })
                         end
                     end
+
                     table.insert(subfolder_cover_image, subfolder_image_row1)
                     table.insert(subfolder_cover_image, VerticalSpan:new { width = Size.padding.small, })
                     table.insert(subfolder_cover_image, subfolder_image_row2)
