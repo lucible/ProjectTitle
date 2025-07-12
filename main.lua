@@ -163,10 +163,34 @@ local default_cols = 3
 local default_rows = 3
 
 function CoverBrowser:onDispatcherRegisterActions()
-    Dispatcher:registerAction("dec_items_pp",
-        { category = "none", event = "DecreaseItemsPerPage", title = _("Project: Title - Decrease Items Per Page"), filemanager = true, separator = false })
-    Dispatcher:registerAction("inc_items_pp",
-        { category = "none", event = "IncreaseItemsPerPage", title = _("Project: Title - Increase Items Per Page"), filemanager = true, separator = false })
+    Dispatcher:registerAction("dec_items_pp", {
+        category = "none",
+        event = "DecreaseItemsPerPage",
+        title = _("Project: Title") .. " - " .. _("Decrease Items Per Page"),
+        filemanager = true,
+        separator = false,
+    })
+    Dispatcher:registerAction("inc_items_pp", {
+        category = "none",
+        event = "IncreaseItemsPerPage",
+        title = _("Project: Title") .. " - " .. _("Increase Items Per Page"),
+        filemanager = true,
+        separator = false,
+    })
+    Dispatcher:registerAction("switch_grid", {
+        category = "none",
+        event = "SwitchToCoverGrid",
+        title = _("Project: Title") .. " - " .. _("Cover Grid"),
+        filemanager = true,
+        separator = false,
+    })
+    Dispatcher:registerAction("switch_list", {
+        category = "none",
+        event = "SwitchToCoverList",
+        title = _("Project: Title") .. " - " .. _("Cover List"),
+        filemanager = true,
+        separator = false,
+    })
 end
 
 function CoverBrowser:init()
@@ -1086,6 +1110,16 @@ function CoverBrowser:onDecreaseItemsPerPage()
     end
     fc.no_refresh_covers = nil
     fc:updateItems()
+end
+
+-- Gesturable: Switch to Cover Grid display mode
+function CoverBrowser:onSwitchToCoverGrid()
+    self:setDisplayMode("mosaic_image")
+end
+
+-- Gesturable: Switch to Cover List display mode
+function CoverBrowser:onSwitchToCoverList()
+    self:setDisplayMode("list_image_meta")
 end
 
 return CoverBrowser
