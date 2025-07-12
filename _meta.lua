@@ -4,5 +4,5 @@ return {
     -- name = "projecttitle",
     name = "coverbrowser",
     fullname = _("Project: Title"),
-    description = _([[All new user interface for browsing books.]]),
+    description = _([[Alternative display modes for file browser and history.]]),
 }
