@@ -35,18 +35,12 @@ local getMenuText = require("ui/widget/menu").getMenuText
 local BookInfoManager = require("bookinfomanager")
 local ptutil = require("ptutil")
 
--- declare 3 fonts included with our plugin
-local title_serif = "source/SourceSerif4-BoldIt.ttf"
-local good_serif = "source/SourceSerif4-Regular.ttf"
-local good_sans = "source/SourceSans3-Regular"
-
+-- Here is the specific UI implementation for "grid" display modes
+-- (see covermenu.lua for the generic code)
 local is_pathchooser = false
 local sourcedir = ptutil.getSourceDir()
 local alpha_level = 0.84
 local tag_width = 0.35
-
--- Here is the specific UI implementation for "mosaic" display modes
--- (see covermenu.lua for the generic code)
 
 -- We will show a rotated dogear at bottom right corner of cover widget for
 -- opened files (the dogear will make it look like a "used book")
@@ -102,11 +96,11 @@ function FakeCover:init()
     local filename = self.filename
     -- (some engines may have already given filename (without extension) as title)
     local bd_wrap_title_as_filename = false
-    local titlefont = title_serif
+    local titlefont = ptutil.title_serif
     if not title then -- use filename as title (big and centered)
         title = filename
         filename = nil
-        titlefont = good_serif
+        titlefont = ptutil.good_serif
         if not self.title_add and self.filename_add then
             -- filename_add ("…" or "(deleted)") always comes without any title_add
             self.title_add = self.filename_add
@@ -122,7 +116,7 @@ function FakeCover:init()
     -- act according to common usage in naming files.
     if not authors and title and self.filename and self.filename:sub(1, title:len()) == title then
         bd_wrap_title_as_filename = true
-        titlefont = good_serif
+        titlefont = ptutil.good_serif
         -- Replace a hyphen surrounded by spaces (which most probably was
         -- used to separate Authors/Title/Serie/Year/Categorie in the
         -- filename with a \n
@@ -202,7 +196,7 @@ function FakeCover:init()
             authors_wg = TextBoxWidget:new {
                 text = authors,
                 lang = self.book_lang,
-                face = Font:getFace(good_serif, math.max(self.authors_font_max - sizedec, self.authors_font_min)),
+                face = Font:getFace(ptutil.good_serif, math.max(self.authors_font_max - sizedec, self.authors_font_min)),
                 width = text_width,
                 alignment = "center",
             }
@@ -222,7 +216,7 @@ function FakeCover:init()
             filename_wg = TextBoxWidget:new {
                 text = filename,
                 lang = self.book_lang, -- might as well use it for filename
-                face = Font:getFace(good_sans, math.max(self.filename_font_max - sizedec, self.filename_font_min)),
+                face = Font:getFace(ptutil.good_sans, math.max(self.filename_font_max - sizedec, self.filename_font_min)),
                 width = self.bottom_right_compensate and width - 2 * corner_mark_size or text_width,
                 alignment = "center",
             }
@@ -462,7 +456,7 @@ function MosaicMenuItem:update()
             local dir_font_size = 22
             local directory_text = TextWidget:new {
                 text = " " .. directory_string .. " ",
-                face = Font:getFace(good_serif, dir_font_size),
+                face = Font:getFace(ptutil.good_serif, dir_font_size),
                 max_width = dimen.w,
                 alignment = "center",
                 padding = 0,
@@ -647,24 +641,31 @@ function MosaicMenuItem:update()
             if self.do_cover_image and bookinfo.has_cover and not bookinfo.ignore_cover then
                 cover_bb_used = true
                 -- Let ImageWidget do the scaling and give us a bb that fit
+                local border_total = Size.border.thin * 2
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h,
-                    max_img_w, max_img_h)
+                    max_img_w - border_total, max_img_h - border_total)
                 local image = ImageWidget:new {
                     image = bookinfo.cover_bb,
                     scale_factor = scale_factor,
                 }
                 image:_render()
                 local image_size = image:getSize()
+                local frame_radius = 0
+                local frame_color = Blitbuffer.COLOR_GRAY_3
+                if self.show_progress_bar then
+                    frame_radius = Size.radius.default
+                end
                 widget = CenterContainer:new {
                     dimen = dimen,
                     FrameContainer:new {
-                        width = image_size.w,
-                        height = image_size.h,
+                        width = image_size.w + border_total,
+                        height = image_size.h + border_total,
                         margin = 0,
                         padding = 0,
-                        bordersize = 0,
+                        radius = frame_radius,
+                        bordersize = Size.border.thin,
                         dim = self.file_deleted,
-                        color = self.file_deleted and Blitbuffer.COLOR_DARK_GRAY or nil,
+                        color = frame_color,
                         image,
                     }
                 }
@@ -814,11 +815,11 @@ function MosaicMenuItem:paintTo(bb, x, y)
     self.is_directory = not (self.entry.is_file or self.entry.file)
 
     local bookinfo = BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
-    if bookinfo then
+    if bookinfo and self.init_done then
         local series_mode = BookInfoManager:getSetting("series_mode")
         -- suppress showing series if index is "0"
         local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0
-        if series_mode == "series_in_separate_line" and show_series then
+        if series_mode == "series_in_separate_line" and show_series and is_pathchooser == false then
             local series_index = " " .. bookinfo.series_index .. " "
             if string.len(series_index) == 3 then series_index = " " .. series_index .. " " end
             local series_widget_radius = 0
@@ -827,11 +828,11 @@ function MosaicMenuItem:paintTo(bb, x, y)
             if self.show_progress_bar then
                 -- xmult = 1.25
                 series_widget_radius = Size.radius.default
-                series_widget_background = Blitbuffer.COLOR_GRAY_E
+                -- series_widget_background = Blitbuffer.COLOR_GRAY_E
             end
             local series_widget_text = TextWidget:new {
                 text = series_index,
-                face = Font:getFace(good_serif, 14),
+                face = Font:getFace(ptutil.good_serif, 14),
                 alignment = "left",
                 padding = 0,
             }
@@ -846,7 +847,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 series_widget_text,
             }
             local pos_x = x + self.width / 2 + target.width / 2 - series_widget:getSize().w * xmult
-            local pos_y = y + series_widget:getSize().w * 0.25
+            local pos_y = y + series_widget:getSize().w * 0.33
             series_widget:paintTo(bb, pos_x, pos_y)
         end
 
@@ -962,7 +963,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
             if progresstxt ~= nil then
                 local txtprogress_widget_text = TextWidget:new {
                     text = progresstxt,
-                    face = Font:getFace(good_sans, 15),
+                    face = Font:getFace(ptutil.good_sans, 15),
                     alignment = "center",
                     padding = Size.padding.tiny,
                 }
@@ -1171,27 +1172,9 @@ end
 function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
     local line_width = self.width or self.screen_w
-    -- create and draw the top-most line (acts like bottom line for titlebar)
-    local line_widget = HorizontalGroup:new {
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-        LineWidget:new {
-            dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.medium },
-            background = Blitbuffer.COLOR_BLACK,
-        },
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-    }
-    table.insert(self.item_group, line_widget)
+    table.insert(self.item_group, ptutil.darkLine(line_width))
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
-
-    local small_line_widget = HorizontalGroup:new {
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-        LineWidget:new {
-            dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.thin },
-            background = Blitbuffer.COLOR_GRAY,
-        },
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-    }
     for idx = 1, self.perpage do
         local index = idx_offset + idx
         local entry = self.item_table[index]
@@ -1200,7 +1183,7 @@ function MosaicMenu:_updateItemsBuildUI()
         if idx % self.nb_cols == 1 then -- new row
             table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             if idx > 1 then
-                table.insert(self.item_group, small_line_widget)
+                table.insert(self.item_group, ptutil.lightLine(line_width))
                 table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             end
             cur_row = HorizontalGroup:new {}

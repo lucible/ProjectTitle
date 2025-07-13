@@ -12,7 +12,6 @@ local HorizontalSpan = require("ui/widget/horizontalspan")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LeftContainer = require("ui/widget/container/leftcontainer")
-local LineWidget = require("ui/widget/linewidget")
 local Math = require("optmath")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local ProgressWidget = require("ui/widget/progresswidget")
@@ -35,17 +34,10 @@ local getMenuText = require("ui/widget/menu").getMenuText
 local BookInfoManager = require("bookinfomanager")
 local ptutil = require("ptutil")
 
--- declare 3 fonts included with our plugin
-local title_serif = "source/SourceSerif4-BoldIt.ttf"
-local good_serif = "source/SourceSerif4-Regular.ttf"
-local good_sans = "source/SourceSans3-Regular"
-
-local is_pathchooser = false
-local sourcedir = ptutil.getSourceDir()
-
-
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)
+local is_pathchooser = false
+local sourcedir = ptutil.getSourceDir()
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
 
 -- Based on menu.lua's MenuItem
@@ -143,7 +135,7 @@ function ListMenuItem:update()
     -- looking for one that make text fit
     local fontsize_dec_step = math.ceil(_fontSize(100) * (1 / 100))
     -- calculate font used in all right widget text
-    local wright_font_face = Font:getFace(good_sans, _fontSize(12, 18))
+    local wright_font_face = Font:getFace(ptutil.good_sans, _fontSize(12, 18))
     -- and font sizes used for title and author/series
     local title_font_size = _fontSize(20, 26)   -- 22
     local authors_font_size = _fontSize(14, 18) -- 16
@@ -186,7 +178,7 @@ function ListMenuItem:update()
             local mandatory_str = self.mandatory or ""
             local folder_count = string.match(mandatory_str, "(%d+) \u{F114}")
             local file_count = string.match(mandatory_str, "(%d+) \u{F016}")
-            wright_font_face = Font:getFace(good_sans, _fontSize(15, 19))
+            wright_font_face = Font:getFace(ptutil.good_sans, _fontSize(15, 19))
 
             -- add file or folder counts as necessary with pluralization
             if folder_count and tonumber(folder_count) > 0 then
@@ -266,11 +258,11 @@ function ListMenuItem:update()
         local wleft_width = dimen.w - dimen.h - wright_width - 3 * pad_width
         local wlefttext = BD.directory(self.text:sub(1, -2))
 
-        local folderfont = good_serif
+        local folderfont = ptutil.good_serif
         -- style folder names differently in pathchooser
         if is_pathchooser then
             wlefttext = BD.directory(self.text)
-            folderfont = good_sans
+            folderfont = ptutil.good_sans
         end
 
         local wleft = TextBoxWidget:new {
@@ -338,8 +330,9 @@ function ListMenuItem:update()
                     wleft_width = wleft_height -- make it squared
                     cover_bb_used = true
                     -- Let ImageWidget do the scaling and give us the final size
+                    local border_total = Size.border.thin * 2
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h,
-                        max_img_w, max_img_h)
+                        max_img_w - border_total, max_img_h - border_total)
                     local wimage = ImageWidget:new {
                         image = bookinfo.cover_bb,
                         scale_factor = scale_factor,
@@ -349,13 +342,14 @@ function ListMenuItem:update()
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
-                            width = image_size.w + 2 * border_size,
-                            height = image_size.h + 2 * border_size,
+                            width = image_size.w + border_total,
+                            height = image_size.h + border_total,
                             margin = 0,
                             padding = 0,
-                            color = Blitbuffer.COLOR_WHITE,
-                            bordersize = border_size,
+                            radius = Size.radius.default,
+                            bordersize = Size.border.thin,
                             dim = self.file_deleted,
+                            color = Blitbuffer.COLOR_GRAY_3,
                             wimage,
                         }
                     }
@@ -683,8 +677,8 @@ function ListMenuItem:update()
             end
 
             local wmain_width = dimen.w - wleft_width - wmain_left_padding
-            local fontname_title = title_serif
-            local fontname_authors = good_serif
+            local fontname_title = ptutil.title_serif
+            local fontname_authors = ptutil.good_serif
             local bold_title = false
             local fontsize_title = title_font_size
             local fontsize_authors = authors_font_size
@@ -765,7 +759,7 @@ function ListMenuItem:update()
 
                 -- call this style for items like txt files
                 if bookinfo.unsupported or bookinfo._no_provider or not bookinfo.authors then
-                    fontname_title = good_serif
+                    fontname_title = ptutil.good_serif
                     bold_title = true
                 end
 
@@ -1028,7 +1022,7 @@ function ListMenuItem:update()
 
             local wleft_width = dimen.w - dimen.h - wright_width - 3 * pad_width
             local wlefttext = BD.filename(self.text)
-            local filefont = good_sans
+            local filefont = ptutil.good_sans
             local wleft = TextBoxWidget:new {
                 text = wlefttext,
                 face = Font:getFace(filefont, title_font_size),
@@ -1117,7 +1111,7 @@ function ListMenuItem:update()
                 end
                 text_widget = TextBoxWidget:new {
                     text = text .. hint,
-                    face = Font:getFace(good_sans, fontsize_no_bookinfo),
+                    face = Font:getFace(ptutil.good_sans, fontsize_no_bookinfo),
                     width = dimen.w - 2 * Screen:scaleBySize(10) - wright_width - wright_right_padding,
                     alignment = "left",
                     fgcolor = fgcolor,
@@ -1306,16 +1300,7 @@ end
 function ListMenu:_updateItemsBuildUI()
     -- Build our list
     local line_width = self.width or self.screen_w
-    -- create and draw the top-most line (acts like bottom line for titlebar)
-    local line_widget = HorizontalGroup:new {
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-        LineWidget:new {
-            dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.medium },
-            background = Blitbuffer.COLOR_BLACK,
-        },
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-    }
-    table.insert(self.item_group, line_widget)
+    table.insert(self.item_group, ptutil.darkLine(line_width))
     local idx_offset = (self.page - 1) * self.perpage
     for idx = 1, self.perpage do
         local index = idx_offset + idx
@@ -1324,15 +1309,7 @@ function ListMenu:_updateItemsBuildUI()
         entry.idx = index
         -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
         if idx > 1 then
-            local small_line_widget = HorizontalGroup:new {
-                HorizontalSpan:new { width = self.item_height },
-                LineWidget:new {
-                    dimen = Geom:new { w = (line_width - self.item_height - Screen:scaleBySize(10)), h = Size.line.thin },
-                    background = Blitbuffer.COLOR_GRAY,
-                },
-                HorizontalSpan:new { width = Screen:scaleBySize(10) },
-            }
-            table.insert(self.item_group, small_line_widget)
+            table.insert(self.item_group, ptutil.lightLine(line_width))
         end
         local item_tmp = ListMenuItem:new {
             height = self.item_height,

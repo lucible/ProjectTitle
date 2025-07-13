@@ -5,15 +5,23 @@ local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local ImageWidget = require("ui/widget/imagewidget")
+local LineWidget = require("ui/widget/linewidget")
 local Size = require("ui/size")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local logger = require("logger")
+local Device = require("device")
+local Screen = Device.screen
 local lfs = require("libs/libkoreader-lfs")
 local _ = require("l10n.gettext")
 local BookInfoManager = require("bookinfomanager")
 
 local ptutil = {}
+
+-- declare 3 fonts included with our plugin
+ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
+ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
+ptutil.good_sans = "source/SourceSans3-Regular"
 
 function ptutil.getSourceDir()
     local callerSource = debug.getinfo(2, "S").source
@@ -103,11 +111,26 @@ function ptutil.getFolderCover(filepath, max_img_w, max_img_h)
                 folder_image
             }
         else
-            -- todo: render an error image when a cover is found but fails to render
             logger.info("Project: Title found a folder cover image but it failed to render. Could be too large or bad image.")
             logger.info(folder_image_file)
-            return nil
+            local size_mult = 1.25
+            local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w * size_mult, max_img_h * size_mult)
+            return FrameContainer:new {
+                width = max_img_w * size_mult,
+                height = max_img_h * size_mult,
+                margin = 0,
+                padding = 0,
+                bordersize = 0,
+                ImageWidget:new {
+                    file = ptutil.getSourceDir() .. "/resources/file-unsupported.svg",
+                    alpha = true,
+                    scale_factor = scale_factor,
+                    original_in_nightmode = false,
+                }
+            }
         end
+    else
+        return nil
     end
 end
 
@@ -150,9 +173,16 @@ local function build_cover_images(res, max_img_w, max_img_h)
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
                         book.cover_w, book.cover_h, max_img_w / 2.05, max_img_h / 2.05
                     )
-                    table.insert(covers, ImageWidget:new {
-                        image = book.cover_bb,
-                        scale_factor = scale_factor,
+                    table.insert(covers, FrameContainer:new {
+                        radius = Size.radius.default,
+                        margin = 0,
+                        padding = 0,
+                        bordersize = Size.border.thin,
+                        color = Blitbuffer.COLOR_DARK_GRAY,
+                        ImageWidget:new {
+                            image = book.cover_bb,
+                            scale_factor = scale_factor,
+                        }
                     })
                 end
                 if #covers == 4 then break end
@@ -173,20 +203,26 @@ function ptutil.getSubfolderCoverImages(filepath, max_img_w, max_img_h)
 
     -- Continue if we found at least one cover
     if #subfolder_images >= 1 then
-        local function create_blank_cover(w, h)
-            local w2 = w - (Size.border.thin * 2)
-            local h2 = h - (Size.border.thin * 2)
+        local backgrounds = {
+            Blitbuffer.COLOR_LIGHT_GRAY,
+            Blitbuffer.COLOR_GRAY_D,
+            Blitbuffer.COLOR_GRAY_E,
+        }
+        local function create_blank_cover(w, h, b)
+            local w_minus = w - (Size.border.thin * 2)
+            local h_minus = h - (Size.border.thin * 2)
             return FrameContainer:new {
                 width = w,
                 height = h,
+                radius = Size.radius.default,
                 margin = 0,
                 padding = 0,
                 bordersize = Size.border.thin,
-                color = Blitbuffer.COLOR_GRAY_B,
-                background = Blitbuffer.COLOR_GRAY_E,
+                color = Blitbuffer.COLOR_DARK_GRAY,
+                background = backgrounds[b],
                 CenterContainer:new {
-                    dimen = Geom:new { w = w2, h = h2 },
-                    HorizontalSpan:new { width = w2, height = h2 }
+                    dimen = Geom:new { w = w_minus, h = h_minus },
+                    HorizontalSpan:new { width = w_minus, height = h_minus }
                 }
             }
         end
@@ -194,20 +230,20 @@ function ptutil.getSubfolderCoverImages(filepath, max_img_w, max_img_h)
         if #subfolder_images == 3 then
             local w = subfolder_images[3]:getSize().w
             local h = subfolder_images[3]:getSize().h
-            table.insert(subfolder_images, 2, create_blank_cover(w, h))
+            table.insert(subfolder_images, 2, create_blank_cover(w, h, 3))
         elseif #subfolder_images == 2 then
             local w1 = subfolder_images[1]:getSize().w
             local h1 = subfolder_images[1]:getSize().h
             local w2 = subfolder_images[2]:getSize().w
             local h2 = subfolder_images[2]:getSize().h
-            table.insert(subfolder_images, 2, create_blank_cover(w1, h1))
-            table.insert(subfolder_images, 3, create_blank_cover(w2, h2))
+            table.insert(subfolder_images, 2, create_blank_cover(w1, h1, 3))
+            table.insert(subfolder_images, 3, create_blank_cover(w2, h2, 2))
         elseif #subfolder_images == 1 then
             local w = subfolder_images[1]:getSize().w
             local h = subfolder_images[1]:getSize().h
-            table.insert(subfolder_images, 2, create_blank_cover(w, h))
-            table.insert(subfolder_images, 3, create_blank_cover(w, h))
-            table.insert(subfolder_images, 4, create_blank_cover(w, h))
+            table.insert(subfolder_images, 1, create_blank_cover(w, h, 3))
+            table.insert(subfolder_images, 2, create_blank_cover(w, h, 2))
+            table.insert(subfolder_images, 4, create_blank_cover(w, h, 3))
         end
 
         local subfolder_image_row1 = HorizontalGroup:new {}
@@ -236,6 +272,28 @@ function ptutil.getSubfolderCoverImages(filepath, max_img_w, max_img_h)
     else
         return nil
     end
+end
+
+function ptutil.darkLine(width)
+    return HorizontalGroup:new {
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
+        LineWidget:new {
+            dimen = Geom:new { w = width - Screen:scaleBySize(20), h = Size.line.medium },
+            background = Blitbuffer.COLOR_BLACK,
+        },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
+    }
+end
+
+function ptutil.lightLine(width)
+    return HorizontalGroup:new {
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
+        LineWidget:new {
+            dimen = Geom:new { w = width - Screen:scaleBySize(20), h = Size.line.thin },
+            background = Blitbuffer.COLOR_GRAY,
+        },
+        HorizontalSpan:new { width = Screen:scaleBySize(10) },
+    }
 end
 
 return ptutil
