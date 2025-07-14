@@ -342,11 +342,11 @@ function TitleBar:generateVerticalLayout()
     if self.left3_button then
         table.insert(layout, { self.left3_button })
     end
-    if self.right3_button then
-        table.insert(layout, { self.right3_button })
-    end
     if self.center_button then
         table.insert(layout, { self.center_button })
+    end
+    if self.right3_button then
+        table.insert(layout, { self.right3_button })
     end
     if self.right2_button then
         table.insert(layout, { self.right2_button })
