@@ -16,11 +16,8 @@ local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local FileManagerConverter = require("apps/filemanager/filemanagerconverter")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
-local HorizontalSpan = require("ui/widget/horizontalspan")
 local UIManager = require("ui/uimanager")
-local LineWidget = require("ui/widget/linewidget")
 local RightContainer = require("ui/widget/container/rightcontainer")
-local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("titlebar")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -36,6 +33,7 @@ local C_ = _.pgettext
 local time = require("ui/time")
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
+local ptutil  = require("ptutil")
 
 -- This is a kind of "base class" for both MosaicMenu and ListMenu.
 -- It implements the common code shared by these, mostly the non-UI
@@ -60,11 +58,6 @@ local previous_path = nil
 local current_path = nil
 local is_pathchooser = false
 local meta_browse_mode = false
-
--- declare 3 fonts included with our plugin
-local title_serif = "source/SourceSerif4-BoldIt.ttf"
-local good_serif = "source/SourceSerif4-Regular.ttf"
-local good_sans = "source/SourceSans3-Regular"
 
 -- Do some collectgarbage() every few drawings
 local NB_DRAWINGS_BETWEEN_COLLECTGARBAGE = 5
@@ -102,10 +95,6 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
     self.page_info:resetLayout()
     self.return_button:resetLayout()
     self.content_group:resetLayout()
-    -- default to select the first item
-    if not select_number then
-        select_number = 1
-    end
 
     -- Reset the list of items not found in db that will need to
     -- be updated by a scheduled action
@@ -675,10 +664,10 @@ function CoverMenu:menuInit()
         w = self.screen_w * 0.94,
         h = self.page_info:getSize().h,
     }
-    local footer_font_face = good_serif
+    local footer_font_face = ptutil.good_serif
     local footer_font_size = 20
     if BookInfoManager:getSetting("replace_footer_text") then
-        footer_font_face = good_sans
+        footer_font_face = ptutil.good_sans
         footer_font_size = 18
     end
     if not BookInfoManager:getSetting("reverse_footer") then
@@ -736,21 +725,13 @@ function CoverMenu:menuInit()
     end
 
     -- assemble final footer with horizontal line to separate from content above
-    local line_width = self.inner_dimen.w
     local footer_line = BottomContainer:new {
         dimen = Geom:new {
             x = 0, y = 0,
             w = self.inner_dimen.w,
             h = self.inner_dimen.h - self.page_info:getSize().h,
         },
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = Screen:scaleBySize(10) },
-            LineWidget:new {
-                dimen = Geom:new { w = line_width - Screen:scaleBySize(20), h = Size.line.medium },
-                background = Blitbuffer.COLOR_BLACK,
-            },
-            HorizontalSpan:new { width = Screen:scaleBySize(10) },
-        }
+        ptutil.darkLine(self.inner_dimen.w),
     }
     local footer = OverlapGroup:new {
         -- This unique allow_mirroring=false looks like it's enough
