@@ -104,10 +104,10 @@ local BookInfoManager = require("bookinfomanager")
 local _FileChooser__recalculateDimen_orig = FileChooser._recalculateDimen
 local _FileChooser_updateItems_orig = FileChooser.updateItems
 local _FileChooser_onCloseWidget_orig = FileChooser.onCloseWidget
-local _FileChooser_genItemTable_orig = FileChooser.genItemTable
-local _FileManager_setupLayout_orig = FileManager.setupLayout
-local _Menu_init_orig = Menu.init
-local _Menu_updatePageInfo_orig = Menu.updatePageInfo
+local _FileChooser_genItemTable_orig = FileChooser.genItemTable         -- additional
+local _FileManager_setupLayout_orig = FileManager.setupLayout           -- additional
+local _Menu_init_orig = Menu.init                                       -- additional
+local _Menu_updatePageInfo_orig = Menu.updatePageInfo                   -- additional
 
 local _modified_widgets = {
     filemanager  = FileManager,
