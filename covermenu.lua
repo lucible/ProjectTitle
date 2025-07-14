@@ -362,6 +362,7 @@ function CoverMenu:setupLayout()
         left_icon = "home",
         left_icon_size_ratio = 1,
         left_icon_tap_callback = function() self:goHome() end,
+        -- next: left_icon_tap_callback = function() self:onHome() end,
         left_icon_hold_callback = function() self:onShowFolderMenu() end,
         -- favorites
         left2_icon = "favorites",
@@ -395,6 +396,7 @@ function CoverMenu:setupLayout()
         center_icon_hold_callback = function()
             meta_browse_mode = not meta_browse_mode
             self:goHome()
+            -- next: self:onHome()
         end,
         -- center_icon_hold_callback = function()
         --     UIManager:show(InfoMessage:new {
@@ -434,7 +436,7 @@ function CoverMenu:setupLayout()
         if file_manager.selected_files then -- toggle selection
             item.dim = not item.dim and true or nil
             file_manager.selected_files[item.path] = item.dim
-            self:updateItems()
+            self:updateItems() -- next: (1, true)
         else
             file_manager:openFile(item.path)
         end
@@ -484,7 +486,7 @@ function CoverMenu:setupLayout()
                         if is_file then
                             file_manager.selected_files[file] = true
                             item.dim = true
-                            self:updateItems()
+                            self:updateItems() -- next: (1, true)
                         end
                     end,
                 },
