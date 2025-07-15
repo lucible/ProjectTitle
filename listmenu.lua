@@ -20,7 +20,6 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
 local TopContainer = require("ui/widget/container/topcontainer")
-local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
@@ -88,15 +87,16 @@ function ListMenuItem:init()
     -- for compatibility with keyboard navigation
     -- (which does not seem to work well when multiple pages,
     -- even with classic menu)
-    self.underline_h = 0
-    self._underline_container = UnderlineContainer:new {
+    self._underline_container = FrameContainer:new {
         vertical_align = "top",
+        bordersize = 0,
         padding = 0,
+        margin = 0,
+        background = Blitbuffer.COLOR_WHITE,
         dimen = Geom:new {
             w = self.width,
             h = self.height
         },
-        linesize = self.underline_h,
         -- widget : will be filled in self:update()
     }
     self[1] = self._underline_container
@@ -116,7 +116,7 @@ function ListMenuItem:update()
     -- we'll add a VerticalSpan of same size as underline container for balance
     local dimen = Geom:new {
         w = self.width,
-        h = self.height - 2 * self.underline_h
+        h = self.height,
     }
 
     local function _fontSize(nominal, max)
@@ -140,12 +140,11 @@ function ListMenuItem:update()
     local title_font_size = _fontSize(20, 26)   -- 22
     local authors_font_size = _fontSize(14, 18) -- 16
 
-    -- We'll draw a border around cover images, it may not be
-    -- needed with some covers, but it's nicer when cover is
-    -- a pure white background (like rendered text page)
-    local border_size = Screen:scaleBySize(4)
-    local max_img_w = dimen.h - 2 * border_size -- width = height, squared
-    local max_img_h = dimen.h - 2 * border_size
+    -- We'll draw some padding around cover images so they don't run up against
+    -- other parts of the list item or decorations
+    local padding_size = Screen:scaleBySize(4)
+    local max_img_w = dimen.h - 2 * padding_size -- width = height, squared
+    local max_img_h = dimen.h - 2 * padding_size
     local cover_specs = {
         max_cover_w = max_img_w,
         max_cover_h = max_img_h,
@@ -243,9 +242,8 @@ function ListMenuItem:update()
             folder_cover = CenterContainer:new {
                 dimen = Geom:new { w = dimen.h, h = dimen.h },
                 margin = 0,
-                padding = 0,
+                padding = padding_size,
                 color = Blitbuffer.COLOR_WHITE,
-                bordersize = border_size,
                 dim = self.file_deleted,
                 subfolder_cover_image,
             }
@@ -384,13 +382,12 @@ function ListMenuItem:update()
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
-                            -- add large white (transparent) border to cover art, which acts as "padding"
-                            width = image_size.w + 2 * border_size,
-                            height = image_size.h + 2 * border_size,
+                            width = image_size.w + 2 * padding_size,
+                            height = image_size.h + 2 * padding_size,
                             margin = 0,
-                            padding = 0,
+                            padding = padding_size,
+                            bordersize = 0,
                             color = Blitbuffer.COLOR_WHITE,
-                            bordersize = border_size,
                             dim = self.file_deleted,
                             wimage,
                         }
@@ -912,50 +909,58 @@ function ListMenuItem:update()
                 end
             end
 
+            local wtitle_container = TopContainer:new {
+                -- dimen = Geom:new { w = wmain_width - wright_width - wright_right_padding, h = wtitle:getSize().h },
+                wtitle,
+            }
+
             local title_padding = wtitle:getSize().h
             local wauthors_padding = wmain_width - wright_width - wright_right_padding
-
             -- affix wright to bottom of vertical space
             local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
             table.insert(wright_items, 1, VerticalSpan:new { width = (wright_vertical_padding) })
 
             -- enable this to debug "flow mode"
             -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-            --     logger.info("BUFFER UNDERRUN") logger.info("dimen.h ", dimen.h )
-            --     logger.info("avail_dimen_h ", avail_dimen_h) logger.info("title ", title)
-            --     logger.info("title_ismultiline ", title_ismultiline) logger.info("wtitle:getSize().h ", wtitle:getSize().h)
-            --     logger.info("fontsize_title ", fontsize_title) logger.info("authors ", authors)
-            --     logger.info("wauthors_iswider ", wauthors_iswider) logger.info("wauthors:getSize().h ", wauthors:getSize().h)
-            --     logger.info("wauthors:getSize().w ", wauthors:getSize().w) logger.info("wauthors_padding ", wauthors_padding)
-            --     logger.info("authors_width ", authors_width) logger.info("fontsize_authors ", fontsize_authors)
-            --     logger.info("wright_height ", wright_height) logger.info("wright_width ", wright_width)
+            --     logger.info("BUFFER UNDERRUN")
+            --     logger.info("dimen.h ", dimen.h)
+            --     logger.info("avail_dimen_h ", avail_dimen_h)
+            --     logger.info("title ", title)
+            --     logger.info("title_ismultiline ", title_ismultiline)
+            --     logger.info("wtitle:getSize().h ", wtitle:getSize().h)
+            --     logger.info("fontsize_title ", fontsize_title)
+            --     logger.info("authors ", authors)
+            --     logger.info("wauthors_iswider ", wauthors_iswider)
+            --     logger.info("wauthors:getSize().h ", wauthors:getSize().h)
+            --     logger.info("wauthors:getSize().w ", wauthors:getSize().w)
+            --     logger.info("wauthors_padding ", wauthors_padding)
+            --     logger.info("authors_width ", authors_width)
+            --     logger.info("fontsize_authors ", fontsize_authors)
+            --     logger.info("wright_height ", wright_height)
+            --     logger.info("wright_width ", wright_width)
+            --     logger.info("wright_vertical_padding ", wright_vertical_padding)
             -- end
-
-            -- style files differently in pathchooser
-            local wtitle_container = TopContainer:new {
-                dimen = Geom:new { w = wmain_width - wright_width - wright_right_padding, h = wtitle:getSize().h },
-                wtitle,
-            }
 
             -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
                 dimen = dimen:copy(),
                 OverlapGroup:new {
+                    dimen = dimen:copy(),
                     TopContainer:new {
-                        dimen = dimen:copy(),
+                        -- dimen = dimen:copy(),
                         VerticalGroup:new {
                             VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    dimen = dimen:copy(),
+                                    -- dimen = dimen:copy(),
                                     wauthors,
                                 },
                                 TopContainer:new {
-                                    dimen = dimen:copy(),
+                                    -- dimen = dimen:copy(),
                                     HorizontalGroup:new {
                                         HorizontalSpan:new { width = wauthors_padding },
                                         TopContainer:new {
-                                            dimen = dimen:copy(),
+                                            -- dimen = dimen:copy(),
                                             VerticalGroup:new(wright_items),
                                         },
                                         HorizontalSpan:new { width = wright_right_padding },
@@ -1166,12 +1171,12 @@ end
 
 -- As done in MenuItem
 function ListMenuItem:onFocus()
-    -- do nothing to indicate focus
+    ptutil.onFocus(self._underline_container) -- (Screen:getWidth() * 1.25)
     return true
 end
 
 function ListMenuItem:onUnfocus()
-    -- do nothing to indicate focus
+    ptutil.onUnfocus(self._underline_container)
     return true
 end
 
@@ -1302,11 +1307,15 @@ function ListMenu:_updateItemsBuildUI()
     local line_width = self.width or self.screen_w
     table.insert(self.item_group, ptutil.darkLine(line_width))
     local idx_offset = (self.page - 1) * self.perpage
+    local select_number
     for idx = 1, self.perpage do
         local index = idx_offset + idx
         local entry = self.item_table[index]
         if entry == nil then break end
         entry.idx = index
+        if index == self.itemnumber then -- focused item
+            select_number = idx
+        end
         -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
         if idx > 1 then
             table.insert(self.item_group, ptutil.lightLine(line_width))
@@ -1326,11 +1335,15 @@ function ListMenu:_updateItemsBuildUI()
         }
         table.insert(self.item_group, item_tmp)
 
+        -- this is for focus manager
+        table.insert(self.layout, { item_tmp })
+
         if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
         end
     end
+    return select_number
 end
 
 return ListMenu

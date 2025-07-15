@@ -355,16 +355,12 @@ function MosaicMenuItem:init()
     -- for compatibility with keyboard navigation
     -- (which does not seem to work well when multiple pages,
     -- even with classic menu)
-    self.underline_h = 0
-    self._underline_container = UnderlineContainer:new {
+    self._underline_container = FrameContainer:new {
         vertical_align = "top",
+        bordersize = 0,
         padding = 0,
-        dimen = Geom:new {
-            x = 0, y = 0,
-            w = self.width,
-            h = self.height,
-        },
-        linesize = self.underline_h,
+        margin = 0,
+        background = Blitbuffer.COLOR_WHITE,
         -- widget : will be filled in self:update()
     }
     self[1] = self._underline_container
@@ -386,9 +382,7 @@ function MosaicMenuItem:update()
         h = self.height,
     }
 
-    -- We'll draw a border around cover images, it may not be
-    -- needed with some covers, but it's nicer when cover is
-    -- a pure white background (like rendered text page)
+    -- Set up thin border for around all types of cover images
     local border_size = Size.border.thin
     local max_img_w = dimen.w - 2 * border_size
     local max_img_h = dimen.h - 2 * border_size
@@ -529,7 +523,7 @@ function MosaicMenuItem:update()
                 radius = nil,
                 widget_parts,
             }
-        else
+        else -- pathchooser gets a plain style
             local margin = Screen:scaleBySize(5) -- make directories less wide
             local padding = Screen:scaleBySize(5)
             border_size = Size.border.thick      -- make directories' borders larger
@@ -999,12 +993,12 @@ end
 
 -- As done in MenuItem
 function MosaicMenuItem:onFocus()
-    -- do nothing to indicate focus
+    ptutil.onFocus(self._underline_container, nil, 0.20)
     return true
 end
 
 function MosaicMenuItem:onUnfocus()
-    -- do nothing to indicate focus
+    ptutil.onUnfocus(self._underline_container)
     return true
 end
 
@@ -1065,11 +1059,11 @@ function MosaicMenu:_recalculateDimen()
     self.item_margin = Screen:scaleBySize(10)
     self.item_height = math.floor(
         ((self.inner_dimen.h - self.others_height) -
-        (self.nb_rows + 1) * self.item_margin)
+        (self.nb_rows + 0.5) * self.item_margin)
         / self.nb_rows)
     self.item_width = math.floor(
         (self.inner_dimen.w -
-        (self.nb_cols + 1) * self.item_margin)
+        (self.nb_cols + 0.5) * self.item_margin)
         / self.nb_cols)
     self.item_dimen = Geom:new {
         x = 0, y = 0,
@@ -1175,17 +1169,24 @@ function MosaicMenu:_updateItemsBuildUI()
     table.insert(self.item_group, ptutil.darkLine(line_width))
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
+    local line_layout = {}
+    local select_number
     for idx = 1, self.perpage do
         local index = idx_offset + idx
         local entry = self.item_table[index]
         if entry == nil then break end
         entry.idx = index
+        if index == self.itemnumber then -- focused item
+            select_number = idx
+        end
         if idx % self.nb_cols == 1 then -- new row
             table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             if idx > 1 then
+                table.insert(self.layout, line_layout)
                 table.insert(self.item_group, ptutil.lightLine(line_width))
                 table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
             end
+            line_layout = {}
             cur_row = HorizontalGroup:new {}
             -- Have items on the possibly non-fully filled last row aligned to the left
             local container = self._do_center_partial_rows and CenterContainer or LeftContainer
@@ -1213,12 +1214,17 @@ function MosaicMenu:_updateItemsBuildUI()
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
 
+        -- this is for focus manager
+        table.insert(line_layout, item_tmp)
+
         if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
         end
     end
+    table.insert(self.layout, line_layout)
     table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 }) -- bottom padding
+    return select_number
 end
 
 return MosaicMenu
