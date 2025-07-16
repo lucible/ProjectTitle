@@ -394,9 +394,11 @@ function CoverMenu:setupLayout()
         center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
         center_icon_tap_callback = false,
         center_icon_hold_callback = function()
-            meta_browse_mode = not meta_browse_mode
-            self:goHome()
-            -- next: self:onHome()
+            if G_reader_settings:readSetting("home_dir") ~= nil then
+                meta_browse_mode = not meta_browse_mode
+                self:goHome()
+                -- next: self:onHome()
+            end
         end,
         -- center_icon_hold_callback = function()
         --     UIManager:show(InfoMessage:new {
