@@ -275,6 +275,7 @@ function CoverBrowser:init()
     end
 
     local home_dir = G_reader_settings:readSetting("home_dir")
+    if home_dir then logger.info("Home directory is set to: ", home_dir) end
     if home_dir and lfs.attributes(home_dir, "mode") == "directory" and BookInfoManager:getSetting("autoscan_on_eject") then
         local cover_specs = { max_cover_w = 1, max_cover_h = 1, }
         Trapper:wrap(function()
