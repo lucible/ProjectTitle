@@ -252,7 +252,11 @@ function ListMenuItem:update()
         end
 
         local wleft_width = dimen.w - dimen.h - wright_width - 3 * pad_width
-        local wlefttext = BD.directory(self.text:sub(1, -2))
+        local wlefttext = self.text
+        if wlefttext:match('/$') then
+            wlefttext = wlefttext:sub(1, -2)
+        end
+        wlefttext = BD.directory(wlefttext)
 
         local folderfont = ptutil.good_serif
         -- style folder names differently in pathchooser
