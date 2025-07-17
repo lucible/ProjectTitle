@@ -18,6 +18,7 @@ local time = require("ui/time")
 local _ = require("l10n.gettext")
 local N_ = _.ngettext
 local T = FFIUtil.template
+local ptdbg = require("ptdbg")
 
 -- Database definition
 local BOOKINFO_DB_VERSION = 20201210
@@ -178,8 +179,8 @@ function BookInfoManager:createDB()
     -- Check version
     local db_version = tonumber(db_conn:rowexec("PRAGMA user_version;"))
     if db_version < BOOKINFO_DB_VERSION then
-        logger.warn("BookInfo cache DB schema updated from version", db_version, "to version", BOOKINFO_DB_VERSION)
-        logger.warn("Deleting existing", self.db_location, "to recreate it")
+        logger.warn(ptdbg.logprefix, "BookInfo cache DB schema updated from version", db_version, "to version", BOOKINFO_DB_VERSION)
+        logger.warn(ptdbg.logprefix, "Deleting existing", self.db_location, "to recreate it")
 
         -- We'll try to preserve settings, though
         self:loadSettings(db_conn)
@@ -483,11 +484,11 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     -- Increment it and check if we have already tried enough
     if prev_tries < self.max_extract_tries then
         if prev_tries > 0 then
-            logger.dbg("Seen", prev_tries, "previous attempts at info extraction", filepath, ", trying again")
+            logger.dbg(ptdbg.logprefix, "Seen", prev_tries, "previous attempts at info extraction", filepath, ", trying again")
         end
         dbrow.in_progress = prev_tries + 1 -- extraction not yet successful
     else
-        logger.info("Seen", prev_tries, "previous attempts at info extraction", filepath, ", too many, ignoring it.")
+        logger.info(ptdbg.logprefix, "Seen", prev_tries, "previous attempts at info extraction", filepath, ", too many, ignoring it.")
         tried_enough = true
         dbrow.in_progress = 0     -- row will exist, we'll never be called again
         dbrow.unsupported = UNSUPPORTED_REASONS.too_many_interruptions_or_crashes.string
@@ -527,13 +528,12 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
 
                     local fn_pagecount = string.match(filename_without_suffix, "P%((%d+)%)")
                     if fn_pagecount and fn_pagecount ~= "0" then
-                        logger.dbg("PT: pagecount found in filename " .. fname)
-                        logger.dbg(fn_pagecount)
+                        logger.dbg(ptdbg.logprefix, "Pagecount found in filename", fname, fn_pagecount)
                         return fn_pagecount
                     end
 
                     if filetype ~= "epub" then
-                        logger.dbg("PT: skipping pagecount, not epub " .. fname)
+                        logger.dbg(ptdbg.logprefix, "Skipping pagecount, not epub", fname)
                         return nil
                     end
 
@@ -566,13 +566,12 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                             end
                             std_out:close()
                             if found_value and found_value ~= "0" then
-                                logger.dbg("PT: epub pagecount found in opf metadata " .. fname)
-                                logger.dbg(found_value)
+                                logger.dbg(ptdbg.logprefix, "Pagecount found in opf metadata ", fname, found_value)
                                 return found_value
                             end
                         end
                     end
-                    logger.dbg("PT: epub pagecount not found " .. fname)
+                    logger.dbg(ptdbg.logprefix, "Pagecount not found", fname)
                     return nil
                 end
                 local success, response = pcall(getEstimatedPagecount, filepath)
@@ -615,9 +614,8 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                     local cover_size = cover_bb.stride * cover_bb.h
                     local cover_zst_ptr, cover_zst_size = zstd.zstd_compress(cover_bb.data, cover_size)
                     dbrow.cover_bb_data = SQ3.blob(cover_zst_ptr, cover_zst_size) -- cast to blob for sqlite
-                    logger.dbg("cover for", filename, "scaled from", dbrow.cover_sizetag, "to", cover_bb.w, "x",
-                        cover_bb.h,
-                        ", compressed from", tonumber(cover_size), "to", tonumber(cover_zst_size))
+                    logger.dbg(ptdbg.logprefix, "cover for", filename, "scaled from", dbrow.cover_sizetag, "to", cover_bb.w, "x",
+                        cover_bb.h, ", compressed from", tonumber(cover_size), "to", tonumber(cover_zst_size))
                     -- We're done with the uncompressed bb now, and the compressed one has been managed by SQLite ;)
                     cover_bb:free()
                 end
@@ -726,7 +724,7 @@ function BookInfoManager:collectSubprocesses()
             -- have caused a terminateBackgroundJobs() - if we're here, it's
             -- that user has left reader in FileBrower and went away)
             if time.now() > self.subprocesses_last_added_time + self.subprocesses_killall_timeout_time then
-                logger.warn("Some subprocesses were running for too long, killing them")
+                logger.warn(ptdbg.logprefix, "Some subprocesses were running for too long, killing them")
                 self:terminateBackgroundJobs()
                 -- we'll collect them next time we're run
             end
@@ -747,7 +745,7 @@ function BookInfoManager:collectSubprocesses()
 end
 
 function BookInfoManager:terminateBackgroundJobs()
-    logger.dbg("terminating", #self.subprocesses_pids, "subprocesses")
+    logger.dbg(ptdbg.logprefix, "terminating", #self.subprocesses_pids, "subprocesses")
     for i = 1, #self.subprocesses_pids do
         FFIUtil.terminateSubProcess(self.subprocesses_pids[i])
     end
@@ -771,14 +769,14 @@ function BookInfoManager:extractInBackground(files)
 
     -- Define task that will be run in subprocess
     local task = function()
-        logger.dbg("  BG extraction started")
+        logger.dbg(ptdbg.logprefix, "  BG extraction started")
         for idx = 1, #files do
             local filepath = files[idx].filepath
             local cover_specs = files[idx].cover_specs
-            logger.dbg("  BG extracting:", filepath)
+            logger.dbg(ptdbg.logprefix, "  BG extracting:", filepath)
             self:extractBookInfo(filepath, cover_specs)
         end
-        logger.dbg("  BG extraction done")
+        logger.dbg(ptdbg.logprefix, "  BG extraction done")
     end
 
     self.cleanup_needed = true -- so we will remove temporary cache directory created by subprocess
@@ -791,7 +789,7 @@ function BookInfoManager:extractInBackground(files)
     -- Run task in sub-process, and remember its pid
     local task_pid = FFIUtil.runInSubProcess(task)
     if not task_pid then
-        logger.warn("Failed lauching background extraction sub-process (fork failed)")
+        logger.warn(ptdbg.logprefix, "Failed lauching background extraction sub-process (fork failed)")
         return false -- let caller know it failed
     end
     -- No straight control flow exists for background task completion here, so we bump prevent
@@ -823,7 +821,7 @@ function BookInfoManager:cleanUp()
         return
     end
     if self.cleanup_needed then
-        logger.dbg("Removing directory", self.tmpcr3cache)
+        logger.dbg(ptdbg.logprefix, "Removing directory", self.tmpcr3cache)
         FFIUtil.purgeDir(self.tmpcr3cache)
         self.cleanup_needed = false
     end

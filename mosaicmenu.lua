@@ -34,6 +34,7 @@ local T = require("ffi/util").template
 local getMenuText = require("ui/widget/menu").getMenuText
 local BookInfoManager = require("bookinfomanager")
 local ptutil = require("ptutil")
+local ptdbg = require("ptdbg")
 
 -- Here is the specific UI implementation for "grid" display modes
 -- (see covermenu.lua for the generic code)
@@ -324,8 +325,6 @@ local MosaicMenuItem = InputContainer:extend {
 }
 
 function MosaicMenuItem:init()
-    -- logger.info("PTPT item start")
-    -- local start_time = time.now()
     -- filepath may be provided as 'file' (history) or 'path' (filechooser)
     -- store it as attribute so we can use it elsewhere
     self.filepath = self.entry.file or self.entry.path
@@ -369,7 +368,6 @@ function MosaicMenuItem:init()
     -- have to do it more than once if item not found in db
     self:update()
     self.init_done = true
-    -- logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function MosaicMenuItem:update()
@@ -781,7 +779,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- Fixed by having TextWidget:updateSize() math.ceil()'ing its length and height
     -- But let us know if that happens again
     if x ~= math.floor(x) or y ~= math.floor(y) then
-        logger.err("MosaicMenuItem:paintTo() got non-integer x/y :", x, y)
+        logger.err(ptdbg.logprefix, "MosaicMenuItem:paintTo() got non-integer x/y :", x, y)
     end
 
     -- Original painting

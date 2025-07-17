@@ -1,6 +1,7 @@
 local util = require("util")
 local GetText = require("gettext")
 local logger = require("logger")
+local ptdbg = require("ptdbg")
 
 local full_source_path = debug.getinfo(1, "S").source
 if full_source_path:sub(1, 1) == "@" then
@@ -36,7 +37,7 @@ local changeLang = function(new_lang)
                 end
         end
     else
-        logger.info(string.format("Failed to parse the PO file for lang %s: %s", tostring(new_lang), tostring(err)))
+        logger.info(ptdbg.logprefix, string.format("Failed to parse the PO file for lang %s: %s", tostring(new_lang), tostring(err)))
     end
 
     GetText.context = original_context
@@ -51,7 +52,7 @@ end
 
 local function createGetTextProxy(new_gettext, gettext)
     if not (new_gettext.wrapUntranslated and new_gettext.translation and new_gettext.current_lang) then
-        logger.dbg(string.format("debug_dump: NewGetText was not loaded correctly for lang %s", tostring(gettext.current_lang)))
+        logger.dbg(ptdbg.logprefix, string.format("debug_dump: NewGetText was not loaded correctly for lang %s", tostring(gettext.current_lang)))
         return gettext
     end
 
@@ -107,7 +108,7 @@ local function createGetTextProxy(new_gettext, gettext)
             local new_lang = new_gettext.current_lang
             local dump_path = string.format("%s/%s/%s", new_gettext.dirname, new_lang, "debug_logs.lua")
             require("luasettings"):open(dump_path):saveSetting("po", new_gettext):flush()
-            logger.info(string.format("debug_dump: %s.po to %s", new_lang, dump_path))
+            logger.info(ptdbg.logprefix, string.format("debug_dump: %s.po to %s", new_lang, dump_path))
       end
     }, mt)
 end

@@ -34,6 +34,7 @@ local time = require("ui/time")
 local Screen = Device.screen
 local BookInfoManager = require("bookinfomanager")
 local ptutil  = require("ptutil")
+local ptdbg = require("ptdbg")
 
 -- This is a kind of "base class" for both MosaicMenu and ListMenu.
 -- It implements the common code shared by these, mostly the non-UI
@@ -78,8 +79,6 @@ end
 local CoverMenu = {}
 
 function CoverMenu:updateItems(select_number, no_recalculate_dimen)
-    -- logger.info("PTPT update items start")
-    -- local start_time = time.now()
     -- As done in Menu:updateItems()
     local old_dimen = self.dimen and self.dimen:copy()
     -- self.layout must be updated for focusmanager
@@ -186,14 +185,14 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
 
         -- Scheduled update action
         self.items_update_action = function()
-            logger.dbg("Scheduled items update:", #self.items_to_update, "waiting")
+            logger.dbg(ptdbg.logprefix, "Scheduled items update:", #self.items_to_update, "waiting")
             local is_still_extracting = BookInfoManager:isExtractingInBackground()
             local i = 1
             while i <= #self.items_to_update do -- process and clean in-place
                 local item = self.items_to_update[i]
                 item:update()
                 if item.bookinfo_found then
-                    logger.dbg("  found", item.text)
+                    logger.dbg(ptdbg.logprefix, "  found", item.text)
                     self.show_parent.dithered = item._has_cover_image
                     local refreshfunc = function()
                         if item.refresh_dimen then
@@ -207,24 +206,23 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
                     UIManager:setDirty(self.show_parent, refreshfunc)
                     table.remove(self.items_to_update, i)
                 else
-                    logger.dbg("  not yet found", item.text)
+                    logger.dbg(ptdbg.logprefix, "  not yet found", item.text)
                     i = i + 1
                 end
             end
             if #self.items_to_update > 0 then -- re-schedule myself
                 if is_still_extracting then   -- we have still chances to get new stuff
-                    logger.dbg("re-scheduling items update:", #self.items_to_update, "still waiting")
+                    logger.dbg(ptdbg.logprefix, "re-scheduling items update:", #self.items_to_update, "still waiting")
                     UIManager:scheduleIn(1, self.items_update_action)
                 else
-                    logger.dbg("Not all items found, but background extraction has stopped, not re-scheduling")
+                    logger.dbg(ptdbg.logprefix, "Not all items found, but background extraction has stopped, not re-scheduling")
                 end
             else
-                logger.dbg("items update completed")
+                logger.dbg(ptdbg.logprefix, "items update completed")
             end
         end
         UIManager:scheduleIn(1, self.items_update_action)
     end
-    -- logger.info(string.format("PTPT update items done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function CoverMenu:onCloseWidget()
@@ -237,7 +235,7 @@ function CoverMenu:onCloseWidget()
     self._covermenu_onclose_done = true
 
     -- Stop background job if any (so that full cpu is available to reader)
-    logger.dbg("CoverMenu:onCloseWidget: terminating jobs if needed")
+    logger.dbg(ptdbg.logprefix, "CoverMenu:onCloseWidget: terminating jobs if needed")
     BookInfoManager:terminateBackgroundJobs()
     BookInfoManager:closeDbConnection() -- sqlite connection no more needed
     BookInfoManager:cleanUp()           -- clean temporary resources
@@ -245,7 +243,7 @@ function CoverMenu:onCloseWidget()
 
     -- Cancel any still scheduled update
     if self.items_update_action then
-        logger.dbg("CoverMenu:onCloseWidget: unscheduling items_update_action")
+        logger.dbg(ptdbg.logprefix, "CoverMenu:onCloseWidget: unscheduling items_update_action")
         UIManager:unschedule(self.items_update_action)
         self.items_update_action = nil
     end

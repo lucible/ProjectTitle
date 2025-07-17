@@ -12,30 +12,32 @@ local DataStorage = require("datastorage")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Version = require("version")
+local ptutil = require("ptutil")
+local ptdbg = require("ptdbg")
 
 -- data_dir is separate from lfs.currentdir() on Android.
 -- Will be `.` on Kobo devices but a full path on Android.
 local data_dir = DataStorage:getDataDir()
-logger.info("Checking Project: Title requirements in '" .. data_dir .. "'")
+logger.info(ptdbg.logprefix, "Checking requirements in '" .. data_dir .. "'")
 
 -- Disable this entire plugin if: fonts missing
 local font1_missing = true
 if lfs.attributes(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
     font1_missing = false
 else
-    logger.warn("Font1 missing")
+    logger.warn(ptdbg.logprefix, "Font1 missing")
 end
 local font2_missing = true
 if lfs.attributes(data_dir .. "/fonts/source/SourceSerif4-Regular.ttf") ~= nil then
     font2_missing = false
 else
-    logger.warn("Font2 missing")
+    logger.warn(ptdbg.logprefix, "Font2 missing")
 end
 local font3_missing = true
 if lfs.attributes(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
     font3_missing = false
 else
-    logger.warn("Font3 missing")
+    logger.warn(ptdbg.logprefix, "Font3 missing")
 end
 
 -- Disable this entire plugin if: icons missing
@@ -43,7 +45,7 @@ local icons_missing = true
 if lfs.attributes(data_dir .. "/icons/hero.svg") ~= nil then
     icons_missing = false -- check for one icon and assume the rest are there too
 else
-    logger.warn("Icons missing")
+    logger.warn(ptdbg.logprefix, "Icons missing")
 end
 
 -- Disable this entire plugin if: Cover Browser is enabled
@@ -55,7 +57,7 @@ local coverbrowser_plugin = true
 if plugins_disabled["coverbrowser"] == true then
     coverbrowser_plugin = false
 else
-    logger.warn("CoverBrowser enabled")
+    logger.warn(ptdbg.logprefix, "CoverBrowser enabled")
 end
 
 --[[
@@ -70,14 +72,17 @@ local version_unsafe = true
 if (cv_int == safe_version or lfs.attributes(data_dir .. "/settings/pt-skipversioncheck.txt") ~= nil) then
     version_unsafe = false
 else
-    logger.warn("Version not safe ", tostring(cv_int))
+    logger.warn(ptdbg.logprefix, "Version not safe ", tostring(cv_int))
+    if cv_int - safe_version < 1000 then
+        logger.warn(ptdbg.logprefix, "This is a KOReader nightly build, not the official release")
+    end
 end
 
 if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
-    logger.warn("therefore refusing to load Project: Title")
+    logger.warn(ptdbg.logprefix, "Refusing to load the plugin")
     return { disabled = true, }
 end
-logger.info("All tests passed, loading Project: Title on KOReader ver ", tostring(cv_int))
+logger.info(ptdbg.logprefix, "All tests passed, loading into KOReader ver", tostring(cv_int))
 
 -- carry on...
 local BookStatusWidget = require("ui/widget/bookstatuswidget")
@@ -93,7 +98,6 @@ local Menu = require("ui/widget/menu")
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local util = require("util")
 local _ = require("l10n.gettext")
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
@@ -207,7 +211,7 @@ function CoverBrowser:init()
     -- koreader to fully apply.
     local restart_needed = false
     if not G_reader_settings:isTrue("aaaProjectTitle_initial_default_setup_done2") then
-        logger.info("Initalizing Project: Title settings")
+        logger.info(ptdbg.logprefix, "Initalizing settings")
         -- Set up default display modes on first launch
         -- but only if no display mode has been set yet
         if not BookInfoManager:getSetting("filemanager_display_mode")
@@ -231,11 +235,11 @@ function CoverBrowser:init()
     -- initalize additional settings with their defaults
     if BookInfoManager:getSetting("config_version") == nil then
         -- catch installs done before setting versioning
-        logger.info("Migrating Project: Title settings to version 1")
+        logger.info(ptdbg.logprefix, "Migrating settings to version 1")
         BookInfoManager:saveSetting("config_version", "1")
     end
     if BookInfoManager:getSetting("config_version") == 1 then
-        logger.info("Migrating Project: Title settings to version 2")
+        logger.info(ptdbg.logprefix, "Migrating settings to version 2")
         BookInfoManager:saveSetting("disable_auto_foldercovers", false)
         BookInfoManager:saveSetting("force_max_progressbars", false)
         BookInfoManager:saveSetting("opened_at_top_of_library", true)
@@ -248,7 +252,7 @@ function CoverBrowser:init()
         restart_needed = true
     end
     if BookInfoManager:getSetting("config_version") == 2 then
-        logger.info("Migrating Project: Title settings to version 3")
+        logger.info(ptdbg.logprefix, "Migrating settings to version 3")
         BookInfoManager:saveSetting("force_no_progressbars", false)
         BookInfoManager:saveSetting("config_version", "3")
 
@@ -257,7 +261,7 @@ function CoverBrowser:init()
 
     -- restart if needed
     if restart_needed then
-        logger.info("Restarting KOReader as requested by Project: Title")
+        logger.info(ptdbg.logprefix, "Restarting KOReader to apply settings")
         UIManager:restartKOReader()
         FFIUtil.sleep(2)
     end
@@ -275,7 +279,7 @@ function CoverBrowser:init()
     end
 
     local home_dir = G_reader_settings:readSetting("home_dir")
-    if home_dir then logger.info("Home directory is set to: ", home_dir) end
+    if home_dir then logger.info(ptdbg.logprefix, "Home directory is set to: ", home_dir) end
     if home_dir and lfs.attributes(home_dir, "mode") == "directory" and BookInfoManager:getSetting("autoscan_on_eject") then
         local cover_specs = { max_cover_w = 1, max_cover_h = 1, }
         Trapper:wrap(function()
@@ -838,7 +842,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
     end
     -- remember current mode in module variable
     curr_display_modes["filemanager"] = display_mode
-    logger.dbg("CoverBrowser: setting FileManager display mode to:", display_mode or "classic")
+    logger.dbg(ptdbg.logprefix, "Setting FileManager display mode to:", display_mode or "classic")
 
     -- init Mosaic and List grid dimensions (in Classic mode used in the settings menu)
     CoverBrowser.initGrid(FileChooser, display_mode)
@@ -937,7 +941,7 @@ function CoverBrowser.setupWidgetDisplayMode(widget_id, display_mode)
     end
     -- remember current mode in module variable
     curr_display_modes[widget_id] = display_mode
-    logger.dbg("CoverBrowser: setting display mode:", widget_id, display_mode or "classic")
+    logger.dbg(ptdbg.logprefix, "Setting display mode:", widget_id, display_mode or "classic")
 
     if not init_done and not display_mode then
         return -- starting in classic mode, nothing to patch

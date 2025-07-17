@@ -14,11 +14,11 @@ local Device = require("device")
 local Screen = Device.screen
 local lfs = require("libs/libkoreader-lfs")
 local _ = require("l10n.gettext")
+local ptdbg = require("ptdbg")
 local BookInfoManager = require("bookinfomanager")
 
 local ptutil = {}
 
--- declare 3 fonts included with our plugin
 ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
 ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
 ptutil.good_sans = "source/SourceSans3-Regular"
@@ -111,8 +111,7 @@ function ptutil.getFolderCover(filepath, max_img_w, max_img_h)
                 folder_image
             }
         else
-            logger.info("Project: Title found a folder cover image but it failed to render. Could be too large or bad image.")
-            logger.info(folder_image_file)
+            logger.info(ptdbg.logprefix, "Folder cover found but failed to render, could be too large or broken:", folder_image_file)
             local size_mult = 1.25
             local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w * size_mult, max_img_h * size_mult)
             return FrameContainer:new {

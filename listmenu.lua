@@ -32,6 +32,7 @@ local T = require("ffi/util").template
 local getMenuText = require("ui/widget/menu").getMenuText
 local BookInfoManager = require("bookinfomanager")
 local ptutil = require("ptutil")
+local ptdbg = require("ptdbg")
 
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)
@@ -59,8 +60,6 @@ local ListMenuItem = InputContainer:extend {
 }
 
 function ListMenuItem:init()
-    -- logger.info("PTPT item start")
-    -- local start_time = time.now()
     -- filepath may be provided as 'file' (history, collection) or 'path' (filechooser)
     -- store it as attribute so we can use it elsewhere
     self.filepath = self.entry.file or self.entry.path
@@ -105,7 +104,6 @@ function ListMenuItem:init()
     -- have to do it more than once if item not found in db
     self:update()
     self.init_done = true
-    -- logger.info(string.format("PTPT done in %.3f", time.to_ms(time.since(start_time))))
 end
 
 function ListMenuItem:update()
@@ -922,23 +920,23 @@ function ListMenuItem:update()
 
             -- enable this to debug "flow mode"
             -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-            --     logger.info("BUFFER UNDERRUN")
-            --     logger.info("dimen.h ", dimen.h)
-            --     logger.info("avail_dimen_h ", avail_dimen_h)
-            --     logger.info("title ", title)
-            --     logger.info("title_ismultiline ", title_ismultiline)
-            --     logger.info("wtitle:getSize().h ", wtitle:getSize().h)
-            --     logger.info("fontsize_title ", fontsize_title)
-            --     logger.info("authors ", authors)
-            --     logger.info("wauthors_iswider ", wauthors_iswider)
-            --     logger.info("wauthors:getSize().h ", wauthors:getSize().h)
-            --     logger.info("wauthors:getSize().w ", wauthors:getSize().w)
-            --     logger.info("wauthors_padding ", wauthors_padding)
-            --     logger.info("authors_width ", authors_width)
-            --     logger.info("fontsize_authors ", fontsize_authors)
-            --     logger.info("wright_height ", wright_height)
-            --     logger.info("wright_width ", wright_width)
-            --     logger.info("wright_vertical_padding ", wright_vertical_padding)
+            --     logger.info(ptdbg.logprefix, "BUFFER UNDERRUN")
+            --     logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
+            --     logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
+            --     logger.info(ptdbg.logprefix, "title ", title)
+            --     logger.info(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
+            --     logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
+            --     logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
+            --     logger.info(ptdbg.logprefix, "authors ", authors)
+            --     logger.info(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
+            --     logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
+            --     logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
+            --     logger.info(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
+            --     logger.info(ptdbg.logprefix, "authors_width ", authors_width)
+            --     logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
+            --     logger.info(ptdbg.logprefix, "wright_height ", wright_height)
+            --     logger.info(ptdbg.logprefix, "wright_width ", wright_width)
+            --     logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
             -- end
 
             -- build the main widget which holds wtitle, wauthors, and wright
@@ -1162,7 +1160,7 @@ function ListMenuItem:paintTo(bb, x, y)
     -- Fixed by having TextWidget:updateSize() math.ceil()'ing its length and height
     -- But let us know if that happens again
     if x ~= math.floor(x) or y ~= math.floor(y) then
-        logger.err("ListMenuItem:paintTo() got non-integer x/y :", x, y)
+        logger.err(ptdbg.logprefix, "ListMenuItem:paintTo() got non-integer x/y :", x, y)
     end
 
     -- Original painting

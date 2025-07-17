@@ -25,6 +25,8 @@ local _ = require("l10n.gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
+local ptutil = require("ptutil")
+local ptdbg = require("ptdbg")
 
 local AltBookStatusWidget = {}
 
@@ -95,14 +97,14 @@ end
 
 function AltBookStatusWidget:genBookInfoGroup()
     -- override the original fonts with our included fonts
-    self.small_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
-    self.medium_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 22)
-    self.large_font_face = Font:getFace("source/SourceSerif4-Regular.ttf", 30)
+    self.small_font_face = Font:getFace(ptutil.good_serif, 18)
+    self.medium_font_face = Font:getFace(ptutil.good_serif, 22)
+    self.large_font_face = Font:getFace(ptutil.good_serif, 30)
 
     -- and set up our own as well
-    self.header_font = Font:getFace("source/SourceSans3-Regular.ttf", 24)
-    self.small_serif_font = Font:getFace("source/SourceSerif4-Regular.ttf", 18)
-    self.large_serif_font = Font:getFace("source/SourceSerif4-BoldIt.ttf", 30)
+    self.header_font = Font:getFace(ptutil.good_sans, 24)
+    self.small_serif_font = Font:getFace(ptutil.good_serif, 18)
+    self.large_serif_font = Font:getFace(ptutil.title_serif, 30)
 
     -- padding to match the width used in cover list and grid
     self.padding = Screen:scaleBySize(10)
