@@ -806,7 +806,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
 
     self.is_directory = not (self.entry.is_file or self.entry.file)
 
-    local bookinfo = BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
+    local bookinfo = BookInfoManager:getBookInfo(self.filepath, false)
     if bookinfo and self.init_done then
         local series_mode = BookInfoManager:getSetting("series_mode")
         -- suppress showing series if index is "0"
