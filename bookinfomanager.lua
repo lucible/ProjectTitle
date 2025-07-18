@@ -437,6 +437,7 @@ function BookInfoManager:getDocProps(filepath)
 end
 
 function BookInfoManager:extractBookInfo(filepath, cover_specs)
+    local timer = ptdbg:new()
     -- This will be run in a subprocess
     -- We use a temporary directory for cre cache (that will not affect parent process),
     -- so we don't fill the main cache with books we're not actually reading
@@ -635,6 +636,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     end
     self.set_stmt:step()
     self.set_stmt:clearbind():reset() -- get ready for next query
+    timer:report("Cache book " .. filepath)
     return loaded
 end
 
