@@ -89,14 +89,14 @@ local BOOKINFO_COLS_SET = {
     "cover_sizetag",
     "ignore_meta",
     "ignore_cover",
-    "pages",
+    "pages", -- 13: start index for getDocProps()
     "title",
     "authors",
     "series",
     "series_index",
     "language",
     "keywords",
-    "description",
+    "description", -- 20: end index for getDocProps()
     "cover_w",
     "cover_h",
     "cover_bb_type",
@@ -538,38 +538,84 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                         return nil
                     end
 
-                    local std_out = nil
                     local opf_file = nil
-                    std_out = io.popen("unzip " .. "-lqq \"" .. fname .. "\" \"*.opf\"")
-                    if std_out then
-                        opf_file = string.match(std_out:read(), "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
-                        std_out:close()
+                    local locate_opf_command = "unzip " .. "-lqq \"" .. fname .. "\" \"*.opf\""
+                    local opf_match_pattern = "(%S+%.opf)$"
+
+                    if Device:isAndroid() then
+                        -- fh style for Android
+                        local fh = io.popen(locate_opf_command, "r")
+                        while true and fh ~= nil do
+                            local line = fh:read()
+                            if line == nil or opf_file ~= nil then
+                                break
+                            end
+                            opf_file = string.match(line, opf_match_pattern)
+                        end
+                    else
+                        -- std_out style for POSIX
+                        local std_out = nil
+                        std_out = io.popen("unzip " .. "-lqq \"" .. fname .. "\" \"*.opf\"")
+                        if std_out then
+                            opf_file = string.match(std_out:read(), opf_match_pattern) -- was: "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
+                            std_out:close()
+                        end
                     end
+
                     if opf_file then
-                        std_out = io.popen("unzip " .. "-p \"" .. fname .. "\" " .. "\"" .. opf_file .. "\"")
+                        local expand_opf_command = "unzip " .. "-p \"" .. fname .. "\" " .. "\"" .. opf_file .. "\""
                         local found_pages = nil
                         local found_value = nil
-                        if std_out then
-                            for line in std_out:lines() do
-                                if found_pages then
-                                    -- multiline format, keep looking for the #values# line
-                                    found_value = string.match(line, "\"#value#\": (%d+),")
-                                    if found_value then break end
-                                    -- why category_sort? because it's always there and the props are stored alphabetically
-                                    -- so if we reach that before finding #value# it means there isn't one, which can happen
-                                    if string.match(line, "\"category_sort\":") then break end
-                                else
-                                    found_pages = string.match(line, "#pages")
-                                    -- check for single line format
-                                    found_value = string.match(line, "&quot;#value#&quot;: (%d+),")
-                                    if found_value then break end
+                        local do_break = false
+
+                        local function parse_opf_file(fp, fv, l)
+                            if fp then
+                                -- multiline format, keep looking for the #values# line
+                                fv = string.match(l, "\"#value#\": (%d+),")
+                                if fv then
+                                    return fp, fv, true
+                                end
+                                -- why category_sort? because it's always there and the props are stored alphabetically
+                                -- so if we reach that before finding #value# it means there isn't one, which can happen
+                                if string.match(l, "\"category_sort\":") then
+                                    return fp, fv, true
+                                end
+                            else
+                                fp = string.match(l, "#pages")
+                                -- check for single line format
+                                fv = string.match(l, "&quot;#value#&quot;: (%d+),")
+                                if fv then
+                                    return fp, fv, true
                                 end
                             end
-                            std_out:close()
-                            if found_value and found_value ~= "0" then
-                                logger.dbg(ptdbg.logprefix, "Pagecount found in opf metadata ", fname, found_value)
-                                return found_value
+                            return fp, fv, false
+                        end
+
+                        if Device:isAndroid() then
+                            -- fh style for Android
+                            local fh = io.popen(expand_opf_command, "r")
+                            while true and fh ~= nil do
+                                local line = fh:read()
+                                if line == nil then
+                                    break
+                                end
+                                found_pages, found_value, do_break = parse_opf_file(found_pages, found_value, line)
+                                if do_break then break end
                             end
+                        else
+                            -- std_out style for POSIX
+                            local std_out = io.popen(expand_opf_command)
+                            if std_out then
+                                for line in std_out:lines() do
+                                    found_pages, found_value, do_break = parse_opf_file(found_pages, found_value, line)
+                                    if do_break then break end
+                                end
+                                std_out:close()
+                            end
+                        end
+                        if found_value and found_value ~= "0" then
+                            logger.dbg(ptdbg.logprefix, "Pagecount found in opf metadata ", fname, found_value)
+                            return found_value
                         end
                     end
                     logger.dbg(ptdbg.logprefix, "Pagecount not found", fname)
