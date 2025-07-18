@@ -79,6 +79,7 @@ end
 local CoverMenu = {}
 
 function CoverMenu:updateItems(select_number, no_recalculate_dimen)
+    local timer = ptdbg:new()
     -- As done in Menu:updateItems()
     local old_dimen = self.dimen and self.dimen:copy()
     -- self.layout must be updated for focusmanager
@@ -223,6 +224,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         end
         UIManager:scheduleIn(1, self.items_update_action)
     end
+    timer:report("Draw whole page")
 end
 
 function CoverMenu:onCloseWidget()

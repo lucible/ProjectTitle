@@ -912,7 +912,6 @@ function ListMenuItem:update()
             end
 
             local wtitle_container = TopContainer:new {
-                -- dimen = Geom:new { w = wmain_width - wright_width - wright_right_padding, h = wtitle:getSize().h },
                 wtitle,
             }
 
@@ -949,20 +948,16 @@ function ListMenuItem:update()
                 OverlapGroup:new {
                     dimen = dimen:copy(),
                     TopContainer:new {
-                        -- dimen = dimen:copy(),
                         VerticalGroup:new {
                             VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    -- dimen = dimen:copy(),
                                     wauthors,
                                 },
                                 TopContainer:new {
-                                    -- dimen = dimen:copy(),
                                     HorizontalGroup:new {
                                         HorizontalSpan:new { width = wauthors_padding },
                                         TopContainer:new {
-                                            -- dimen = dimen:copy(),
                                             VerticalGroup:new(wright_items),
                                         },
                                         HorizontalSpan:new { width = wright_right_padding },
@@ -1163,9 +1158,9 @@ function ListMenuItem:paintTo(bb, x, y)
     -- inside FrameContainer were image would be drawn on top of the top border...
     -- Fixed by having TextWidget:updateSize() math.ceil()'ing its length and height
     -- But let us know if that happens again
-    if x ~= math.floor(x) or y ~= math.floor(y) then
-        logger.err(ptdbg.logprefix, "ListMenuItem:paintTo() got non-integer x/y :", x, y)
-    end
+    -- if x ~= math.floor(x) or y ~= math.floor(y) then
+    --     logger.err(ptdbg.logprefix, "ListMenuItem:paintTo() got non-integer x/y :", x, y)
+    -- end
 
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
@@ -1306,11 +1301,13 @@ end
 
 function ListMenu:_updateItemsBuildUI()
     -- Build our list
+    local list_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
     table.insert(self.item_group, ptutil.darkLine(line_width))
     local idx_offset = (self.page - 1) * self.perpage
     local select_number
     for idx = 1, self.perpage do
+        local itm_timer = ptdbg:new()
         local index = idx_offset + idx
         local entry = self.item_table[index]
         if entry == nil then break end
@@ -1336,7 +1333,6 @@ function ListMenu:_updateItemsBuildUI()
             do_filename_only = self._do_filename_only,
         }
         table.insert(self.item_group, item_tmp)
-
         -- this is for focus manager
         table.insert(self.layout, { item_tmp })
 
@@ -1344,7 +1340,9 @@ function ListMenu:_updateItemsBuildUI()
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
         end
+        itm_timer:report("Draw list item " .. getMenuText(entry))
     end
+    list_timer:report("Draw cover list page " .. self.perpage)
     return select_number
 end
 

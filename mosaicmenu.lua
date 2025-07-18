@@ -778,9 +778,9 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- inside FrameContainer were image would be drawn on top of the top border...
     -- Fixed by having TextWidget:updateSize() math.ceil()'ing its length and height
     -- But let us know if that happens again
-    if x ~= math.floor(x) or y ~= math.floor(y) then
-        logger.err(ptdbg.logprefix, "MosaicMenuItem:paintTo() got non-integer x/y :", x, y)
-    end
+    -- if x ~= math.floor(x) or y ~= math.floor(y) then
+    --     logger.err(ptdbg.logprefix, "MosaicMenuItem:paintTo() got non-integer x/y :", x, y)
+    -- end
 
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
@@ -1163,6 +1163,7 @@ end
 
 function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
+    local grid_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
     table.insert(self.item_group, ptutil.darkLine(line_width))
     local cur_row = nil
@@ -1170,6 +1171,7 @@ function MosaicMenu:_updateItemsBuildUI()
     local line_layout = {}
     local select_number
     for idx = 1, self.perpage do
+        local itm_timer = ptdbg:new()
         local index = idx_offset + idx
         local entry = self.item_table[index]
         if entry == nil then break end
@@ -1219,9 +1221,11 @@ function MosaicMenu:_updateItemsBuildUI()
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
         end
+        itm_timer:report("Draw grid item " .. getMenuText(entry))
     end
     table.insert(self.layout, line_layout)
     table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 }) -- bottom padding
+    grid_timer:report("Draw cover grid page " .. self.perpage)
     return select_number
 end
 
