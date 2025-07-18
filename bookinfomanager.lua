@@ -551,13 +551,16 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                                 break
                             end
                             opf_file = string.match(line, opf_match_pattern)
+                            logger.dbg(ptdbg.logprefix, line)
                         end
                     else
                         -- std_out style for POSIX
                         local std_out = nil
                         std_out = io.popen("unzip " .. "-lqq \"" .. fname .. "\" \"*.opf\"")
                         if std_out then
-                            opf_file = string.match(std_out:read(), opf_match_pattern) -- was: "%s+%d+%s+%S+%s+%S+%s+(.+%.[^.]+)$")
+                            local line = std_out:read()
+                            opf_file = string.match(line, opf_match_pattern)
+                            logger.dbg(ptdbg.logprefix, line)
                             std_out:close()
                         end
                     end
