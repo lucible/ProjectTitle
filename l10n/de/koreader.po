@@ -19,6 +19,15 @@ msgid "Book"
 msgstr "Buch"
 
 # main.lua
+msgid "Project: Title"
+msgstr "Project: Title"
+
+msgid "Decrease Items Per Page"
+msgstr "Elemente pro Seite reduzieren"
+
+msgid "Increase Items Per Page"
+msgstr "Elemente pro Seite erhöhen"
+
 msgid "Cover List"
 msgstr "Cover-Liste"
 
