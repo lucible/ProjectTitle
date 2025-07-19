@@ -258,6 +258,13 @@ function CoverBrowser:init()
 
         restart_needed = true
     end
+    if BookInfoManager:getSetting("config_version") == 3 then
+        logger.info(ptdbg.logprefix, "Migrating settings to version 4")
+        BookInfoManager:saveSetting("force_focus_indicator", false)
+        BookInfoManager:saveSetting("config_version", "4")
+
+        restart_needed = true
+    end
 
     -- restart if needed
     if restart_needed then
@@ -364,6 +371,13 @@ function CoverBrowser:addToMainMenu(menu_items)
         text = _("Project: Title settings"),
         separator = true,
         sub_item_table = {
+            -- {
+            --     text = _("Show focus indicator on touchscreen devices"),
+            --     checked_func = function() return BookInfoManager:getSetting("force_focus_indicator") end,
+            --     callback = function()
+            --         BookInfoManager:toggleSetting("force_focus_indicator")
+            --     end,
+            -- },
             {
                 text = _("Items per page"),
                 sub_item_table = {
