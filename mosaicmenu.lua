@@ -42,6 +42,7 @@ local is_pathchooser = false
 local sourcedir = ptutil.getSourceDir()
 local alpha_level = 0.84
 local tag_width = 0.35
+local margin_size = 10
 
 -- We will show a rotated dogear at bottom right corner of cover widget for
 -- opened files (the dogear will make it look like a "used book")
@@ -1077,9 +1078,10 @@ function MosaicMenu:_recalculateDimen()
         end
     end
 
-    self.item_margin = Screen:scaleBySize(10)
+    self.item_margin = Screen:scaleBySize(margin_size)
     self.others_height = self.others_height + (Size.line.thin * self.nb_rows) -- lines between items
     self.others_height = self.others_height + (self.nb_rows * self.item_margin) -- margins between rows
+    self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
 
     -- Set our items target size
     self.item_height = math.floor(
@@ -1195,6 +1197,7 @@ function MosaicMenu:_updateItemsBuildUI()
     local idx_offset = (self.page - 1) * self.perpage
     local line_layout = {}
     local select_number
+    local half_margin_size = margin_size / 2
     for idx = 1, self.perpage do
         local itm_timer = ptdbg:new()
         local index = idx_offset + idx
@@ -1205,11 +1208,11 @@ function MosaicMenu:_updateItemsBuildUI()
             select_number = idx
         end
         if idx % self.nb_cols == 1 then -- new row
-            table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
+            table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             if idx > 1 then
                 table.insert(self.layout, line_layout)
                 table.insert(self.item_group, ptutil.lightLine(line_width))
-                table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 })
+                table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             end
             line_layout = {}
             cur_row = HorizontalGroup:new {}
@@ -1249,7 +1252,7 @@ function MosaicMenu:_updateItemsBuildUI()
         itm_timer:report("Draw grid item " .. getMenuText(entry))
     end
     table.insert(self.layout, line_layout)
-    -- table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 }) -- bottom padding
+    table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) }) -- bottom padding
     grid_timer:report("Draw cover grid page " .. self.perpage)
     return select_number
 end
