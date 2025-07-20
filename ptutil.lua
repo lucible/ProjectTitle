@@ -164,13 +164,15 @@ local function build_cover_images(res, max_img_w, max_img_h)
     if res then
         local directories = res[1]
         local filenames = res[2]
+        max_img_w = (max_img_h - (Size.border.thin * 4) - Size.padding.small) / 2
+        max_img_h = (max_img_h - (Size.border.thin * 4) - Size.padding.small) / 2
         for i, filename in ipairs(filenames) do
             local fullpath = directories[i] .. filename
             if lfs.attributes(fullpath, "mode") == "file" then
                 local book = BookInfoManager:getBookInfo(fullpath, true)
                 if book then
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
-                        book.cover_w, book.cover_h, max_img_w / 2.05, max_img_h / 2.05
+                        book.cover_w, book.cover_h, max_img_w, max_img_h
                     )
                     table.insert(covers, FrameContainer:new {
                         radius = Size.radius.default,
@@ -295,32 +297,15 @@ function ptutil.lightLine(width)
     }
 end
 
-function ptutil.onFocus(_underline_container, width, alpha)
-    if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicators") then
-        width = width or Screen:scaleBySize(2)
-        alpha = alpha or 0.15
-        _underline_container.stripe_width = width
-        _underline_container.stripe_color = Blitbuffer.COLOR_BLACK
-        _underline_container.stripe_over_alpha = alpha
-        _underline_container.stripe_over = true
-
-        -- other ideas:
-        -- above code, but pass in a sufficently large width that it works similar to .background
-        -- _underline_container.invert = true -- inverts covers too. looks bad.
-        -- _underline_container.dim = true -- used by select mode, reduces contrast for text
-        -- _underline_container.background = Blitbuffer.COLOR_GRAY_E -- ignored by all the TextBoxWidgets
+function ptutil.onFocus(_underline_container)
+    if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
+        _underline_container.color = Blitbuffer.COLOR_BLACK
     end
 end
 
 function ptutil.onUnfocus(_underline_container)
-    if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicators") then
-        _underline_container.stripe_color = Blitbuffer.COLOR_WHITE
-        _underline_container.stripe_over_alpha = 0
-        _underline_container.stripe_over = false
-
-        -- _underline_container.invert = false
-        -- _underline_container.dim = true
-        -- _underline_container.background = Blitbuffer.COLOR_WHITE
+    if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
+        _underline_container.color = Blitbuffer.COLOR_WHITE
     end
 end
 
