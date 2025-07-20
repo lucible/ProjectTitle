@@ -354,11 +354,12 @@ function MosaicMenuItem:init()
     -- for compatibility with keyboard navigation
     -- (which does not seem to work well when multiple pages,
     -- even with classic menu)
-    self._underline_container = FrameContainer:new {
+    self._underline_container = UnderlineContainer:new {
         vertical_align = "top",
         bordersize = 0,
         padding = 0,
         margin = 0,
+        linesize = Screen:scaleBySize(3),
         background = Blitbuffer.COLOR_WHITE,
         -- widget : will be filled in self:update()
     }
@@ -1057,11 +1058,11 @@ function MosaicMenu:_recalculateDimen()
     self.item_margin = Screen:scaleBySize(10)
     self.item_height = math.floor(
         ((self.inner_dimen.h - self.others_height) -
-        (self.nb_rows + 0.5) * self.item_margin)
+        (self.nb_rows + 0.5) * self.item_margin) -- additional 0.5 for bottom padding
         / self.nb_rows)
     self.item_width = math.floor(
         (self.inner_dimen.w -
-        (self.nb_cols + 0.5) * self.item_margin)
+        (self.nb_cols + 0.5) * self.item_margin) -- additional 0.5 for bottom padding
         / self.nb_cols)
     self.item_dimen = Geom:new {
         x = 0, y = 0,
