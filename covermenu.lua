@@ -400,13 +400,6 @@ function CoverMenu:setupLayout()
                 -- next: self:onHome()
             end
         end,
-        -- center_icon_hold_callback = function()
-        --     UIManager:show(InfoMessage:new {
-        --         text = T(_("KOReader %1\nwith Project: Title UI\nhttps://koreader.rocks\n\nLicensed under Affero GPL v3.\nAll dependencies are free software."), BD.ltr(Version:getShortVersion())),
-        --         show_icon = false,
-        --         alignment = "center",
-        --     })
-        -- end,
     }
 
     local file_chooser = FileChooser:new {
@@ -632,7 +625,6 @@ function CoverMenu:menuInit()
     CoverMenu._Menu_init_orig(self)
 
     -- pagination controls
-    -- local pagination_width = self.page_info:getSize().w -- get width before changing anything
     self.page_info = HorizontalGroup:new {
         self.page_info_first_chev,
         self.page_info_left_chev,
