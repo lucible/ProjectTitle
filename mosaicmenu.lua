@@ -473,6 +473,17 @@ function MosaicMenuItem:update()
                 directory_frame,
             }
 
+            -- use non-alpha styling when focus indicator is involved
+            if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
+                directory = FrameContainer:new {
+                    bordersize = 0,
+                    padding = 0,
+                    margin = 0,
+                    background = Blitbuffer.COLOR_WHITE,
+                    directory_frame,
+                }
+            end
+
             local nbitems_text = TextWidget:new {
                 text = " " .. nbitems_string .. " ",
                 face = Font:getFace("infont", 15),
@@ -494,15 +505,28 @@ function MosaicMenuItem:update()
                     },
                 },
             }
+            local nbitems_frame_container = AlphaContainer:new {
+                alpha = alpha_level,
+                nbitems_frame,
+            }
+
+            -- use non-alpha styling when focus indicator is involved
+            if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
+                nbitems_frame_container = FrameContainer:new {
+                    bordersize = 0,
+                    padding = 0,
+                    margin = 0,
+                    background = Blitbuffer.COLOR_WHITE,
+                    nbitems_frame,
+                }
+            end
+
             local nbitems = HorizontalGroup:new {
                 dimen = dimen,
                 HorizontalSpan:new {
                     width = dimen.w - nbitems_frame:getSize().w - Size.padding.small
                 },
-                AlphaContainer:new {
-                    alpha = alpha_level,
-                    nbitems_frame,
-                }
+                nbitems_frame_container
             }
 
             local widget_parts = OverlapGroup:new {
