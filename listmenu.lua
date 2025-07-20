@@ -20,6 +20,7 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
 local TopContainer = require("ui/widget/container/topcontainer")
+local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
@@ -86,17 +87,18 @@ function ListMenuItem:init()
     -- for compatibility with keyboard navigation
     -- (which does not seem to work well when multiple pages,
     -- even with classic menu)
-    self._underline_container = FrameContainer:new {
+    self._underline_container = UnderlineContainer:new {
         vertical_align = "top",
         bordersize = 0,
         padding = 0,
         margin = 0,
+        linesize = Screen:scaleBySize(3),
         background = Blitbuffer.COLOR_WHITE,
+        -- widget : will be filled in self:update()
         dimen = Geom:new {
             w = self.width,
             h = self.height
         },
-        -- widget : will be filled in self:update()
     }
     self[1] = self._underline_container
 
@@ -921,26 +923,27 @@ function ListMenuItem:update()
             local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
             table.insert(wright_items, 1, VerticalSpan:new { width = (wright_vertical_padding) })
 
-            -- enable this to debug "flow mode"
-            -- if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-            --     logger.info(ptdbg.logprefix, "BUFFER UNDERRUN")
-            --     logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
-            --     logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
-            --     logger.info(ptdbg.logprefix, "title ", title)
-            --     logger.info(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
-            --     logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
-            --     logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
-            --     logger.info(ptdbg.logprefix, "authors ", authors)
-            --     logger.info(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
-            --     logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
-            --     logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
-            --     logger.info(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
-            --     logger.info(ptdbg.logprefix, "authors_width ", authors_width)
-            --     logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
-            --     logger.info(ptdbg.logprefix, "wright_height ", wright_height)
-            --     logger.info(ptdbg.logprefix, "wright_width ", wright_width)
-            --     logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
-            -- end
+            -- The combined size of the elements in a listbox should not exceed the available
+            -- height of that listbox. Log if they do.
+            if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+                logger.info(ptdbg.logprefix, "Listbox height exceeded")
+                logger.dbg(ptdbg.logprefix, "dimen.h ", dimen.h)
+                logger.dbg(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
+                logger.dbg(ptdbg.logprefix, "title ", title)
+                logger.dbg(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
+                logger.dbg(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
+                logger.dbg(ptdbg.logprefix, "fontsize_title ", fontsize_title)
+                logger.dbg(ptdbg.logprefix, "authors ", authors)
+                logger.dbg(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
+                logger.dbg(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
+                logger.dbg(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
+                logger.dbg(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
+                logger.dbg(ptdbg.logprefix, "authors_width ", authors_width)
+                logger.dbg(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
+                logger.dbg(ptdbg.logprefix, "wright_height ", wright_height)
+                logger.dbg(ptdbg.logprefix, "wright_width ", wright_width)
+                logger.dbg(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
+            end
 
             -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
@@ -1168,7 +1171,7 @@ end
 
 -- As done in MenuItem
 function ListMenuItem:onFocus()
-    ptutil.onFocus(self._underline_container) -- (Screen:getWidth() * 1.25)
+    ptutil.onFocus(self._underline_container)
     return true
 end
 
@@ -1197,8 +1200,7 @@ local ListMenu = {}
 
 function ListMenu:_recalculateDimen()
     local Menu = require("ui/widget/menu")
-    local perpage = self.items_per_page or G_reader_settings:readSetting("items_per_page") or self
-        .items_per_page_default
+    local perpage = self.files_per_page or 7 -- fallback value for very first run, never used again
     local font_size = self.items_font_size or G_reader_settings:readSetting("items_font_size") or
         Menu.getItemFontSize(perpage)
     if self.perpage ~= perpage or self.font_size ~= font_size then
@@ -1221,7 +1223,7 @@ function ListMenu:_recalculateDimen()
             self.others_height = self.others_height + 2
         end
         if not self.no_title then
-            self.others_height = self.others_height -- + self.header_padding
+            -- self.others_height = self.others_height + self.header_padding
             self.others_height = self.others_height + self.title_bar.dimen.h
         end
         if self.page_info then
@@ -1238,22 +1240,19 @@ function ListMenu:_recalculateDimen()
         self.itemnum_orig = self.path_items[self.path]
         self.focused_path_orig = self.focused_path
     end
-    local available_height = self.inner_dimen.h - self.others_height - Size.line.thin
 
-    if self.files_per_page == nil then -- first drawing
-        -- Default perpage is computed from a base of 90px per ListMenuItem,
-        -- which gives 7 items on kobo aura one/glo hd/sage
-        self.files_per_page = math.floor(available_height / scale_by_size / 90)
-        BookInfoManager:saveSetting("files_per_page", self.files_per_page)
-    end
-    self.perpage = self.files_per_page
+    self.others_height = self.others_height + (Size.line.thin * self.perpage) -- lines between items
+    self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
+
+    local available_height = self.inner_dimen.h - self.others_height
+
     if not self.portrait_mode then
         -- When in landscape mode, adjust perpage so items get a chance
         -- to have about the same height as when in portrait mode.
         -- This computation is not strictly correct, as "others_height" would
         -- have a different value in portrait mode. But let's go with that.
-        local portrait_available_height = Screen:getWidth() - self.others_height - Size.line.thin
-        local portrait_item_height = math.floor(portrait_available_height / self.perpage) - Size.line.thin
+        local portrait_available_height = Screen:getWidth() - self.others_height
+        local portrait_item_height = math.floor(portrait_available_height / self.perpage)
         self.perpage = Math.round(available_height / portrait_item_height)
     end
 
@@ -1265,8 +1264,7 @@ function ListMenu:_recalculateDimen()
     end
 
     -- menu item height based on number of items per page
-    -- add space for the separator
-    self.item_height = math.floor(available_height / self.perpage) - Size.line.thin
+    self.item_height = math.floor(available_height / self.perpage)
     self.item_width = self.inner_dimen.w
     self.item_dimen = Geom:new {
         x = 0, y = 0,
@@ -1315,7 +1313,6 @@ function ListMenu:_updateItemsBuildUI()
         if index == self.itemnumber then -- focused item
             select_number = idx
         end
-        -- draw smaller, lighter lines under each item except the final item (footer draws its own line)
         if idx > 1 then
             table.insert(self.item_group, ptutil.lightLine(line_width))
         end
@@ -1343,6 +1340,7 @@ function ListMenu:_updateItemsBuildUI()
         itm_timer:report("Draw list item " .. getMenuText(entry))
     end
     list_timer:report("Draw cover list page " .. self.perpage)
+    table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) }) -- bottom padding
     return select_number
 end
 
