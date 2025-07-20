@@ -779,9 +779,9 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- inside FrameContainer were image would be drawn on top of the top border...
     -- Fixed by having TextWidget:updateSize() math.ceil()'ing its length and height
     -- But let us know if that happens again
-    -- if x ~= math.floor(x) or y ~= math.floor(y) then
-    --     logger.err(ptdbg.logprefix, "MosaicMenuItem:paintTo() got non-integer x/y :", x, y)
-    -- end
+    if x ~= math.floor(x) or y ~= math.floor(y) then
+        logger.err(ptdbg.logprefix, "MosaicMenuItem:paintTo() got non-integer x/y :", x, y)
+    end
 
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
@@ -992,7 +992,7 @@ end
 
 -- As done in MenuItem
 function MosaicMenuItem:onFocus()
-    ptutil.onFocus(self._underline_container, nil, 0.20)
+    ptutil.onFocus(self._underline_container)
     return true
 end
 
@@ -1046,7 +1046,6 @@ function MosaicMenu:_recalculateDimen()
             self.others_height = self.others_height + 2
         end
         if not self.no_title then
-            self.others_height = self.others_height -- + self.header_padding
             self.others_height = self.others_height + self.title_bar.dimen.h
         end
         if self.page_info then
@@ -1054,15 +1053,16 @@ function MosaicMenu:_recalculateDimen()
         end
     end
 
-    -- Set our items target size
     self.item_margin = Screen:scaleBySize(10)
+    self.others_height = self.others_height + (Size.line.thin * self.nb_rows) -- lines between items
+    self.others_height = self.others_height + (self.nb_rows * self.item_margin) -- margins between rows
+
+    -- Set our items target size
     self.item_height = math.floor(
-        ((self.inner_dimen.h - self.others_height) -
-        (self.nb_rows + 0.5) * self.item_margin) -- additional 0.5 for bottom padding
+        (self.inner_dimen.h - self.others_height)
         / self.nb_rows)
     self.item_width = math.floor(
-        (self.inner_dimen.w -
-        (self.nb_cols + 0.5) * self.item_margin) -- additional 0.5 for bottom padding
+        (self.inner_dimen.w - ((self.nb_cols + 1) * self.item_margin))
         / self.nb_cols)
     self.item_dimen = Geom:new {
         x = 0, y = 0,
@@ -1225,7 +1225,7 @@ function MosaicMenu:_updateItemsBuildUI()
         itm_timer:report("Draw grid item " .. getMenuText(entry))
     end
     table.insert(self.layout, line_layout)
-    table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 }) -- bottom padding
+    -- table.insert(self.item_group, VerticalSpan:new { width = self.item_margin * 0.5 }) -- bottom padding
     grid_timer:report("Draw cover grid page " .. self.perpage)
     return select_number
 end
