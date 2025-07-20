@@ -1242,6 +1242,10 @@ function ListMenu:_recalculateDimen()
     end
 
     self.others_height = self.others_height + (Size.line.thin * self.perpage) -- lines between items
+    -- account for extra margins on devices with focus indicator enabled
+    if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
+        self.others_height = self.others_height + (Screen:scaleBySize(3) * self.perpage)
+    end
     self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
 
     local available_height = self.inner_dimen.h - self.others_height
@@ -1314,6 +1318,10 @@ function ListMenu:_updateItemsBuildUI()
             select_number = idx
         end
         if idx > 1 then
+            -- add focus indicator padding only for devices that need it
+            if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
+                table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) })
+            end
             table.insert(self.item_group, ptutil.lightLine(line_width))
         end
         local item_tmp = ListMenuItem:new {
