@@ -1161,9 +1161,9 @@ function ListMenuItem:paintTo(bb, x, y)
     -- inside FrameContainer were image would be drawn on top of the top border...
     -- Fixed by having TextWidget:updateSize() math.ceil()'ing its length and height
     -- But let us know if that happens again
-    -- if x ~= math.floor(x) or y ~= math.floor(y) then
-    --     logger.err(ptdbg.logprefix, "ListMenuItem:paintTo() got non-integer x/y :", x, y)
-    -- end
+    if x ~= math.floor(x) or y ~= math.floor(y) then
+        logger.err(ptdbg.logprefix, "ListMenuItem:paintTo() got non-integer x/y :", x, y)
+    end
 
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
