@@ -228,7 +228,6 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("show_progress_in_mosaic", true)
         BookInfoManager:saveSetting("autoscan_on_eject", false)
         G_reader_settings:makeTrue("aaaProjectTitle_initial_default_setup_done2")
-
         restart_needed = true
     end
 
@@ -248,23 +247,18 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("replace_footer_text", false)
         BookInfoManager:saveSetting("show_name_grid_folders", true)
         BookInfoManager:saveSetting("config_version", "2")
-
         restart_needed = true
     end
     if BookInfoManager:getSetting("config_version") == 2 then
         logger.info(ptdbg.logprefix, "Migrating settings to version 3")
         BookInfoManager:saveSetting("force_no_progressbars", false)
         BookInfoManager:saveSetting("config_version", "3")
-
-        restart_needed = false
     end
     if BookInfoManager:getSetting("config_version") == 3 then
         logger.info(ptdbg.logprefix, "Migrating settings to version 4")
         BookInfoManager:saveSetting("force_focus_indicator", false)
         BookInfoManager:saveSetting("use_stacked_foldercovers", false)
         BookInfoManager:saveSetting("config_version", "4")
-
-        restart_needed = false
     end
 
     -- restart if needed
