@@ -256,14 +256,15 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("force_no_progressbars", false)
         BookInfoManager:saveSetting("config_version", "3")
 
-        restart_needed = true
+        restart_needed = false
     end
     if BookInfoManager:getSetting("config_version") == 3 then
         logger.info(ptdbg.logprefix, "Migrating settings to version 4")
         BookInfoManager:saveSetting("force_focus_indicator", false)
+        BookInfoManager:saveSetting("use_stacked_foldercovers", false)
         BookInfoManager:saveSetting("config_version", "4")
 
-        restart_needed = true
+        restart_needed = false
     end
 
     -- restart if needed
