@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Use this to suggest a feature
-title: ''
+title: 'FR: Add Short Title Here'
 labels: ''
 assignees: ''
 

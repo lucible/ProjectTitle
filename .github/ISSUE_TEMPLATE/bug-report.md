@@ -1,7 +1,7 @@
 ---
 name: Bug report
-about: Use this when reporting a crash or issues installing or visual glitches.
-title: 'Bug: '
+about: Use this when reporting a crash, issues installing, or visual glitches.
+title: 'Bug: Add Short Title Here'
 labels: ''
 assignees: ''
 
