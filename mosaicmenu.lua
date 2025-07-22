@@ -1097,8 +1097,14 @@ function MosaicMenu:_recalculateDimen()
     }
 
     -- Create or replace corner_mark
-    local mark_size = Screen:scaleBySize(21)
-    corner_mark_size = mark_size
+    local mark_image_size = 21
+    if self.show_progress_bar then
+        mark_image_size = mark_image_size - (Size.border.thin * 2) - Size.padding.small
+    else
+        mark_image_size = mark_image_size - Size.padding.tiny
+    end
+    corner_mark_size = Screen:scaleBySize(mark_image_size)
+
     if corner_mark then
         complete_mark:free()
         abandoned_mark:free()
@@ -1111,8 +1117,8 @@ function MosaicMenu:_recalculateDimen()
         ImageWidget:new {
             file = sourcedir .. "/resources/trophy.svg",
             alpha = true,
-            width = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
-            height = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+            width = corner_mark_size,
+            height = corner_mark_size,
             scale_factor = 0,
             original_in_nightmode = false,
         }
@@ -1146,8 +1152,8 @@ function MosaicMenu:_recalculateDimen()
         ImageWidget:new {
             file = sourcedir .. "/resources/pause.svg",
             alpha = true,
-            width = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
-            height = corner_mark_size - (Size.border.thin * 2) - Size.padding.small,
+            width = corner_mark_size,
+            height = corner_mark_size,
             scale_factor = 0,
             original_in_nightmode = false,
         }
