@@ -480,31 +480,10 @@ function ListMenuItem:update()
                 local progress_width = progress_bar:getSize().w
                 local progress_dimen
                 local bar_and_icons
-                local bar_icon_size = Screen:scaleBySize(23)        -- size for icons used with progress bar
-                if status == "complete" and fn_pages > (max_progress_size * pixels_per_page) then
-                    progress_width = progress_width + bar_icon_size -- both icons need 2x half-width (1 full width) added
-                    progress_dimen = Geom:new {
-                        x = 0, y = 0,
-                        w = progress_width,
-                        h = bar_icon_size,
-                    }
-                    bar_and_icons = CenterContainer:new {
-                        dimen = progress_dimen,
-                        progress_bar,
-                    }
-                elseif status == "complete" then
-                    progress_width = progress_width + math.floor(bar_icon_size / 2) -- one icon needs 1x half-width added
-                    progress_dimen = Geom:new {
-                        x = 0, y = 0,
-                        w = progress_width,
-                        h = bar_icon_size,
-                    }
-                    bar_and_icons = LeftContainer:new {
-                        dimen = progress_dimen,
-                        progress_bar,
-                    }
-                elseif fn_pages > (max_progress_size * pixels_per_page) then
-                    progress_width = progress_width + math.floor(bar_icon_size / 2) -- one icon needs 1x half-width added
+                local bar_icon_size = Screen:scaleBySize(23)  -- size for icons used with progress bar
+
+                if fn_pages > (max_progress_size * pixels_per_page) then
+                    progress_width = progress_width + math.floor(bar_icon_size / 2) -- add extra width for max size indicator
                     progress_dimen = Geom:new {
                         x = 0, y = 0,
                         w = progress_width,
@@ -546,24 +525,28 @@ function ListMenuItem:update()
                     })
                 end
 
-                if status == "complete" then
+                if status == "complete" or status == "abandoned" then
                     progress_bar.percentage = 1
                     -- books marked as "Finished" get a little trophy at the right edge of the progress bar
-                    local trophy_widget = ImageWidget:new({
-                        file = sourcedir .. "/resources/trophy.svg",
+                    filename = sourcedir .. "/resources/trophy.svg"
+                    -- books marked as "On Hold" get a little pause icon at the right edge of the progress bar
+                    if status == "abandoned" then filename = sourcedir .. "/resources/pause.svg" end
+                    local progress_statusicon_widget = ImageWidget:new({
+                        file = filename,
                         width = bar_icon_size,
                         height = bar_icon_size,
                         scale_factor = 0,
                         alpha = true,
                         original_in_nightmode = false,
                     })
+                    local right_padding = Size.padding.default
                     table.insert(progress_block, RightContainer:new {
                         dimen = progress_dimen,
-                        trophy_widget,
+                        HorizontalGroup:new {
+                            progress_statusicon_widget,
+                            HorizontalSpan:new { width = right_padding },
+                        }
                     })
-                    table.insert(progressbar_items, progress_block)
-                elseif status == "abandoned" then
-                    progress_bar.percentage = 1
                     table.insert(progressbar_items, progress_block)
                 elseif percent_finished then
                     progress_bar.percentage = percent_finished
