@@ -644,10 +644,14 @@ function MosaicMenuItem:update()
 
             self.percent_finished = percent_finished
             self.status = status
-            self.show_progress_bar = bookinfo.pages ~= nil and
-                not BookInfoManager:getSetting("force_no_progressbars") and
+
+            local est_page_count = bookinfo.pages or nil
+            if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = "700" end
+            self.show_progress_bar = est_page_count ~= nil and
                 not BookInfoManager:getSetting("show_pages_read_as_progress") and
-                not BookInfoManager:getSetting("hide_page_info")
+                not BookInfoManager:getSetting("hide_page_info") and
+                not BookInfoManager:getSetting("force_no_progressbars")
+
             local cover_bb_used = false
             self.bookinfo_found = true
             -- For wikipedia saved as epub, we made a cover from the 1st pic of the page,
@@ -872,7 +876,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
         if self.show_progress_bar and is_pathchooser == false and not self.is_directory then
             local progress_widget_width_mult = 1.0
             local est_page_count = bookinfo.pages or nil
-            if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = 700 end -- override metadata
+            if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = "700" end -- override metadata
             local large_book = false
             if est_page_count then
                 local fn_pages = tonumber(est_page_count)

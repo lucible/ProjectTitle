@@ -452,12 +452,13 @@ function ListMenuItem:update()
             local wright_items = { align = "right" }
 
             local est_page_count = bookinfo.pages or nil
-            if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = 700 end -- override metadata
+            if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = "700" end -- override metadata
             local draw_progressbar = false
             draw_progressbar = est_page_count ~= nil and
-                                not BookInfoManager:getSetting("force_no_progressbars") and
-                                not BookInfoManager:getSetting("hide_page_info") and
-                                not BookInfoManager:getSetting("show_pages_read_as_progress")
+                not BookInfoManager:getSetting("show_pages_read_as_progress") and
+                not BookInfoManager:getSetting("hide_page_info") and
+                not BookInfoManager:getSetting("force_no_progressbars")
+
             if draw_progressbar then
                 local progressbar_items = { align = "center" }
 
