@@ -58,6 +58,7 @@ local ListMenuItem = InputContainer:extend {
     bookinfo_found = false,
     cover_specs = nil,
     has_description = false,
+    pages = nil,
 }
 
 function ListMenuItem:init()
@@ -429,7 +430,7 @@ function ListMenuItem:update()
             local percent_str = ""
             local progress_str = ""
 
-            local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
+            -- local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
             local percent_finished = book_info.percent_finished
             local status = book_info.status
 
@@ -450,14 +451,10 @@ function ListMenuItem:update()
             local wright_width = 0
             local wright_height = 0
             local wright_items = { align = "right" }
-
-            local est_page_count = bookinfo.pages or nil
-            if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = "700" end -- override metadata
-            local draw_progressbar = false
-            draw_progressbar = est_page_count ~= nil and
-                not BookInfoManager:getSetting("show_pages_read_as_progress") and
-                not BookInfoManager:getSetting("hide_page_info") and
-                not BookInfoManager:getSetting("force_no_progressbars")
+            local est_page_count, draw_progressbar = ptutil.showProgressBar(bookinfo.pages)
+            self.pages = est_page_count
+            bookinfo.pages = est_page_count
+            local pages = bookinfo.pages -- limit to value in database
 
             if draw_progressbar then
                 local progressbar_items = { align = "center" }
