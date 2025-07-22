@@ -968,7 +968,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local progresstxt = nil
             if not BookInfoManager:getSetting("hide_file_info") then
                 progresstxt = (" " .. self.mandatory .. " ") or " ??? "
-            elseif self.status ~= "complete" and self.percent_finished ~= nil then
+            elseif self.status ~= "complete" and self.status ~= "abandoned" and self.percent_finished ~= nil then
                 progresstxt = " " .. math.floor(100 * self.percent_finished) .. "% "
                 if BookInfoManager:getSetting("show_pages_read_as_progress") then
                     local book_info = self.menu.getBookInfo(self.filepath)
