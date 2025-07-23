@@ -21,13 +21,12 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 ## Who this (hopefully) is for:
 * Kobo device owners. We designed this on two Kobos (Aura One, Sage) so we feel pretty confident about the experience there.
 * Jailbroken Kindle owners. With new support for KOReader 2025.04 we've seen and heard from many Kindle owners running this plugin.
-* Android owners. as of version 2025.04 v2, the Android edition of KOReader is supported.
+* Android owners. As of version 2025.04 v2, the Android edition of KOReader is supported.
 * Calibre users. We both sync books using Calibre, and at least one feature (the book-sized progress bars) requires Calibre and a plugin.
 * People with tidy EPUB/PDF libraries. We make sure every EPUB we sync has a title, author, series and cover image, so we designed around books always having that metadata.
 * Readers who like browsing for their next book and being able to see how long a book is before starting it.
 
 ## Who this (probably) is not for:
-* ~~Non-English speakers.~~ Localization is coming in the next version. Check out this issue to see if your language is supported and if not, please consider helping out by doing the translation: https://github.com/joshuacant/ProjectTitle/issues/30
 * KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames, I don't think you'll like what we're offering. Good news is that KOReader already does this extremely well!
 * People who absolutely love one of the features we removed from Cover Browser. We made this plugin for ourselves by adding and also removing. We didn't remove much, but someone is bound to miss one of the things we took out.
 
