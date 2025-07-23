@@ -21,7 +21,7 @@ local ptutil = {}
 
 ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
 ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
-ptutil.good_sans = "source/SourceSans3-Regular"
+ptutil.good_sans = "source/SourceSans3-Regular.ttf"
 
 function ptutil.getSourceDir()
     local callerSource = debug.getinfo(2, "S").source

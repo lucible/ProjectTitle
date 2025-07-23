@@ -641,9 +641,8 @@ function MosaicMenuItem:update()
             end
 
             local percent_finished = book_info.percent_finished
-            local status = book_info.status
-
             self.percent_finished = percent_finished
+            local status = book_info.status
             self.status = status
             self.pages, self.show_progress_bar = ptutil.showProgressBar(bookinfo.pages)
             local cover_bb_used = false
