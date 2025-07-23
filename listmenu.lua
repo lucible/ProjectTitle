@@ -430,11 +430,8 @@ function ListMenuItem:update()
             local percent_str = ""
             local progress_str = ""
 
-            -- local pages = book_info.pages or bookinfo.pages -- default to those in bookinfo db
-            local percent_finished = book_info.percent_finished
-            local status = book_info.status
-
             -- right widget, first line
+            local status = book_info.status
             local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
             local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(filename)
             local fileinfo_str = self.mandatory or ""
@@ -447,6 +444,7 @@ function ListMenuItem:update()
                 fileinfo_str = mark .. BD.wrap(filetype) .. " – " .. BD.wrap(fileinfo_str)
             end
             -- right widget, second line
+            local percent_finished = book_info.percent_finished
             local wright_right_padding = 0
             local wright_width = 0
             local wright_height = 0
@@ -526,11 +524,14 @@ function ListMenuItem:update()
                 end
 
                 if status == "complete" or status == "abandoned" then
-                    progress_bar.percentage = 1
-                    -- books marked as "Finished" get a little trophy at the right edge of the progress bar
-                    filename = sourcedir .. "/resources/trophy.svg"
-                    -- books marked as "On Hold" get a little pause icon at the right edge of the progress bar
-                    if status == "abandoned" then filename = sourcedir .. "/resources/pause.svg" end
+                    -- books marked as "On Hold" get a little pause icon
+                    -- books marked as "Finished" get a little trophy
+                    filename = sourcedir .. "/resources/pause.svg"
+                    progress_bar.percentage = percent_finished or 0
+                    if status == "complete" then
+                        progress_bar.percentage = 1
+                        filename = sourcedir .. "/resources/trophy.svg"
+                    end
                     local progress_statusicon_widget = ImageWidget:new({
                         file = filename,
                         width = bar_icon_size,
