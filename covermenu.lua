@@ -856,8 +856,8 @@ function CoverMenu:updatePageInfo(select_number)
         else
             local display_path = ""
             if (self.path == filemanagerutil.getDefaultDir() or
-                    self.path == G_reader_settings:readSetting("home_dir")) and
-                G_reader_settings:nilOrTrue("shorten_home_dir") then
+                                self.path == G_reader_settings:readSetting("home_dir")) and
+                                G_reader_settings:nilOrTrue("shorten_home_dir") then
                 display_path = _("Home")
             elseif self._manager and type(self._manager.name) == "string" then
                 display_path = ""
