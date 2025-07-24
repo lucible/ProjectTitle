@@ -296,6 +296,7 @@ end
 
 function CoverBrowser:addToMainMenu(menu_items)
     local sub_item_table, history_sub_item_table, collection_sub_item_table = {}, {}, {}
+    local fc = self.ui.file_chooser
     for i, v in ipairs(self.modes) do
         local text, mode = unpack(v)
         sub_item_table[i] = {
@@ -353,17 +354,8 @@ function CoverBrowser:addToMainMenu(menu_items)
         end,
         sub_item_table = collection_sub_item_table,
     })
-    menu_items.filemanager_display_mode = {
-        text = _("Display mode"),
-        sub_item_table = sub_item_table,
-    }
-
-    -- add Mosaic / Detailed list mode settings to File browser Settings submenu
-    -- next to Classic mode settings
-    if menu_items.filebrowser_settings == nil then return end
-    local fc = self.ui.file_chooser
-    table.insert(menu_items.filebrowser_settings.sub_item_table, 5, {
-        text = _("Project: Title settings"),
+    table.insert(sub_item_table, {
+        text = _("Advanced settings"),
         separator = true,
         sub_item_table = {
             -- {
@@ -717,6 +709,10 @@ function CoverBrowser:addToMainMenu(menu_items)
             },
         },
     })
+    menu_items.filemanager_display_mode = {
+        text = _("Project: Title settings"),
+        sub_item_table = sub_item_table,
+    }
 end
 
 function CoverBrowser:genExtractBookInfoButton(close_dialog_callback) -- for FileManager Plus dialog
