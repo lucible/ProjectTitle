@@ -567,30 +567,30 @@ function ListMenuItem:update()
             end
 
             -- show progress text, page text, and/or file info text
-            if status == "complete" then
-                progress_str = finished_text
-            elseif status == "abandoned" then
-                progress_str = abandoned_string
-            elseif percent_finished then
-                progress_str = read_text
-                if not draw_progressbar then
-                    percent_str = math.floor(100 * percent_finished) .. "%"
-                end
-                if pages then
-                    if BookInfoManager:getSetting("show_pages_read_as_progress") then
-                        percent_str = read_text
-                        pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
+            if BookInfoManager:getSetting("hide_file_info") then
+                if status == "complete" then
+                    progress_str = finished_text
+                elseif status == "abandoned" then
+                    progress_str = abandoned_string
+                elseif percent_finished then
+                    progress_str = read_text
+                    if not draw_progressbar then
+                        percent_str = math.floor(100 * percent_finished) .. "%"
                     end
-                    if BookInfoManager:getSetting("show_pages_left_in_progress") then
-                        percent_str = read_text
-                        pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
+                    if pages then
+                        if BookInfoManager:getSetting("show_pages_read_as_progress") then
+                            percent_str = read_text
+                            pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
+                        end
+                        if BookInfoManager:getSetting("show_pages_left_in_progress") then
+                            percent_str = read_text
+                            pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
+                        end
                     end
+                elseif not bookinfo._no_provider then
+                    progress_str = unread_text
                 end
-            elseif not bookinfo._no_provider then
-                progress_str = unread_text
-            end
 
-            if not BookInfoManager:getSetting("hide_page_info") then
                 if BookInfoManager:getSetting("show_pages_read_as_progress") then
                     if pages_str ~= "" then
                         local wpageinfo = TextWidget:new {
@@ -632,8 +632,7 @@ function ListMenuItem:update()
                     }
                     table.insert(wright_items, 1, wprogressinfo)
                 end
-            end
-            if not BookInfoManager:getSetting("hide_file_info") then
+            else
                 local wfileinfo = TextWidget:new {
                     text = fileinfo_str,
                     face = wright_font_face,
