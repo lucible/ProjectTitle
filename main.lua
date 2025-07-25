@@ -349,6 +349,7 @@ function CoverBrowser:addToMainMenu(menu_items)
     })
     table.insert(sub_item_table, {
         text = _("Collections display mode"),
+        separator = true,
         enabled_func = function()
             return not BookInfoManager:getSetting("unified_display_mode")
         end,
@@ -356,7 +357,6 @@ function CoverBrowser:addToMainMenu(menu_items)
     })
     table.insert(sub_item_table, {
         text = _("Advanced settings"),
-        separator = true,
         sub_item_table = {
             -- {
             --     text = _("Show focus indicator on touchscreen devices"),
@@ -534,36 +534,20 @@ function CoverBrowser:addToMainMenu(menu_items)
                 text = _("Book display"),
                 sub_item_table = {
                     {
-                        text = _("Show series"),
-                        checked_func = function() return series_mode == "series_in_separate_line" end,
-                        callback = function()
-                            if series_mode == "series_in_separate_line" then
-                                series_mode = nil
-                            else
-                                series_mode = "series_in_separate_line"
-                            end
-                            BookInfoManager:saveSetting("series_mode", series_mode)
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
                         text = _("Show file info instead of pages or progress %"),
-                        checked_func = function()
-                            return not BookInfoManager:getSetting("hide_file_info")
-                        end,
+                        checked_func = function() return not BookInfoManager:getSetting("hide_file_info") end,
                         callback = function()
                             BookInfoManager:toggleSetting("hide_file_info")
-                            if not BookInfoManager:getSetting("hide_file_info") then
-                                BookInfoManager:saveSetting("hide_page_info", true)
-                            else
-                                BookInfoManager:saveSetting("hide_page_info", false)
-                            end
                             fc:updateItems(1, true)
                         end,
                     },
                     {
                         text = _("Show pages read instead of progress %"),
-                        enabled_func = function() return not BookInfoManager:getSetting("hide_page_info") end,
+                        enabled_func = function()
+                            return not (
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
+                        end,
                         checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
                         callback = function()
                             BookInfoManager:toggleSetting("show_pages_read_as_progress")
@@ -573,8 +557,10 @@ function CoverBrowser:addToMainMenu(menu_items)
                     {
                         text = _("Show progress % instead of progress bars"),
                         enabled_func = function()
-                            return not (BookInfoManager:getSetting("hide_page_info") or
-                                        BookInfoManager:getSetting("show_pages_read_as_progress"))
+                            return not (
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
                         end,
                         checked_func = function() return BookInfoManager:getSetting("force_no_progressbars") end,
                         callback = function()
@@ -584,14 +570,30 @@ function CoverBrowser:addToMainMenu(menu_items)
                     },
                     {
                         text = _("Always show maximum length progress bars"),
+                        separator = true,
                         enabled_func = function()
-                            return not (BookInfoManager:getSetting("hide_page_info") or
-                                        BookInfoManager:getSetting("force_no_progressbars") or
-                                        BookInfoManager:getSetting("show_pages_read_as_progress"))
+                            return not (
+                                    BookInfoManager:getSetting("force_no_progressbars") or
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
                         end,
                         checked_func = function() return BookInfoManager:getSetting("force_max_progressbars") end,
                         callback = function()
                             BookInfoManager:toggleSetting("force_max_progressbars")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Show series"),
+                        checked_func = function() return series_mode == "series_in_separate_line" end,
+                        callback = function()
+                            if series_mode == "series_in_separate_line" then
+                                series_mode = nil
+                            else
+                                series_mode = "series_in_separate_line"
+                            end
+                            BookInfoManager:saveSetting("series_mode", series_mode)
                             fc:updateItems(1, true)
                         end,
                     },
@@ -712,6 +714,7 @@ function CoverBrowser:addToMainMenu(menu_items)
     menu_items.filemanager_display_mode = {
         text = _("Project: Title settings"),
         sub_item_table = sub_item_table,
+        separator = true,
     }
 end
 
