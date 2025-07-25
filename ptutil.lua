@@ -12,7 +12,7 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local logger = require("logger")
 local Device = require("device")
 local Screen = Device.screen
-local lfs = require("libs/libkoreader-lfs")
+local util = require("util")
 local _ = require("l10n.gettext")
 local ptdbg = require("ptdbg")
 local BookInfoManager = require("bookinfomanager")
@@ -170,7 +170,7 @@ local function build_cover_images(res, max_img_w, max_img_h)
         max_img_h = (max_img_h - (Size.border.thin * 4) - Size.padding.small) / 2
         for i, filename in ipairs(filenames) do
             local fullpath = directories[i] .. filename
-            if lfs.attributes(fullpath, "mode") == "file" then
+            if util.fileExists(fullpath) then
                 local book = BookInfoManager:getBookInfo(fullpath, true)
                 if book then
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(

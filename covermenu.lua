@@ -26,7 +26,6 @@ local _ = require("l10n.gettext")
 local Device = require("device")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local logger = require("logger")
-local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 local ffiUtil = require("ffi/util")
 local C_ = _.pgettext
@@ -273,6 +272,7 @@ function CoverMenu:genItemTable(dirs, files, path)
         -- build item tables from coverbrowser-style sqlite db
         local SQ3 = require("lua-ljsqlite3/init")
         local DataStorage = require("datastorage")
+        local lfs = require("libs/libkoreader-lfs")
         local custom_item_table = {}
         local items_place_at_top = {}
         self.db_location = DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3"
@@ -288,10 +288,10 @@ function CoverMenu:genItemTable(dirs, files, path)
             for i, filename in ipairs(filenames) do
                 local dirpath = directories[i]
                 local fullpath = dirpath .. filename
-                local attributes = lfs.attributes(fullpath) or {}
                 local place_at_top = false
-                if attributes.mode == "file" and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
+                if util.fileExists(fullpath) and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
                     local collate = { can_collate_mixed = nil, item_func = nil }
+                    local attributes = lfs.attributes(fullpath) or {}
                     local item = FileChooser:getListItem(dirpath, filename, fullpath, attributes, collate)
                     if BookInfoManager:getSetting("opened_at_top_of_library") then
                         local book_info = BookList.getBookInfo(fullpath)

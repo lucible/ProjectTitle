@@ -9,32 +9,30 @@
 --]]
 
 local DataStorage = require("datastorage")
-local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local Version = require("version")
 local ptutil = require("ptutil")
+local util = require("util")
 local ptdbg = require("ptdbg")
 
--- data_dir is separate from lfs.currentdir() on Android.
--- Will be `.` on Kobo devices but a full path on Android.
 local data_dir = DataStorage:getDataDir()
 logger.info(ptdbg.logprefix, "Checking requirements in '" .. data_dir .. "'")
 
 -- Disable this entire plugin if: fonts missing
 local font1_missing = true
-if lfs.attributes(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") ~= nil then
+if util.fileExists(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") then
     font1_missing = false
 else
     logger.warn(ptdbg.logprefix, "Font1 missing")
 end
 local font2_missing = true
-if lfs.attributes(data_dir .. "/fonts/source/SourceSerif4-Regular.ttf") ~= nil then
+if util.fileExists(data_dir .. "/fonts/source/SourceSerif4-Regular.ttf") then
     font2_missing = false
 else
     logger.warn(ptdbg.logprefix, "Font2 missing")
 end
 local font3_missing = true
-if lfs.attributes(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") ~= nil then
+if util.fileExists(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") then
     font3_missing = false
 else
     logger.warn(ptdbg.logprefix, "Font3 missing")
@@ -42,7 +40,7 @@ end
 
 -- Disable this entire plugin if: icons missing
 local icons_missing = true
-if lfs.attributes(data_dir .. "/icons/hero.svg") ~= nil then
+if util.fileExists(data_dir .. "/icons/hero.svg") then
     icons_missing = false -- check for one icon and assume the rest are there too
 else
     logger.warn(ptdbg.logprefix, "Icons missing")
@@ -69,7 +67,7 @@ end
 local safe_version = 202504000000
 local cv_int, cv_hash = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
-if (cv_int == safe_version or lfs.attributes(data_dir .. "/settings/pt-skipversioncheck.txt") ~= nil) then
+if (cv_int == safe_version or util.fileExists(data_dir .. "/settings/pt-skipversioncheck.txt")) then
     version_unsafe = false
 else
     logger.warn(ptdbg.logprefix, "Version not safe ", tostring(cv_int))
@@ -282,7 +280,7 @@ function CoverBrowser:init()
 
     local home_dir = G_reader_settings:readSetting("home_dir")
     if home_dir then logger.info(ptdbg.logprefix, "Home directory is set to: ", home_dir) end
-    if home_dir and lfs.attributes(home_dir, "mode") == "directory" and BookInfoManager:getSetting("autoscan_on_eject") then
+    if home_dir and util.pathExists(home_dir) and BookInfoManager:getSetting("autoscan_on_eject") then
         local cover_specs = { max_cover_w = 1, max_cover_h = 1, }
         Trapper:wrap(function()
             BookInfoManager:extractBooksInDirectory(home_dir, cover_specs, true)
