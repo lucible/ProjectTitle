@@ -312,24 +312,6 @@ function CoverMenu:genItemTable(dirs, files, path)
         end
         self.db_conn:close()
         return custom_item_table
-
-        -- build item tables from calibre json database
-        -- local CalibreMetadata = require("metadata")
-        -- local custom_item_table = {}
-        -- local root = "/mnt/onboard" -- would need to replace with a generic
-        -- CalibreMetadata:init(root, true)
-        -- for _, book in ipairs(CalibreMetadata.books) do
-        --     local fullpath = root .. "/" .. book.lpath
-        --     local dirpath, filename = util.splitFilePathName(fullpath)
-        --     local attributes = lfs.attributes(fullpath) or {}
-        --     if attributes.mode == "file" and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
-        --         local collate = { can_collate_mixed = nil, item_func = nil }
-        --         local item = FileChooser:getListItem(dirpath, filename, fullpath, attributes, collate)
-        --         table.insert(custom_item_table, item)
-        --     end
-        -- end
-        -- CalibreMetadata:clean()
-        -- return custom_item_table
     else
         local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)
         if #item_table > 0 and is_pathchooser == false then
