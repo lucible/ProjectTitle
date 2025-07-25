@@ -731,11 +731,8 @@ function CoverMenu:menuInit()
         footer
     }
 
-    -- set and update pathchooser status
-    is_pathchooser = false
-    if self.title_bar.title ~= "" then
-        is_pathchooser = true
-    end
+    -- test to see what style to draw (pathchooser vs one of our fancy modes)
+    is_pathchooser = ptutil.isPathChooser(self)
 
     if self.item_table.current then
         self.page = self:getPageNumber(self.item_table.current)

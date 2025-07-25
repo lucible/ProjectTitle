@@ -320,4 +320,12 @@ function ptutil.showProgressBar(pages)
     return est_page_count, show_progress_bar
 end
 
+function ptutil.isPathChooser(self)
+    local is_pathchooser = false
+    if (self.title_bar and self.title_bar.title ~= "") or (self.menu and self.menu.title ~= "") then
+        is_pathchooser = true
+    end
+    return is_pathchooser
+end
+
 return ptutil

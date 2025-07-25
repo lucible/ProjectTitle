@@ -158,11 +158,8 @@ function ListMenuItem:update()
         self.menu.cover_specs = false
     end
 
-    -- test to see what style to draw (pathchooser vs "detailed list view mode")
-    is_pathchooser = false
-    if (self.title_bar and self.title_bar.title ~= "") or (self.menu and self.menu.title ~= "") then
-        is_pathchooser = true
-    end
+    -- test to see what style to draw (pathchooser vs one of our fancy modes)
+    is_pathchooser = ptutil.isPathChooser(self)
 
     self.is_directory = not (self.entry.is_file or self.entry.file)
     if self.is_directory then
@@ -1193,11 +1190,8 @@ function ListMenu:_recalculateDimen()
     -- Find out available height from other UI elements made in Menu
     self.others_height = 0
 
-    -- test to see what style to draw (pathchooser vs "detailed list view mode")
-    is_pathchooser = false
-    if self.title_bar.title ~= "" then
-        is_pathchooser = true
-    end
+    -- test to see what style to draw (pathchooser vs one of our fancy modes)
+    is_pathchooser = ptutil.isPathChooser(self)
 
     if self.title_bar then -- Menu:init() has been done
         if not self.is_borderless then

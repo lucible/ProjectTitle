@@ -399,11 +399,8 @@ function MosaicMenuItem:update()
         self.menu.cover_specs = false
     end
 
-    -- test to see what style to draw (pathchooser vs "detailed list view mode")
-    is_pathchooser = false
-    if (self.title_bar and self.title_bar.title ~= "") or (self.menu and self.menu.title ~= "") then
-        is_pathchooser = true
-    end
+    -- test to see what style to draw (pathchooser vs one of our fancy modes)
+    is_pathchooser = ptutil.isPathChooser(self)
 
     self.is_directory = not (self.entry.is_file or self.entry.file)
     if self.is_directory then
@@ -1054,11 +1051,8 @@ function MosaicMenu:_recalculateDimen()
     -- fix current page if out of range
     if self.page_num > 0 and self.page > self.page_num then self.page = self.page_num end
 
-    -- test to see what style to draw (pathchooser vs "detailed list view mode")
-    is_pathchooser = false
-    if self.title_bar.title ~= "" then
-        is_pathchooser = true
-    end
+    -- test to see what style to draw (pathchooser vs one of our fancy modes)
+    is_pathchooser = ptutil.isPathChooser(self)
 
     -- Find out available height from other UI elements made in Menu
     self.others_height = 0
