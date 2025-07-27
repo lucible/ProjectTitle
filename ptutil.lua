@@ -166,7 +166,7 @@ local function build_cover_images(res, max_img_w, max_img_h)
     if res then
         local directories = res[1]
         local filenames = res[2]
-        max_img_w = (max_img_h - (Size.border.thin * 4) - Size.padding.small) / 2
+        max_img_w = (max_img_w - (Size.border.thin * 4) - Size.padding.small) / 2
         max_img_h = (max_img_h - (Size.border.thin * 4) - Size.padding.small) / 2
         for i, filename in ipairs(filenames) do
             local fullpath = directories[i] .. filename
