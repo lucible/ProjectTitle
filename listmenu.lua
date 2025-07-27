@@ -203,7 +203,7 @@ function ListMenuItem:update()
         end
 
         if #wright_items > 0 then
-            for i, w in ipairs(wright_items) do
+            for _, w in ipairs(wright_items) do
                 wright_width = math.max(wright_width, w:getSize().w)
             end
             wright = CenterContainer:new {
@@ -553,7 +553,7 @@ function ListMenuItem:update()
                     table.insert(progressbar_items, progress_block)
                 end
 
-                for i, w in ipairs(progressbar_items) do
+                for _, w in ipairs(progressbar_items) do
                     wright_width = wright_width + w:getSize().w
                 end
                 local progress = RightContainer:new {
@@ -640,7 +640,7 @@ function ListMenuItem:update()
             end
 
             if #wright_items > 0 then
-                for i, w in ipairs(wright_items) do
+                for _, w in ipairs(wright_items) do
                     wright_width = math.max(wright_width, w:getSize().w)
                     wright_height = wright_height + w:getSize().h
                 end
@@ -994,7 +994,7 @@ function ListMenuItem:update()
             table.insert(wright_items, wmandatory)
 
             if #wright_items > 0 then
-                for i, w in ipairs(wright_items) do
+                for _, w in ipairs(wright_items) do
                     wright_width = math.max(wright_width, w:getSize().w)
                 end
                 wright = CenterContainer:new {
