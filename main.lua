@@ -518,17 +518,17 @@ function CoverBrowser:addToMainMenu(menu_items)
                             fc:updateItems()
                         end,
                     },
-                    {
-                        text = _("Show auto-generated cover images as stack instead of grid"),
-                        enabled_func = function()
-                            return not (BookInfoManager:getSetting("disable_auto_foldercovers"))
-                        end,
-                        checked_func = function() return BookInfoManager:getSetting("use_stacked_foldercovers") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("use_stacked_foldercovers")
-                            fc:updateItems(1, true)
-                        end,
-                    },
+                    -- {
+                    --     text = _("Show auto-generated cover images as a stack"),
+                    --     enabled_func = function()
+                    --         return not (BookInfoManager:getSetting("disable_auto_foldercovers"))
+                    --     end,
+                    --     checked_func = function() return BookInfoManager:getSetting("use_stacked_foldercovers") end,
+                    --     callback = function()
+                    --         BookInfoManager:toggleSetting("use_stacked_foldercovers")
+                    --         fc:updateItems(1, true)
+                    --     end,
+                    -- },
                     {
                         text = _("Overlay name and details in cover grid"),
                         checked_func = function() return BookInfoManager:getSetting("show_name_grid_folders") end,
