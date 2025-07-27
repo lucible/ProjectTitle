@@ -164,18 +164,25 @@ local function query_cover_paths(folder, include_subfolders)
     return res
 end
 
-local function build_cover_images(db_res, max_img_w, max_img_h)
+local function get_thumbnail_size(max_w, max_h)
+    local max_img_w = 0
+    local max_img_h = 0
+    if BookInfoManager:getSetting("use_stacked_foldercovers") then
+        max_img_w = max_w - (max_w / 4) - (Size.border.thin * 2)
+        max_img_h = max_h - (max_h / 4) - (Size.border.thin * 2)
+    else
+        max_img_w = (max_w - (Size.border.thin * 4) - Size.padding.small) / 2
+        max_img_h = (max_h - (Size.border.thin * 4) - Size.padding.small) / 2
+    end
+    return max_img_w, max_img_h
+end
+
+local function build_cover_images(db_res, max_w, max_h)
     local covers = {}
     if db_res then
         local directories = db_res[1]
         local filenames = db_res[2]
-        if BookInfoManager:getSetting("use_stacked_foldercovers") then
-            max_img_w = max_img_w - (max_img_w / 4) - (Size.border.thin * 2)
-            max_img_h = max_img_h - (max_img_h / 4) - (Size.border.thin * 2)
-        else
-            max_img_w = (max_img_w - (Size.border.thin * 4) - Size.padding.small) / 2
-            max_img_h = (max_img_h - (Size.border.thin * 4) - Size.padding.small) / 2
-        end
+        local max_img_w, max_img_h = get_thumbnail_size(max_w, max_h)
         for i, filename in ipairs(filenames) do
             local fullpath = directories[i] .. filename
             if util.fileExists(fullpath) then
@@ -204,17 +211,17 @@ local function build_cover_images(db_res, max_img_w, max_img_h)
 end
 
 -- Helper to create a blank frame-style cover with background
-local function create_blank_cover(w, h, background_idx)
+local function create_blank_cover(width, height, background_idx)
     local backgrounds = {
         Blitbuffer.COLOR_LIGHT_GRAY,
         Blitbuffer.COLOR_GRAY_D,
         Blitbuffer.COLOR_GRAY_E,
     }
-    local w_minus = w - (Size.border.thin * 2)
-    local h_minus = h - (Size.border.thin * 2)
+    local max_img_w = width - (Size.border.thin * 2)
+    local max_img_h = height - (Size.border.thin * 2)
     return FrameContainer:new {
-        width = w,
-        height = h,
+        width = width,
+        height = height,
         radius = Size.radius.default,
         margin = 0,
         padding = 0,
@@ -222,33 +229,33 @@ local function create_blank_cover(w, h, background_idx)
         color = Blitbuffer.COLOR_DARK_GRAY,
         background = backgrounds[background_idx],
         CenterContainer:new {
-            dimen = Geom:new { w = w_minus, h = h_minus },
-            HorizontalSpan:new { width = w_minus, height = h_minus },
+            dimen = Geom:new { w = max_img_w, h = max_img_h },
+            HorizontalSpan:new { width = max_img_w, height = max_img_h },
         }
     }
 end
 
 -- Build the diagonal stack layout using OverlapGroup
-local function build_diagonal_stack(images, max_img_w, max_img_h)
-    local top_image_size = images[#images]:getSize()
-
+local function build_diagonal_stack(images, max_w, max_h)
+    local max_img_w, max_img_h = get_thumbnail_size(max_w, max_h)
     -- total padding is a quarter of the max container size
-    local padding_unit_h = max_img_h / 12
-    local padding_unit_w = max_img_w / 12
+    local padding_unit_w = max_w / 12
+    local padding_unit_h = max_h / 12
 
     -- Pad images to ensure at least 4 are present
     local target_count = 4
+    local top_image_size = images[#images]:getSize()
     for i = 1, target_count - #images do
-        table.insert(images, 1,
-            create_blank_cover((top_image_size.w - Size.border.thin * 2), (top_image_size.h - Size.border.thin * 2), (i % 2 + 2)))
+        table.insert(images, 1, create_blank_cover(top_image_size.w, top_image_size.h, (i % 2 + 2)))
     end
 
     local stack_items = {}
-    local stack_height = 0
     local stack_width = 0
+    local stack_height = 0
+
     for i, img in ipairs(images) do
-        local inset_top = (i - 1) * padding_unit_h
         local inset_left = (i - 1) * padding_unit_w
+        local inset_top = (i - 1) * padding_unit_h
         local frame = FrameContainer:new {
             margin = 0,
             bordersize = 0,
@@ -257,8 +264,8 @@ local function build_diagonal_stack(images, max_img_w, max_img_h)
             padding_left = inset_left,
             img,
         }
-        stack_height = math.max(stack_height, frame:getSize().h)
         stack_width = math.max(stack_width, frame:getSize().w)
+        stack_height = math.max(stack_height, frame:getSize().h)
         table.insert(stack_items, frame)
     end
 
@@ -267,32 +274,33 @@ local function build_diagonal_stack(images, max_img_w, max_img_h)
     }
     table.move(stack_items, 1, #stack_items, #stack + 1, stack)
     local centered_stack = CenterContainer:new {
-        dimen = Geom:new { w = max_img_w, h = max_img_h },
+        dimen = Geom:new { w = max_w, h = max_h },
         stack,
     }
     return centered_stack
 end
 
 -- Build a 2x2 grid layout using nested horizontal & vertical groups
-local function build_grid(images)
+local function build_grid(images, max_w, max_h)
+    local max_img_w, max_img_h = get_thumbnail_size(max_w, max_h)
     local row1 = HorizontalGroup:new {}
     local row2 = HorizontalGroup:new {}
     local layout = VerticalGroup:new {}
 
     -- Create blank covers if needed
     if #images == 3 then
-        local w, h = images[3]:getSize().w, images[3]:getSize().h
-        table.insert(images, 2, create_blank_cover(w, h, 3))
+        local w3, h3 = images[3]:getSize().w, images[3]:getSize().h
+        table.insert(images, 2, create_blank_cover(w3, h3, 3))
     elseif #images == 2 then
         local w1, h1 = images[1]:getSize().w, images[1]:getSize().h
         local w2, h2 = images[2]:getSize().w, images[2]:getSize().h
         table.insert(images, 2, create_blank_cover(w1, h1, 3))
         table.insert(images, 3, create_blank_cover(w2, h2, 2))
     elseif #images == 1 then
-        local w, h = images[1]:getSize().w, images[1]:getSize().h
-        table.insert(images, 1, create_blank_cover(w, h, 3))
-        table.insert(images, 2, create_blank_cover(w, h, 2))
-        table.insert(images, 4, create_blank_cover(w, h, 3))
+        local w1, h1 = images[1]:getSize().w, images[1]:getSize().h
+        table.insert(images, 1, create_blank_cover(w1, h1, 3))
+        table.insert(images, 2, create_blank_cover(w1, h1, 2))
+        table.insert(images, 4, create_blank_cover(w1, h1, 3))
     end
 
     for i, img in ipairs(images) do
@@ -314,23 +322,22 @@ local function build_grid(images)
     return layout
 end
 
-function ptutil.getSubfolderCoverImages(filepath, max_img_w, max_img_h)
+function ptutil.getSubfolderCoverImages(filepath, max_w, max_h)
     local db_res = query_cover_paths(filepath, false)
-    local images = build_cover_images(db_res, max_img_w, max_img_h)
+    local images = build_cover_images(db_res, max_w, max_h)
 
     if #images < 4 then
         db_res = query_cover_paths(filepath, true)
-        images = build_cover_images(db_res, max_img_w, max_img_h)
+        images = build_cover_images(db_res, max_w, max_h)
     end
 
     -- Return nil if no images found
     if #images == 0 then return nil end
 
-    local diagonal_stack = BookInfoManager:getSetting("use_stacked_foldercovers")
-    if diagonal_stack then
-        return build_diagonal_stack(images, max_img_w, max_img_h)
+    if BookInfoManager:getSetting("use_stacked_foldercovers") then
+        return build_diagonal_stack(images, max_w, max_h)
     else
-        return build_grid(images)
+        return build_grid(images, max_w, max_h)
     end
 end
 
