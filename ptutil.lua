@@ -168,8 +168,8 @@ local function get_thumbnail_size(max_w, max_h)
     local max_img_w = 0
     local max_img_h = 0
     if BookInfoManager:getSetting("use_stacked_foldercovers") then
-        max_img_w = max_w - (max_w / 4) - (Size.border.thin * 2)
-        max_img_h = max_h - (max_h / 4) - (Size.border.thin * 2)
+        max_img_w = (max_w * 0.75) - (Size.border.thin * 2) - Size.padding.default
+        max_img_h = (max_h * 0.75) - (Size.border.thin * 2) - Size.padding.default
     else
         max_img_w = (max_w - (Size.border.thin * 4) - Size.padding.small) / 2
         max_img_h = (max_h - (Size.border.thin * 4) - Size.padding.small) / 2
@@ -237,35 +237,29 @@ end
 
 -- Build the diagonal stack layout using OverlapGroup
 local function build_diagonal_stack(images, max_w, max_h)
-    local max_img_w, max_img_h = get_thumbnail_size(max_w, max_h)
-    -- total padding is a quarter of the max container size
-    local padding_unit_w = max_w / 12
-    local padding_unit_h = max_h / 12
-
-    -- Pad images to ensure at least 4 are present
-    local target_count = 4
     local top_image_size = images[#images]:getSize()
-    for i = 1, target_count - #images do
+    for i = 1, (4 - #images) do
         table.insert(images, 1, create_blank_cover(top_image_size.w, top_image_size.h, (i % 2 + 2)))
     end
 
     local stack_items = {}
     local stack_width = 0
     local stack_height = 0
-
-    for i, img in ipairs(images) do
-        local inset_left = (i - 1) * padding_unit_w
-        local inset_top = (i - 1) * padding_unit_h
+    local inset_left = 0
+    local inset_top = 0
+    for _, img in ipairs(images) do
         local frame = FrameContainer:new {
             margin = 0,
             bordersize = 0,
             padding = nil,
-            padding_top = inset_top,
             padding_left = inset_left,
+            padding_top = inset_top,
             img,
         }
         stack_width = math.max(stack_width, frame:getSize().w)
         stack_height = math.max(stack_height, frame:getSize().h)
+        inset_left = inset_left + (max_w * 0.08)
+        inset_top = inset_top + (max_h * 0.08)
         table.insert(stack_items, frame)
     end
 
@@ -282,7 +276,6 @@ end
 
 -- Build a 2x2 grid layout using nested horizontal & vertical groups
 local function build_grid(images, max_w, max_h)
-    local max_img_w, max_img_h = get_thumbnail_size(max_w, max_h)
     local row1 = HorizontalGroup:new {}
     local row2 = HorizontalGroup:new {}
     local layout = VerticalGroup:new {}
