@@ -176,36 +176,40 @@ function BookInfoManager:createDB()
     -- Less error cases to check if we do it that way
     -- Create it (noop if already there)
     db_conn:exec(BOOKINFO_DB_SCHEMA)
-    -- Check version
-    local db_version = tonumber(db_conn:rowexec("PRAGMA user_version;"))
-    if db_version < BOOKINFO_DB_VERSION then
-        logger.warn(ptdbg.logprefix, "BookInfo cache DB schema updated from version", db_version, "to version", BOOKINFO_DB_VERSION)
-        logger.warn(ptdbg.logprefix, "Deleting existing", self.db_location, "to recreate it")
+    db_conn:exec(string.format("PRAGMA user_version=%d;", BOOKINFO_DB_VERSION))
 
-        -- We'll try to preserve settings, though
-        self:loadSettings(db_conn)
+    -- destroying the entire db is way too expensive, we will never do this
+    -- look into using ALTER statements to modify the tables in-place
+    -- local db_version = tonumber(db_conn:rowexec("PRAGMA user_version;"))
+    -- if db_version < BOOKINFO_DB_VERSION then
+    --     logger.warn(ptdbg.logprefix, "BookInfo cache DB schema updated from version", db_version, "to version", BOOKINFO_DB_VERSION)
+    --     logger.warn(ptdbg.logprefix, "Deleting existing", self.db_location, "to recreate it")
 
-        db_conn:close()
-        os.remove(self.db_location)
+    --     -- We'll try to preserve settings, though
+    --     self:loadSettings(db_conn)
 
-        -- Re-create it
-        db_conn = SQ3.open(self.db_location)
-        db_conn:exec(BOOKINFO_DB_SCHEMA)
+    --     db_conn:close()
+    --     os.remove(self.db_location)
 
-        -- Restore non-deprecated settings
-        for k, v in pairs(self.settings) do
-            if k ~= "version" then
-                self:saveSetting(k, v, db_conn, true)
-            end
-        end
-        self:loadSettings(db_conn)
+    --     -- Re-create it
+    --     db_conn = SQ3.open(self.db_location)
+    --     db_conn:exec(BOOKINFO_DB_SCHEMA)
 
-        -- Update version
-        db_conn:exec(string.format("PRAGMA user_version=%d;", BOOKINFO_DB_VERSION))
+    --     -- Restore non-deprecated settings
+    --     for k, v in pairs(self.settings) do
+    --         if k ~= "version" then
+    --             self:saveSetting(k, v, db_conn, true)
+    --         end
+    --     end
+    --     self:loadSettings(db_conn)
 
-        -- Say hi!
-        UIManager:show(InfoMessage:new { text = _("Book info cache database updated."), timeout = 3 })
-    end
+    --     -- Update version
+    --     db_conn:exec(string.format("PRAGMA user_version=%d;", BOOKINFO_DB_VERSION))
+
+    --     -- Say hi!
+    --     UIManager:show(InfoMessage:new { text = _("Book info cache database updated."), timeout = 3 })
+    -- end
+
     db_conn:close()
     self.db_created = true
 end
