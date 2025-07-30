@@ -386,8 +386,6 @@ function CoverMenu:setupLayout()
         right_icon_size_ratio = 1,
         right_icon_tap_callback = function() self:onShowPlusMenu() end,
         right_icon_hold_callback = false,
-
-
     }
 
     local file_chooser = FileChooser:new {
