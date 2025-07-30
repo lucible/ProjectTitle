@@ -224,20 +224,23 @@ function TitleBar:init()
         show_parent = self.show_parent,
     }
 
+    -- not enough space (high dpi?) so remove two buttons. removing more buttons would impact usability
     local total_width = center_icon_size + (icon_reserved_width * 2) +
                         ((icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width)) * 2)
     table.insert(self, self.left_button)
     table.insert(self, self.left2_button)
     if total_width < self.width then
         table.insert(self, self.left3_button)
-        table.insert(self, self.right3_button)
     else
         self.left3_button = nil
+    end
+    table.insert(self, self.right_button)
+    table.insert(self, self.right2_button)
+    if total_width < self.width then
+        table.insert(self, self.right3_button)
+    else
         self.right3_button = nil
     end
-    table.insert(self, self.right2_button)
-    table.insert(self, self.right_button)
-
     table.insert(self, self.center_button)
 
     -- Call our base class's init (especially since OverlapGroup has very peculiar self.dimen semantics...)
