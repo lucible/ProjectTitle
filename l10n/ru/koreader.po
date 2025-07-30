@@ -21,6 +21,15 @@ msgid "Book"
 msgstr "Книга"
 
 # main.lua
+msgid "Project: Title"
+msgstr "Project: Title"
+
+msgid "Decrease Items Per Page"
+msgstr "Уменьшить кол-во элементов на стр."
+
+msgid "Increase Items Per Page"
+msgstr "Увеличить кол-во элементов на стр."
+
 msgid "Cover List"
 msgstr "Список с обложками"
 
@@ -63,6 +72,9 @@ msgstr "Показывать серии"
 msgid "Show pages read instead of progress %"
 msgstr "Показывать прочитанные страницы вместо процентов"
 
+msgid "Show progress % instead of progress bars"
+msgstr "Показать прогресс в % вместо индикатора"
+
 msgid "Show file info instead of pages or progress %"
 msgstr "Показывать информацию о файле вместо страниц или %"
 
@@ -94,7 +106,7 @@ msgid "Scan home folder for new books automatically"
 msgstr "Автоматически искать новые книги в домашней папке"
 
 msgid "Empty cache"
-msgstr "Очистить кеш"
+msgstr "Очистить кеш метаданных"
 
 msgid "Are you sure that you want to delete cover and metadata cache?"
 msgstr "Вы уверенны, что хотите удалить кеш обложек и метаданных?"
