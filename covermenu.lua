@@ -753,7 +753,8 @@ function CoverMenu:updatePageInfo(select_number)
     -- slim down text inside page controls
     local curpagetxt = ""
     if self.page_info_text.text and self.page_info_text.text ~= "" then
-        curpagetxt = string.match(self.page_info_text.text, "(%d+%s%w+%s%d+)") or ""
+        -- curpagetxt = string.match(self.page_info_text.text, "(%d+%s%w+%s%d+)") or ""
+        curpagetxt = string.match(self.page_info_text.text, "(%d+%D+%d+)") or ""
     end
     self.page_info_text:setText(curpagetxt)
 
