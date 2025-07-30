@@ -61,7 +61,7 @@ xcopy l10n projecttitle.koplugin\l10n /s /i
 REM cleanup unwanted
 del projecttitle.koplugin\resources\collage.jpg
 del projecttitle.koplugin\resources\licenses.txt
-del /s /q projecttitle.koplugin\*.po
+REM del /s /q projecttitle.koplugin\*.po -- needed for some devices???
 
 REM zip the folder
 7z a -tzip projecttitle.zip projecttitle.koplugin
