@@ -341,6 +341,7 @@ function CoverMenu:setupLayout()
         subtitle_truncate_left = true,
         subtitle_fullwidth = true,
         button_padding = Screen:scaleBySize(5),
+
         -- home
         left_icon = "home",
         left_icon_size_ratio = 1,
@@ -357,21 +358,7 @@ function CoverMenu:setupLayout()
         left3_icon_size_ratio = 1,
         left3_icon_tap_callback = function() FileManager.instance.history:onShowHist() end,
         left3_icon_hold_callback = false,
-        -- plus menu
-        right_icon = self.selected_files and "check" or "plus",
-        right_icon_size_ratio = 1,
-        right_icon_tap_callback = function() self:onShowPlusMenu() end,
-        right_icon_hold_callback = false,
-        -- up folder
-        right2_icon = "go_up",
-        right2_icon_size_ratio = 1,
-        right2_icon_tap_callback = function() onFolderUp() end,
-        right2_icon_hold_callback = false,
-        -- open last file
-        right3_icon = "last_document",
-        right3_icon_size_ratio = 1,
-        right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
-        right3_icon_hold_callback = false,
+
         -- centered logo
         center_icon = "hero",
         center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
@@ -383,6 +370,24 @@ function CoverMenu:setupLayout()
                 -- next: self:onHome()
             end
         end,
+
+        -- open last file
+        right3_icon = "last_document",
+        right3_icon_size_ratio = 1,
+        right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
+        right3_icon_hold_callback = false,
+        -- up folder
+        right2_icon = "go_up",
+        right2_icon_size_ratio = 1,
+        right2_icon_tap_callback = function() onFolderUp() end,
+        right2_icon_hold_callback = false,
+        -- plus menu
+        right_icon = self.selected_files and "check" or "plus",
+        right_icon_size_ratio = 1,
+        right_icon_tap_callback = function() self:onShowPlusMenu() end,
+        right_icon_hold_callback = false,
+
+
     }
 
     local file_chooser = FileChooser:new {
