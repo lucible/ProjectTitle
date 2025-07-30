@@ -371,7 +371,9 @@ end
 function ptutil.showProgressBar(pages)
     local show_progress_bar = false
     local est_page_count = pages or nil
-    if BookInfoManager:getSetting("force_max_progressbars") then est_page_count = "700" end
+    if BookInfoManager:getSetting("force_max_progressbars") and not BookInfoManager:getSetting("show_pages_read_as_progress") then
+        est_page_count = "700"
+    end
     show_progress_bar = est_page_count ~= nil and
         BookInfoManager:getSetting("hide_file_info") and                    -- "show file info"
         not BookInfoManager:getSetting("show_pages_read_as_progress") and   -- "show pages read"
