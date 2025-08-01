@@ -73,7 +73,7 @@ msgid "Show pages read instead of progress %"
 msgstr "Показывать прочитанные страницы вместо процентов"
 
 msgid "Show progress % instead of progress bars"
-msgstr "Показать прогресс в % вместо индикатора"
+msgstr "Показать прогресс в % вместо прогресс-бара"
 
 msgid "Show file info instead of pages or progress %"
 msgstr "Показывать информацию о файле вместо страниц или %"
