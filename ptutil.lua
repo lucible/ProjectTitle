@@ -186,10 +186,10 @@ local function build_cover_images(db_res, max_w, max_h)
         for i, filename in ipairs(filenames) do
             local fullpath = directories[i] .. filename
             if util.fileExists(fullpath) then
-                local book = BookInfoManager:getBookInfo(fullpath, true)
-                if book then
+                local bookinfo = BookInfoManager:getBookInfo(fullpath, true)
+                if bookinfo then
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
-                        book.cover_w, book.cover_h, max_img_w, max_img_h
+                        bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h
                     )
                     table.insert(covers, FrameContainer:new {
                         radius = Size.radius.default,
@@ -198,7 +198,7 @@ local function build_cover_images(db_res, max_w, max_h)
                         bordersize = Size.border.thin,
                         color = Blitbuffer.COLOR_DARK_GRAY,
                         ImageWidget:new {
-                            image = book.cover_bb,
+                            image = bookinfo.cover_bb,
                             scale_factor = scale_factor,
                         }
                     })
