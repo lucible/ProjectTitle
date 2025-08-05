@@ -445,14 +445,30 @@ function MosaicMenuItem:update()
             end
 
             -- build final widget with whatever we assembled from above
-            local dir_font_size = 22
-            local directory_text = TextWidget:new {
-                text = " " .. directory_string .. " ",
-                face = Font:getFace(ptutil.good_serif, dir_font_size),
-                max_width = dimen.w,
-                alignment = "center",
-                padding = 0,
-            }
+            local directory_text
+            local function build_directory_text(font_size, height, baseline)
+                directory_text = TextWidget:new {
+                    text = " " .. directory_string .. " ",
+                    face = Font:getFace(ptutil.good_serif, font_size),
+                    max_width = dimen.w,
+                    alignment = "center",
+                    padding = 0,
+                    forced_height = height,
+                    forced_baseline = baseline,
+                }
+            end
+            local dirtext_font_size = 22
+            build_directory_text(dirtext_font_size)
+            local directory_text_height = directory_text:getSize().h
+            local directory_text_baseline = directory_text:getBaseline()
+            while dirtext_font_size >= 18 do
+                if directory_text:isTruncated() then
+                    dirtext_font_size = dirtext_font_size - 1
+                    build_directory_text(dirtext_font_size, directory_text_height, directory_text_baseline)
+                else
+                    break
+                end
+            end
             local directory_frame = UnderlineContainer:new {
                 linesize = Screen:scaleBySize(1),
                 color = Blitbuffer.COLOR_BLACK,
