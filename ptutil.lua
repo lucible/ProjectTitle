@@ -238,7 +238,8 @@ end
 -- Build the diagonal stack layout using OverlapGroup
 local function build_diagonal_stack(images, max_w, max_h)
     local top_image_size = images[#images]:getSize()
-    for i = 1, (4 - #images) do
+    local nb_fakes = (4 - #images)
+    for i = 1, nb_fakes do
         table.insert(images, 1, create_blank_cover(top_image_size.w, top_image_size.h, (i % 2 + 2)))
     end
 

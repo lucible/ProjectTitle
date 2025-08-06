@@ -135,10 +135,11 @@ function AltBookStatusWidget:genBookInfoGroup()
         local authors = props.authors
         if authors and authors:find("\n") then
             authors = util.splitToArray(authors, "\n")
-            for i = 1, #authors do
+            local nb_authors = #authors
+            for i = 1, nb_authors do
                 authors[i] = BD.auto(authors[i])
             end
-            if #authors > 2 then
+            if nb_authors > 2 then
                 authors = { authors[1], T(_("%1 et al."), authors[2]) }
             end
             author_text = table.concat(authors, "\n")

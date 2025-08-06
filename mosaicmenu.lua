@@ -146,12 +146,13 @@ function FakeCover:init()
     -- If multiple authors (crengine separates them with \n), we
     -- can display them on multiple lines, but limit to 3, and
     -- append "et al." on a 4th line if there are more
+    local nb_authors = #authors
     if authors and authors:find("\n") then
         authors = util.splitToArray(authors, "\n")
-        for i = 1, #authors do
+        for i = 1, nb_authors do
             authors[i] = BD.auto(authors[i])
         end
-        if #authors > 3 then
+        if nb_authors > 3 then
             authors = { authors[1], authors[2], T(_("%1 et al."), authors[3]) }
         end
         authors = table.concat(authors, "\n")
@@ -178,6 +179,10 @@ function FakeCover:init()
     local sizedec = self.initial_sizedec
     local authors_wg, title_wg, filename_wg
     local loop2 = false -- we may do a second pass with modifier title and authors strings
+    local texts_height
+    local free_height
+    local textboxes_ok
+
     while true do
         -- Free previously made widgets to avoid memory leaks
         if authors_wg then
@@ -193,7 +198,8 @@ function FakeCover:init()
             filename_wg = nil
         end
         -- Build new widgets
-        local texts_height = 0
+        texts_height = 0
+        free_height = 0
         if authors then
             authors_wg = TextBoxWidget:new {
                 text = authors,
@@ -224,7 +230,7 @@ function FakeCover:init()
             }
             texts_height = texts_height + filename_wg:getSize().h
         end
-        local free_height = height - texts_height
+        free_height = height - texts_height
         if authors then
             free_height = free_height - self.top_pad
         end
@@ -233,7 +239,7 @@ function FakeCover:init()
         end
         inter_pad = math.floor(free_height / 2)
 
-        local textboxes_ok = true
+        textboxes_ok = true
         if (authors_wg and authors_wg.has_split_inside_word) or (title_wg and title_wg.has_split_inside_word) then
             -- We may get a nicer cover at next lower font size
             textboxes_ok = false

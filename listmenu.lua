@@ -436,10 +436,8 @@ function ListMenuItem:update()
                 -- for unsupported files: don't show extension on the right,
                 -- keep it in filename
                 filename_without_suffix = filename
-            else
-                local mark = has_highlight and "\u{2592}  " or "" -- "medium shade"
-                fileinfo_str = mark .. BD.wrap(filetype) .. " – " .. BD.wrap(fileinfo_str)
             end
+
             -- right widget, second line
             local percent_finished = book_info.percent_finished
             local wright_right_padding = 0
@@ -679,17 +677,18 @@ function ListMenuItem:update()
                 title = bookinfo.title and bookinfo.title or filename_without_suffix
                 title = BD.auto(title)
                 authors = bookinfo.authors
+                local nb_authors = #authors
                 -- If multiple authors (crengine separates them with \n), we
                 -- can display them on multiple lines, but limit to 2, and
                 -- append "et al." to the 2nd if there are more
                 if authors and authors:find("\n") then
                     authors = util.splitToArray(authors, "\n")
-                    for i = 1, #authors do
+                    for i = 1, nb_authors do
                         authors[i] = BD.auto(authors[i])
                     end
-                    if #authors > 1 and show_series and series_mode == "series_in_separate_line" then
+                    if nb_authors > 1 and show_series and series_mode == "series_in_separate_line" then
                         authors = { T(_("%1 et al."), authors[1]) }
-                    elseif #authors > 2 then
+                    elseif nb_authors > 2 then
                         authors = { authors[1], T(_("%1 et al."), authors[2]) }
                     end
                     authors = table.concat(authors, "\n")
@@ -793,6 +792,14 @@ function ListMenuItem:update()
             -- make title and author/wright fit within the line height
             local authors_width = wmain_width - wright_right_padding
             local avail_dimen_h = dimen.h
+            local height
+            local title_height
+            local title_line_height
+            local title_min_height
+            local authors_height
+            local authors_line_height
+            local authors_min_height
+
             while true do
                 build_title()
                 build_authors(authors_width)
@@ -806,20 +813,20 @@ function ListMenuItem:update()
                     build_title()
                 end
 
-                local height = wtitle:getSize().h
+                height = wtitle:getSize().h
                 height = height + wauthors:getSize().h
                 if height <= avail_dimen_h then -- We fit!
                     break
                 end
                 -- Don't go too low, and get out of this loop.
                 if fontsize_title <= 12 or fontsize_authors <= 10 then
-                    local title_height = wtitle:getSize().h
-                    local title_line_height = wtitle:getLineHeight()
-                    local title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
-                    local authors_height = authors and wauthors:getSize().h or 0
+                    title_height = wtitle:getSize().h
+                    title_line_height = wtitle:getLineHeight()
+                    title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
+                    authors_height = authors and wauthors:getSize().h or 0
                     authors_height = math.max(authors_height, wright_height)
-                    local authors_line_height = authors and wauthors:getLineHeight() or 0
-                    local authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
+                    authors_line_height = authors and wauthors:getLineHeight() or 0
+                    authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
                     -- both labels fit in the allocated space.
                     while title_height + authors_height > dimen.h do
