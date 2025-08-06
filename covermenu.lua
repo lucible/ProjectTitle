@@ -286,16 +286,22 @@ function CoverMenu:genItemTable(dirs, files, path)
         if res then
             local directories = res[1]
             local filenames = res[2]
+            local dirpath
+            local fullpath
+            local place_at_top
+            local attributes
+            local item
+            local book_info
+            local collate = { can_collate_mixed = nil, item_func = nil }
             for i, filename in ipairs(filenames) do
-                local dirpath = directories[i]
-                local fullpath = dirpath .. filename
-                local place_at_top = false
+                dirpath = directories[i]
+                fullpath = dirpath .. filename
+                place_at_top = false
                 if util.fileExists(fullpath) and not (G_reader_settings:isFalse("show_hidden") and util.stringStartsWith(filename, ".")) then
-                    local collate = { can_collate_mixed = nil, item_func = nil }
-                    local attributes = lfs.attributes(fullpath) or {}
-                    local item = FileChooser:getListItem(dirpath, filename, fullpath, attributes, collate)
+                    attributes = lfs.attributes(fullpath) or {}
+                    item = FileChooser:getListItem(dirpath, filename, fullpath, attributes, collate)
                     if BookInfoManager:getSetting("opened_at_top_of_library") then
-                        local book_info = BookList.getBookInfo(fullpath)
+                        book_info = BookList.getBookInfo(fullpath)
                         if book_info.status == "reading" and (book_info.percent_finished ~= nil and book_info.percent_finished < 100) then
                             place_at_top = true
                         end
