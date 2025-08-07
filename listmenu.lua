@@ -337,13 +337,15 @@ function ListMenuItem:update()
                         image = bookinfo.cover_bb,
                         scale_factor = scale_factor,
                     }
-                    wimage:_render()
-                    local image_size = wimage:getSize() -- get final widget size
+                    -- wimage:_render()
+                    -- local image_size = wimage:getSize() -- get final widget size
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
-                            width = image_size.w + border_total,
-                            height = image_size.h + border_total,
+                            -- width = image_size.w + border_total,
+                            -- height = image_size.h + border_total,
+                            width = (bookinfo.cover_w * scale_factor) + border_total,
+                            height = (bookinfo.cover_h * scale_factor) + border_total,
                             margin = 0,
                             padding = 0,
                             radius = Size.radius.default,
