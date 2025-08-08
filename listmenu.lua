@@ -136,7 +136,8 @@ function ListMenuItem:update()
     -- looking for one that make text fit
     local fontsize_dec_step = math.ceil(_fontSize(100) * (1 / 100))
     -- calculate font used in all right widget text
-    local wright_font_face = Font:getFace(ptutil.good_sans, _fontSize(12, 18))
+    local wright_font_size = _fontSize(12, 18)
+    local wright_font_face = Font:getFace(ptutil.good_sans, wright_font_size)
     -- and font sizes used for title and author/series
     local title_font_size = _fontSize(20, 26)   -- 22
     local authors_font_size = _fontSize(14, 18) -- 16
@@ -460,11 +461,12 @@ function ListMenuItem:update()
                 local max_progress_size = 235
                 local pixels_per_page = 3
                 local min_progress_size = 25
+                local progress_bar_height = wright_font_size -- progress bar same height as progress text
                 local total_pixels = math.max(
                     (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
                 local progress_bar = ProgressWidget:new {
                     width = Screen:scaleBySize(total_pixels),
-                    height = Screen:scaleBySize(15),
+                    height = Screen:scaleBySize(progress_bar_height),
                     margin_v = 0,
                     margin_h = 0,
                     bordersize = Screen:scaleBySize(0.5),
@@ -477,7 +479,7 @@ function ListMenuItem:update()
                 local progress_width = progress_bar:getSize().w
                 local progress_dimen
                 local bar_and_icons
-                local bar_icon_size = Screen:scaleBySize(23)  -- size for icons used with progress bar
+                local bar_icon_size = Screen:scaleBySize(progress_bar_height * 1.5333)  -- size for icons used with progress bar
 
                 if fn_pages > (max_progress_size * pixels_per_page) then
                     progress_width = progress_width + math.floor(bar_icon_size / 2) -- add extra width for max size indicator
@@ -558,8 +560,10 @@ function ListMenuItem:update()
                 for _, w in ipairs(progressbar_items) do
                     wright_width = wright_width + w:getSize().w
                 end
+                local progress_block_height = progress_block:getSize().h
+                logger.info(ptdbg.logprefix, "progress_block_height", progress_block_height)
                 local progress = RightContainer:new {
-                    dimen = Geom:new { w = wright_width, h = 50 },
+                    dimen = Geom:new { w = wright_width, h = progress_block_height },
                     HorizontalGroup:new(progressbar_items),
                 }
                 table.insert(wright_items, progress)
@@ -901,22 +905,22 @@ function ListMenuItem:update()
             -- height of that listbox. Log if they do.
             if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
                 logger.info(ptdbg.logprefix, "Listbox height exceeded")
-                logger.dbg(ptdbg.logprefix, "dimen.h ", dimen.h)
-                logger.dbg(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
-                logger.dbg(ptdbg.logprefix, "title ", title)
-                logger.dbg(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
-                logger.dbg(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
-                logger.dbg(ptdbg.logprefix, "fontsize_title ", fontsize_title)
-                logger.dbg(ptdbg.logprefix, "authors ", authors)
-                logger.dbg(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
-                logger.dbg(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
-                logger.dbg(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
-                logger.dbg(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
-                logger.dbg(ptdbg.logprefix, "authors_width ", authors_width)
-                logger.dbg(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
-                logger.dbg(ptdbg.logprefix, "wright_height ", wright_height)
-                logger.dbg(ptdbg.logprefix, "wright_width ", wright_width)
-                logger.dbg(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
+                logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
+                logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
+                logger.info(ptdbg.logprefix, "title ", title)
+                logger.info(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
+                logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
+                logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
+                logger.info(ptdbg.logprefix, "authors ", authors)
+                logger.info(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
+                logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
+                logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
+                logger.info(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
+                logger.info(ptdbg.logprefix, "authors_width ", authors_width)
+                logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
+                logger.info(ptdbg.logprefix, "wright_height ", wright_height)
+                logger.info(ptdbg.logprefix, "wright_width ", wright_width)
+                logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
             end
 
             -- build the main widget which holds wtitle, wauthors, and wright
