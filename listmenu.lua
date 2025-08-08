@@ -561,7 +561,6 @@ function ListMenuItem:update()
                     wright_width = wright_width + w:getSize().w
                 end
                 local progress_block_height = progress_block:getSize().h
-                logger.info(ptdbg.logprefix, "progress_block_height", progress_block_height)
                 local progress = RightContainer:new {
                     dimen = Geom:new { w = wright_width, h = progress_block_height },
                     HorizontalGroup:new(progressbar_items),
