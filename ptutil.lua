@@ -390,4 +390,28 @@ function ptutil.isPathChooser(self)
     return is_pathchooser
 end
 
+function ptutil.formatAuthors(authors, authors_limit)
+    local BD = require("ui/bidi")
+    local T = require("ffi/util").template
+    local formatted_authors
+    if authors and authors:find("\n") then
+        local full_authors_list = util.splitToArray(authors, "\n")
+        local nb_authors = #full_authors_list
+        local final_authors_list = {}
+        for i = 1, nb_authors do
+            full_authors_list[i] = BD.auto(full_authors_list[i])
+            if i == authors_limit and nb_authors > authors_limit then
+                table.insert(final_authors_list, T(_("%1 et al."), full_authors_list[i]))
+            else
+                table.insert(final_authors_list, full_authors_list[i])
+            end
+            if i == authors_limit then break end
+        end
+        formatted_authors = table.concat(final_authors_list, "\n")
+    elseif authors then
+        formatted_authors = BD.auto(authors)
+    end
+    return formatted_authors
+end
+
 return ptutil

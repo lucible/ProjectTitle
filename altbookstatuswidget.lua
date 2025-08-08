@@ -130,22 +130,9 @@ function AltBookStatusWidget:genBookInfoGroup()
     local lang = props.language
 
     -- author(s) text
-    local author_text = ""
+    local authors = ""
     if props.authors then
-        local authors = props.authors
-        if authors and authors:find("\n") then
-            authors = util.splitToArray(authors, "\n")
-            local nb_authors = #authors
-            for i = 1, nb_authors do
-                authors[i] = BD.auto(authors[i])
-            end
-            if nb_authors > 2 then
-                authors = { authors[1], T(_("%1 et al."), authors[2]) }
-            end
-            author_text = table.concat(authors, "\n")
-        elseif authors then
-            author_text = BD.auto(authors)
-        end
+        authors = ptutil.formatAuthors(props.authors, 3)
     end
 
     -- series text and position (if available, if requested)
@@ -162,20 +149,20 @@ function AltBookStatusWidget:genBookInfoGroup()
         else
             series_text = BD.auto(series_text)
         end
-        if not author_text then
+        if not authors then
             if series_mode == "series_in_separate_line" then
-                author_text = series_text
+                authors = series_text
             end
         else
             if series_mode == "series_in_separate_line" then
-                author_text = series_text .. "\n" .. author_text
+                authors = series_text .. "\n" .. authors
             end
         end
     end
 
     -- author(s) and series combined box
     local bookinfo = TextBoxWidget:new {
-        text = author_text,
+        text = authors,
         lang = lang,
         face = self.small_serif_font,
         width = width,

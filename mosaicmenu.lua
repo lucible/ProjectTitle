@@ -143,23 +143,9 @@ function FakeCover:init()
     if title then
         title = bd_wrap_title_as_filename and BD.filename(title) or BD.auto(title)
     end
-    -- If multiple authors (crengine separates them with \n), we
-    -- can display them on multiple lines, but limit to 3, and
-    -- append "et al." on a 4th line if there are more
-    local nb_authors = #authors
-    if authors and authors:find("\n") then
-        authors = util.splitToArray(authors, "\n")
-        for i = 1, nb_authors do
-            authors[i] = BD.auto(authors[i])
-        end
-        if nb_authors > 3 then
-            authors = { authors[1], authors[2], T(_("%1 et al."), authors[3]) }
-        end
-        authors = table.concat(authors, "\n")
-    elseif authors then
-        authors = BD.auto(authors)
-    end
-    -- Add any _add, which must be already BD wrapped if needed
+
+    authors = ptutil.formatAuthors(self.authors, 3)
+
     if self.filename_add then
         filename = (filename and filename or "") .. self.filename_add
     end

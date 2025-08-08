@@ -680,25 +680,10 @@ function ListMenuItem:update()
             else
                 title = bookinfo.title and bookinfo.title or filename_without_suffix
                 title = BD.auto(title)
-                authors = bookinfo.authors
-                local nb_authors = #authors
-                -- If multiple authors (crengine separates them with \n), we
-                -- can display them on multiple lines, but limit to 2, and
-                -- append "et al." to the 2nd if there are more
-                if authors and authors:find("\n") then
-                    authors = util.splitToArray(authors, "\n")
-                    for i = 1, nb_authors do
-                        authors[i] = BD.auto(authors[i])
-                    end
-                    if nb_authors > 1 and show_series and series_mode == "series_in_separate_line" then
-                        authors = { T(_("%1 et al."), authors[1]) }
-                    elseif nb_authors > 2 then
-                        authors = { authors[1], T(_("%1 et al."), authors[2]) }
-                    end
-                    authors = table.concat(authors, "\n")
-                elseif authors then
-                    authors = BD.auto(authors)
-                end
+
+                local authors_limit = 2
+                if (show_series and series_mode == "series_in_separate_line") then authors_limit = 1 end
+                authors = ptutil.formatAuthors(bookinfo.authors, authors_limit)
             end
             -- series name and position (if available, if requested)
             if show_series then
