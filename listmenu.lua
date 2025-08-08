@@ -381,13 +381,15 @@ function ListMenuItem:update()
                             original_in_nightmode = false,
                         })
                     end
-                    wimage:_render()
-                    local image_size = wimage:getSize() -- get final widget size
+                    -- wimage:_render()
+                    -- local image_size = wimage:getSize() -- get final widget size
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
-                            width = image_size.w + 2 * padding_size,
-                            height = image_size.h + 2 * padding_size,
+                            -- width = image_size.w + 2 * padding_size,
+                            -- height = image_size.h + 2 * padding_size,
+                            width = (250 * scale_factor) + (2 * padding_size),
+                            height = (500 * scale_factor) + (2 * padding_size),
                             margin = 0,
                             padding = padding_size,
                             bordersize = 0,
