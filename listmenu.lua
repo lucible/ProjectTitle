@@ -134,7 +134,7 @@ function ListMenuItem:update()
     end
     -- Will speed up a bit if we don't do all font sizes when
     -- looking for one that make text fit
-    local fontsize_dec_step = math.ceil(_fontSize(100) * (1 / 100))
+    local fontsize_dec_step = 2 -- math.ceil(_fontSize(100) * (1 / 100))
     -- calculate font used in all right widget text
     local wright_font_size = _fontSize(12, 18)
     local wright_font_face = Font:getFace(ptutil.good_sans, wright_font_size)
