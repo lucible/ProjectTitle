@@ -79,15 +79,17 @@ local FakeCover = FrameContainer:extend {
     book_lang = nil,
     -- these font sizes will be scaleBySize'd by Font:getFace()
     authors_font_max = 20,
-    authors_font_min = 6,
-    title_font_max = 24,
-    title_font_min = 10,
-    filename_font_max = 10,
-    filename_font_min = 8,
-    top_pad = Size.padding.default,
-    bottom_pad = Size.padding.default,
-    sizedec_step = Screen:scaleBySize(2), -- speeds up a bit if we don't do all font sizes
+    authors_font_min = 12,
+    series_font_max = 20,
+    series_font_min = 12,
+    title_font_max = 28,
+    title_font_min = 12,
+    top_pad = 0,
+    bottom_pad = 0,
+    sizedec_step = 2,
     initial_sizedec = 0,
+    color = Blitbuffer.COLOR_GRAY_3,
+    background = Blitbuffer.COLOR_GRAY_E,
 }
 
 function FakeCover:init()
@@ -96,29 +98,40 @@ function FakeCover:init()
     local authors = self.authors
     local title = self.title
     local filename = self.filename
+    local series = nil
+
     -- (some engines may have already given filename (without extension) as title)
     local bd_wrap_title_as_filename = false
     local titlefont = ptutil.title_serif
+    local title_text_color = Blitbuffer.COLOR_WHITE
+    local title_background_color = Blitbuffer.COLOR_GRAY_3
+    local bold_title = false
     if not title then -- use filename as title (big and centered)
-        title = filename
-        filename = nil
         titlefont = ptutil.good_serif
+        bold_title = true
+        title = filename
+        title_text_color = Blitbuffer.COLOR_BLACK
+        title_background_color = self.background
+        filename = nil
         if not self.title_add and self.filename_add then
             -- filename_add ("…" or "(deleted)") always comes without any title_add
             self.title_add = self.filename_add
             self.filename_add = nil
         end
         bd_wrap_title_as_filename = true
+    else
+        filename = nil
     end
-    if filename then
-        filename = BD.filename(filename)
-    end
+
     -- If no authors, and title is filename without extension, it was
     -- probably made by an engine, and we can consider it a filename, and
     -- act according to common usage in naming files.
     if not authors and title and self.filename and self.filename:sub(1, title:len()) == title then
         bd_wrap_title_as_filename = true
         titlefont = ptutil.good_serif
+        bold_title = true
+        title_text_color = Blitbuffer.COLOR_BLACK
+        title_background_color = self.background
         -- Replace a hyphen surrounded by spaces (which most probably was
         -- used to separate Authors/Title/Serie/Year/Categorie in the
         -- filename with a \n
@@ -153,17 +166,18 @@ function FakeCover:init()
         title = (title and title or "") .. self.title_add
     end
     if self.authors_add then
-        authors = (authors and authors or "") .. self.authors_add
+        series = self.authors_add
     end
 
     -- We build the VerticalGroup widget with decreasing font sizes till
     -- the widget fits into available height
     local width = self.width - 2 * (self.bordersize + self.margin + self.padding)
     local height = self.height - 2 * (self.bordersize + self.margin + self.padding)
-    local text_width = 7 / 8 * width -- make width of text smaller to have some padding
-    local inter_pad
+    local text_width = width - (Size.padding.small * 2)
+    local inter_pad_1
+    local inter_pad_2
     local sizedec = self.initial_sizedec
-    local authors_wg, title_wg, filename_wg
+    local authors_wg, series_wg, title_wg, filename_wg
     local loop2 = false -- we may do a second pass with modifier title and authors strings
     local texts_height
     local free_height
@@ -174,6 +188,10 @@ function FakeCover:init()
         if authors_wg then
             authors_wg:free(true)
             authors_wg = nil
+        end
+        if series_wg then
+            series_wg:free(true)
+            series_wg = nil
         end
         if title_wg then
             title_wg:free(true)
@@ -193,40 +211,48 @@ function FakeCover:init()
                 face = Font:getFace(ptutil.good_serif, math.max(self.authors_font_max - sizedec, self.authors_font_min)),
                 width = text_width,
                 alignment = "center",
+                bgcolor = self.background,
             }
             texts_height = texts_height + authors_wg:getSize().h
+        end
+        if series then
+            series_wg = TextBoxWidget:new {
+                text = series,
+                lang = self.book_lang,
+                face = Font:getFace(ptutil.good_serif, math.max(self.series_font_max - sizedec, self.series_font_min)),
+                width = text_width,
+                alignment = "center",
+                bgcolor = self.background,
+            }
+            texts_height = texts_height + series_wg:getSize().h
         end
         if title then
             title_wg = TextBoxWidget:new {
                 text = title,
                 lang = self.book_lang,
                 face = Font:getFace(titlefont, math.max(self.title_font_max - sizedec, self.title_font_min)),
+                bold = bold_title,
                 width = text_width,
                 alignment = "center",
+                fgcolor = title_text_color,
+                bgcolor = title_background_color,
             }
             texts_height = texts_height + title_wg:getSize().h
         end
-        if filename then
-            filename_wg = TextBoxWidget:new {
-                text = filename,
-                lang = self.book_lang, -- might as well use it for filename
-                face = Font:getFace(ptutil.good_sans, math.max(self.filename_font_max - sizedec, self.filename_font_min)),
-                width = self.bottom_right_compensate and width - 2 * corner_mark_size or text_width,
-                alignment = "center",
-            }
-            texts_height = texts_height + filename_wg:getSize().h
-        end
+
         free_height = height - texts_height
-        if authors then
-            free_height = free_height - self.top_pad
+        if series then
+            inter_pad_1 = math.floor(free_height * 0.5)
+            inter_pad_2 = math.floor(free_height * 0.5)
+        else
+            inter_pad_1 = math.floor(free_height * 0.2)
+            inter_pad_2 = math.floor(free_height * 0.8)
         end
-        if filename then
-            free_height = free_height - self.bottom_pad
-        end
-        inter_pad = math.floor(free_height / 2)
 
         textboxes_ok = true
-        if (authors_wg and authors_wg.has_split_inside_word) or (title_wg and title_wg.has_split_inside_word) then
+        if (authors_wg and authors_wg.has_split_inside_word) or
+            (title_wg and title_wg.has_split_inside_word)  or
+            (series_wg and series_wg.has_split_inside_word) then
             -- We may get a nicer cover at next lower font size
             textboxes_ok = false
         end
@@ -256,6 +282,9 @@ function FakeCover:init()
                     if authors then
                         authors = authors:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
                     end
+                    if series then
+                        series = series:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
+                    end
                 else
                     -- Replace underscores and hyphens with spaces, to allow text wrap there.
                     if title then
@@ -263,6 +292,9 @@ function FakeCover:init()
                     end
                     if authors then
                         authors = authors:gsub("-", " "):gsub("_", " ")
+                    end
+                    if series then
+                        series = series:gsub("-", " "):gsub("_", " ")
                     end
                 end
             else -- 2nd loop done, no luck, give up
@@ -273,17 +305,23 @@ function FakeCover:init()
 
     local vgroup = VerticalGroup:new {}
     if authors then
-        table.insert(vgroup, VerticalSpan:new { width = self.top_pad })
         table.insert(vgroup, authors_wg)
     end
-    table.insert(vgroup, VerticalSpan:new { width = inter_pad })
+    table.insert(vgroup, VerticalSpan:new { width = inter_pad_1 })
     if title then
-        table.insert(vgroup, title_wg)
+        table.insert(vgroup, FrameContainer:new {
+            margin = 0,
+            padding = 0,
+            padding_left = Size.padding.small,
+            padding_right = Size.padding.small,
+            bordersize = 0,
+            background = title_background_color,
+            title_wg
+        })
     end
-    table.insert(vgroup, VerticalSpan:new { width = inter_pad })
-    if filename then
-        table.insert(vgroup, filename_wg)
-        table.insert(vgroup, VerticalSpan:new { width = self.bottom_pad })
+    table.insert(vgroup, VerticalSpan:new { width = inter_pad_2 })
+    if series then
+        table.insert(vgroup, series_wg)
     end
 
     if self.file_deleted then
@@ -696,23 +734,10 @@ function MosaicMenuItem:update()
                 self._has_cover_image = true
             else
                 -- add Series metadata if requested
-                local series_mode = BookInfoManager:getSetting("series_mode")
                 local title_add, authors_add
-                if bookinfo.series then
-                    if bookinfo.series_index then
-                        bookinfo.series = BD.auto(bookinfo.series .. " #" .. bookinfo.series_index)
-                    else
-                        bookinfo.series = BD.auto(bookinfo.series)
-                    end
-                    if not bookinfo.authors then
-                        if series_mode == "series_in_separate_line" then
-                            authors_add = bookinfo.series
-                        end
-                    else
-                        if series_mode == "series_in_separate_line" then
-                            authors_add = "\n \n" .. bookinfo.series
-                        end
-                    end
+                if bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 then -- suppress series if index is "0"
+                    authors_add = BD.auto(bookinfo.series)
+                    bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
                 end
                 local bottom_pad = Size.padding.default
                 if self.show_progress_bar and self.do_hint_opened then
@@ -724,7 +749,7 @@ function MosaicMenuItem:update()
                     dimen = dimen,
                     FakeCover:new {
                         -- reduced width to make it look less squared, more like a book
-                        width = math.floor(dimen.w * 7 / 8),
+                        width = math.floor(dimen.w * 0.8),
                         height = dimen.h,
                         bordersize = border_size,
                         filename = self.text,
@@ -841,8 +866,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
         local series_mode = BookInfoManager:getSetting("series_mode")
         -- suppress showing series if index is "0"
         local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0
-        if series_mode == "series_in_separate_line" and show_series and
-                            self._has_cover_image and is_pathchooser == false then
+        if series_mode == "series_in_separate_line" and show_series and is_pathchooser == false then
             local series_index = " " .. bookinfo.series_index .. " "
             if string.len(series_index) == 3 then series_index = " " .. series_index .. " " end
             local series_widget_radius = 0
