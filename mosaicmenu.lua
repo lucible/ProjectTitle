@@ -841,7 +841,8 @@ function MosaicMenuItem:paintTo(bb, x, y)
         local series_mode = BookInfoManager:getSetting("series_mode")
         -- suppress showing series if index is "0"
         local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0
-        if series_mode == "series_in_separate_line" and show_series and is_pathchooser == false then
+        if series_mode == "series_in_separate_line" and show_series and
+                            self._has_cover_image and is_pathchooser == false then
             local series_index = " " .. bookinfo.series_index .. " "
             if string.len(series_index) == 3 then series_index = " " .. series_index .. " " end
             local series_widget_radius = 0
