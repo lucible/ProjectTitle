@@ -358,10 +358,10 @@ function FakeCover:init()
     end
 
     local vgroup = VerticalGroup:new {}
+    table.insert(vgroup, VerticalSpan:new { width = inter_pad_1 })
     if authors then
         table.insert(vgroup, authors_wg)
     end
-    table.insert(vgroup, VerticalSpan:new { width = inter_pad_1 })
     if title then
         table.insert(vgroup, FrameContainer:new {
             margin = 0,
@@ -373,10 +373,10 @@ function FakeCover:init()
             title_wg
         })
     end
-    table.insert(vgroup, VerticalSpan:new { width = inter_pad_2 })
     if series then
         table.insert(vgroup, series_wg)
     end
+    table.insert(vgroup, VerticalSpan:new { width = inter_pad_2 })
     if filesize then
         table.insert(vgroup, filesize_wg)
     end
