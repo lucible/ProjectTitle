@@ -99,208 +99,262 @@ function FakeCover:init()
     local title = self.title
     local filename = self.filename
     local series = nil
-
-    -- (some engines may have already given filename (without extension) as title)
-    local bd_wrap_title_as_filename = false
-    local titlefont = ptutil.title_serif
-    local title_text_color = Blitbuffer.COLOR_WHITE
-    local title_background_color = Blitbuffer.COLOR_GRAY_3
-    local bold_title = false
-    if not title then -- use filename as title (big and centered)
-        titlefont = ptutil.good_serif
-        bold_title = true
-        title = filename
-        title_text_color = Blitbuffer.COLOR_BLACK
-        title_background_color = self.background
-        filename = nil
-        if not self.title_add and self.filename_add then
-            -- filename_add ("…" or "(deleted)") always comes without any title_add
-            self.title_add = self.filename_add
-            self.filename_add = nil
-        end
-        bd_wrap_title_as_filename = true
-    else
-        filename = nil
-    end
-
-    -- If no authors, and title is filename without extension, it was
-    -- probably made by an engine, and we can consider it a filename, and
-    -- act according to common usage in naming files.
-    if not authors and title and self.filename and self.filename:sub(1, title:len()) == title then
-        bd_wrap_title_as_filename = true
-        titlefont = ptutil.good_serif
-        bold_title = true
-        title_text_color = Blitbuffer.COLOR_BLACK
-        title_background_color = self.background
-        -- Replace a hyphen surrounded by spaces (which most probably was
-        -- used to separate Authors/Title/Serie/Year/Categorie in the
-        -- filename with a \n
-        title = title:gsub(" %- ", "\n")
-        -- Same with |
-        title = title:gsub("|", "\n")
-        -- Also replace underscores with spaces
-        title = title:gsub("_", " ")
-        -- Some filenames may also use dots as separators, but dots
-        -- can also have some meaning, so we can't just remove them.
-        -- But at least, make dots breakable (they wouldn't be if not
-        -- followed by a space), by adding to them a zero-width-space,
-        -- so the dots stay on the right of their preceeding word.
-        title = title:gsub("%.", ".\u{200B}")
-        -- Except for a last dot near end of title that might preceed
-        -- a file extension: we'd rather want the dot and its suffix
-        -- together on a last line: so, move the zero-width-space
-        -- before it.
-        title = title:gsub("%.\u{200B}(%w%w?%w?%w?%w?)$", "\u{200B}.%1")
-        -- These substitutions will hopefully have no impact with the following BD wrapping
-    end
-    if title then
-        title = bd_wrap_title_as_filename and BD.filename(title) or BD.auto(title)
-    end
-
-    authors = ptutil.formatAuthors(self.authors, 3)
-
-    if self.filename_add then
-        filename = (filename and filename or "") .. self.filename_add
-    end
-    if self.title_add then
-        title = (title and title or "") .. self.title_add
-    end
-    if self.authors_add then
-        series = self.authors_add
-    end
-
-    -- We build the VerticalGroup widget with decreasing font sizes till
-    -- the widget fits into available height
-    local width = self.width - 2 * (self.bordersize + self.margin + self.padding)
-    local height = self.height - 2 * (self.bordersize + self.margin + self.padding)
-    local text_width = width - (Size.padding.small * 2)
+    local filesize = nil
     local inter_pad_1
     local inter_pad_2
-    local sizedec = self.initial_sizedec
-    local authors_wg, series_wg, title_wg, filename_wg
-    local loop2 = false -- we may do a second pass with modifier title and authors strings
-    local texts_height
-    local free_height
-    local textboxes_ok
+    local authors_wg, series_wg, filesize_wg, title_wg, filename_wg
+    local titlefont
+    local width, height
+    local title_text_color
+    local title_background_color
 
-    while true do
-        -- Free previously made widgets to avoid memory leaks
-        if authors_wg then
-            authors_wg:free(true)
-            authors_wg = nil
+    if is_pathchooser == false then
+        width = self.width - 2 * (self.bordersize + self.margin + self.padding)
+        height = self.height - 2 * (self.bordersize + self.margin + self.padding)
+        local text_width = width - (Size.padding.small * 2)
+        -- BookInfoManager:extractBookInfo() made sure
+        -- to save as nil (NULL) metadata that were an empty string
+
+        -- (some engines may have already given filename (without extension) as title)
+        local bd_wrap_title_as_filename = false
+        titlefont = ptutil.title_serif
+        title_text_color = Blitbuffer.COLOR_WHITE
+        title_background_color = Blitbuffer.COLOR_GRAY_3
+        local bold_title = false
+        if not title then -- use filename as title (big and centered)
+            titlefont = ptutil.good_serif
+            bold_title = true
+            title = filename
+            title_text_color = Blitbuffer.COLOR_BLACK
+            title_background_color = self.background
+            if not self.title_add and self.filename_add then
+                -- filename_add ("…" or "(deleted)") always comes without any title_add
+                self.title_add = self.filename_add
+                self.filename_add = nil
+            end
+            bd_wrap_title_as_filename = true
         end
-        if series_wg then
-            series_wg:free(true)
-            series_wg = nil
-        end
-        if title_wg then
-            title_wg:free(true)
-            title_wg = nil
-        end
-        if filename_wg then
-            filename_wg:free(true)
-            filename_wg = nil
-        end
-        -- Build new widgets
-        texts_height = 0
-        free_height = 0
-        if authors then
-            authors_wg = TextBoxWidget:new {
-                text = authors,
-                lang = self.book_lang,
-                face = Font:getFace(ptutil.good_serif, math.max(self.authors_font_max - sizedec, self.authors_font_min)),
-                width = text_width,
-                alignment = "center",
-                bgcolor = self.background,
-            }
-            texts_height = texts_height + authors_wg:getSize().h
-        end
-        if series then
-            series_wg = TextBoxWidget:new {
-                text = series,
-                lang = self.book_lang,
-                face = Font:getFace(ptutil.good_serif, math.max(self.series_font_max - sizedec, self.series_font_min)),
-                width = text_width,
-                alignment = "center",
-                bgcolor = self.background,
-            }
-            texts_height = texts_height + series_wg:getSize().h
+
+        -- If no authors, and title is filename without extension, it was
+        -- probably made by an engine, and we can consider it a filename, and
+        -- act according to common usage in naming files.
+        if not authors and title and self.filename and self.filename:sub(1, title:len()) == title then
+            bd_wrap_title_as_filename = true
+            titlefont = ptutil.good_serif
+            bold_title = true
+            title_text_color = Blitbuffer.COLOR_BLACK
+            title_background_color = self.background
+            -- Replace a hyphen surrounded by spaces (which most probably was
+            -- used to separate Authors/Title/Serie/Year/Categorie in the
+            -- filename with a \n
+            title = title:gsub(" %- ", "\n")
+            -- Same with |
+            title = title:gsub("|", "\n")
+            -- Also replace underscores with spaces
+            title = title:gsub("_", " ")
+            -- Some filenames may also use dots as separators, but dots
+            -- can also have some meaning, so we can't just remove them.
+            -- But at least, make dots breakable (they wouldn't be if not
+            -- followed by a space), by adding to them a zero-width-space,
+            -- so the dots stay on the right of their preceeding word.
+            title = title:gsub("%.", ".\u{200B}")
+            -- Except for a last dot near end of title that might preceed
+            -- a file extension: we'd rather want the dot and its suffix
+            -- together on a last line: so, move the zero-width-space
+            -- before it.
+            title = title:gsub("%.\u{200B}(%w%w?%w?%w?%w?)$", "\u{200B}.%1")
+            -- These substitutions will hopefully have no impact with the following BD wrapping
         end
         if title then
-            title_wg = TextBoxWidget:new {
-                text = title,
-                lang = self.book_lang,
-                face = Font:getFace(titlefont, math.max(self.title_font_max - sizedec, self.title_font_min)),
-                bold = bold_title,
-                width = text_width,
-                alignment = "center",
-                fgcolor = title_text_color,
-                bgcolor = title_background_color,
-            }
-            texts_height = texts_height + title_wg:getSize().h
+            title = bd_wrap_title_as_filename and BD.filename(title) or BD.auto(title)
         end
 
-        free_height = height - texts_height
-        if series then
-            inter_pad_1 = math.floor(free_height * 0.5)
-            inter_pad_2 = math.floor(free_height * 0.5)
-        else
-            inter_pad_1 = math.floor(free_height * 0.2)
-            inter_pad_2 = math.floor(free_height * 0.8)
+        authors = ptutil.formatAuthors(self.authors, 3)
+
+        if self.title_add then
+            title = (title and title or "") .. self.title_add
+        end
+        if self.authors_add then
+            series = self.authors_add
         end
 
-        textboxes_ok = true
-        if (authors_wg and authors_wg.has_split_inside_word) or
-            (title_wg and title_wg.has_split_inside_word)  or
-            (series_wg and series_wg.has_split_inside_word) then
-            -- We may get a nicer cover at next lower font size
-            textboxes_ok = false
-        end
+        -- We build the VerticalGroup widget with decreasing font sizes till
+        -- the widget fits into available height
+        local sizedec = self.initial_sizedec
+        local loop2 = false -- we may do a second pass with modifier title and authors strings
+        local texts_height
+        local free_height
+        local textboxes_ok
 
-        if textboxes_ok and free_height > 0.2 * height then -- enough free space to not look constrained
-            break
-        end
-        -- (We may store the first widgets matching free space requirements but
-        -- not textboxes_ok, so that if we never ever get textboxes_ok candidate,
-        -- we can use them instead of the super-small strings-modified we'll have
-        -- at the end that are worse than the firsts)
+        while true do
+            -- Free previously made widgets to avoid memory leaks
+            if authors_wg then
+                authors_wg:free(true)
+                authors_wg = nil
+            end
+            if series_wg then
+                series_wg:free(true)
+                series_wg = nil
+            end
+            if title_wg then
+                title_wg:free(true)
+                title_wg = nil
+            end
+            if filename_wg then
+                filename_wg:free(true)
+                filename_wg = nil
+            end
+            -- Build new widgets
+            texts_height = 0
+            free_height = 0
+            if authors then
+                authors_wg = TextBoxWidget:new {
+                    text = authors,
+                    lang = self.book_lang,
+                    face = Font:getFace(ptutil.good_serif, math.max(self.authors_font_max - sizedec, self.authors_font_min)),
+                    width = text_width,
+                    alignment = "center",
+                    bgcolor = self.background,
+                }
+                texts_height = texts_height + authors_wg:getSize().h
+            end
+            if series then
+                series_wg = TextBoxWidget:new {
+                    text = series,
+                    lang = self.book_lang,
+                    face = Font:getFace(ptutil.good_serif, math.max(self.series_font_max - sizedec, self.series_font_min)),
+                    width = text_width,
+                    alignment = "center",
+                    bgcolor = self.background,
+                }
+                texts_height = texts_height + series_wg:getSize().h
+            end
+            if title then
+                title_wg = TextBoxWidget:new {
+                    text = title,
+                    lang = self.book_lang,
+                    face = Font:getFace(titlefont, math.max(self.title_font_max - sizedec, self.title_font_min)),
+                    bold = bold_title,
+                    width = text_width,
+                    alignment = "center",
+                    fgcolor = title_text_color,
+                    bgcolor = title_background_color,
+                }
+                texts_height = texts_height + title_wg:getSize().h
+            end
 
-        sizedec = sizedec + self.sizedec_step
-        if sizedec > 20 then -- break out of loop when too small
-            -- but try a 2nd loop with some cleanup to strings (for filenames
-            -- with no space but hyphen or underscore instead)
-            if not loop2 then
-                loop2 = true
-                sizedec = self.initial_sizedec -- restart from initial big size
-                if G_reader_settings:nilOrTrue("use_xtext") then
-                    -- With Unicode/libunibreak, a break after a hyphen is allowed,
-                    -- but not around underscores and dots without any space around.
-                    -- So, append a zero-width-space to allow text wrap after them.
-                    if title then
-                        title = title:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
-                    end
-                    if authors then
-                        authors = authors:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
-                    end
-                    if series then
-                        series = series:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
-                    end
-                else
-                    -- Replace underscores and hyphens with spaces, to allow text wrap there.
-                    if title then
-                        title = title:gsub("-", " "):gsub("_", " ")
-                    end
-                    if authors then
-                        authors = authors:gsub("-", " "):gsub("_", " ")
-                    end
-                    if series then
-                        series = series:gsub("-", " "):gsub("_", " ")
-                    end
-                end
-            else -- 2nd loop done, no luck, give up
+            free_height = height - texts_height
+            if series then
+                inter_pad_1 = math.floor(free_height * 0.5)
+            else
+                inter_pad_1 = math.floor(free_height * 0.2)
+            end
+            inter_pad_2 = free_height - inter_pad_1
+
+            textboxes_ok = true
+            if (authors_wg and authors_wg.has_split_inside_word) or
+                (title_wg and title_wg.has_split_inside_word)  or
+                (series_wg and series_wg.has_split_inside_word) then
+                -- We may get a nicer cover at next lower font size
+                textboxes_ok = false
+            end
+
+            if textboxes_ok and free_height > 0.2 * height then -- enough free space to not look constrained
                 break
             end
+            -- (We may store the first widgets matching free space requirements but
+            -- not textboxes_ok, so that if we never ever get textboxes_ok candidate,
+            -- we can use them instead of the super-small strings-modified we'll have
+            -- at the end that are worse than the firsts)
+
+            sizedec = sizedec + self.sizedec_step
+            if sizedec > 16 then -- break out of loop when too small
+                -- but try a 2nd loop with some cleanup to strings (for filenames
+                -- with no space but hyphen or underscore instead)
+                if not loop2 then
+                    loop2 = true
+                    sizedec = self.initial_sizedec -- restart from initial big size
+                    if G_reader_settings:nilOrTrue("use_xtext") then
+                        -- With Unicode/libunibreak, a break after a hyphen is allowed,
+                        -- but not around underscores and dots without any space around.
+                        -- So, append a zero-width-space to allow text wrap after them.
+                        if title then
+                            title = title:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
+                        end
+                        if authors then
+                            authors = authors:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
+                        end
+                        if series then
+                            series = series:gsub("_", "_\u{200B}"):gsub("%.", ".\u{200B}")
+                        end
+                    else
+                        -- Replace underscores and hyphens with spaces, to allow text wrap there.
+                        if title then
+                            title = title:gsub("-", " "):gsub("_", " ")
+                        end
+                        if authors then
+                            authors = authors:gsub("-", " "):gsub("_", " ")
+                        end
+                        if series then
+                            series = series:gsub("-", " "):gsub("_", " ")
+                        end
+                    end
+                else -- 2nd loop done, no luck, give up
+                    break
+                end
+            end
         end
+    else -- pathchooser gets a plain style
+        title = BD.filename(self.filename)
+        filesize = self.filename_add
+        local textboxes_ok
+        local free_height
+        local sizedec = 1
+        self.background = Blitbuffer.COLOR_WHITE
+        self.radius = Screen:scaleBySize(10)
+        self.bordersize = Size.border.default
+        self.padding = Screen:scaleBySize(5)
+        width = self.width - 2 * (self.bordersize + self.margin + self.padding)
+        height = self.height - 2 * (self.bordersize + self.margin + self.padding)
+        local text_width = width - (Size.padding.small * 2)
+        while true do
+            if title_wg then
+                title_wg:free(true)
+                title_wg = nil
+            end
+            title_wg = TextBoxWidget:new {
+                text = title,
+                face = Font:getFace("cfont", math.max(20 - sizedec, 10)),
+                bold = false,
+                width = text_width,
+                alignment = "center",
+                fgcolor = Blitbuffer.COLOR_BLACK,
+                bgcolor = Blitbuffer.COLOR_WHITE,
+            }
+            free_height = height - title_wg:getSize().h
+            textboxes_ok = true
+            if (title_wg and title_wg.has_split_inside_word) then
+                -- We may get a nicer cover at next lower font size
+                textboxes_ok = false
+            end
+            if textboxes_ok and free_height > 0.2 * height then -- enough free space to not look constrained
+                break
+            end
+            sizedec = sizedec + 1
+            if sizedec > 10 then break end
+        end
+        filesize_wg = TextBoxWidget:new {
+            text = filesize,
+            face = Font:getFace("infont", 15),
+            bold = false,
+            width = text_width,
+            alignment = "center",
+            fgcolor = Blitbuffer.COLOR_BLACK,
+            bgcolor = Blitbuffer.COLOR_WHITE,
+        }
+        free_height = free_height - filesize_wg:getSize().h
+        inter_pad_1 = Screen:scaleBySize(7)
+        inter_pad_2 = free_height - inter_pad_1
     end
 
     local vgroup = VerticalGroup:new {}
@@ -322,6 +376,9 @@ function FakeCover:init()
     table.insert(vgroup, VerticalSpan:new { width = inter_pad_2 })
     if series then
         table.insert(vgroup, series_wg)
+    end
+    if filesize then
+        table.insert(vgroup, filesize_wg)
     end
 
     if self.file_deleted then
@@ -641,12 +698,12 @@ function MosaicMenuItem:update()
                 radius = Screen:scaleBySize(10),
                 OverlapGroup:new {
                     dimen = dimen_in,
-                    CenterContainer:new { dimen = dimen_in, directory },
+                    TopContainer:new { dimen = dimen_in, directory },
                     BottomContainer:new { dimen = dimen_in, nbitems },
                 },
             }
         end
-    else                                   -- file
+    else  -- file
         self.file_deleted = self.entry.dim -- entry with deleted file from History or selected file from FM
 
         if self.do_hint_opened and DocSettings:hasSidecarFile(self.filepath) then
