@@ -22,7 +22,7 @@ Project: Title is a project by two people who love KOreader but wanted to expand
 * Kobo device owners. We designed this on two Kobos (Aura One, Sage) so we feel pretty confident about the experience there.
 * Jailbroken Kindle owners. Version 2025.04v1 added support and we've seen and heard from many Kindle owners running this plugin.
 * Android owners. As of version 2025.04v2, the Android edition of KOReader is supported.
-* Pocketbook, Boox, and others should work as well
+* Owners of Pocketbook, Boox, Bigme and more should work just as well now, too. (But let us know if you have issues.)
 * Calibre users. We both sync books using Calibre, and at least one feature (the book-sized progress bars) requires Calibre and a plugin.
 * People with tidy EPUB/PDF libraries. We make sure every EPUB we sync has a title, author, series and cover image, so we designed around books always having that metadata.
 * Readers who like browsing for their next book and being able to see how long a book is before starting it.
