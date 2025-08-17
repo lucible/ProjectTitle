@@ -64,8 +64,8 @@ end
 
     https://github.com/joshuacant/ProjectTitle/wiki/Use-With-Nightly-KOReader-Builds
 --]]
-local safe_version = 202504000000
-local cv_int, cv_hash = Version:getNormalizedCurrentVersion()
+local safe_version = 202508000000
+local cv_int, _ = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
 if (cv_int == safe_version or util.fileExists(data_dir .. "/settings/pt-skipversioncheck.txt")) then
     version_unsafe = false
