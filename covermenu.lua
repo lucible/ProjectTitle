@@ -719,7 +719,7 @@ function CoverMenu:menuInit()
             w = self.inner_dimen.w,
             h = self.inner_dimen.h - self.page_info:getSize().h,
         },
-        ptutil.darkLine(self.inner_dimen.w),
+        ptutil.mediumDarkLine(self.inner_dimen.w),
     }
     local footer = OverlapGroup:new {
         -- This unique allow_mirroring=false looks like it's enough

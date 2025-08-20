@@ -1280,7 +1280,7 @@ function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
     local grid_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
-    table.insert(self.item_group, ptutil.darkLine(line_width))
+    table.insert(self.item_group, ptutil.mediumDarkLine(line_width))
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
     local line_layout = {}
@@ -1299,7 +1299,7 @@ function MosaicMenu:_updateItemsBuildUI()
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             if idx > 1 then
                 table.insert(self.layout, line_layout)
-                table.insert(self.item_group, ptutil.lightLine(line_width))
+                table.insert(self.item_group, ptutil.thinLightLine(line_width))
                 table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             end
             line_layout = {}
