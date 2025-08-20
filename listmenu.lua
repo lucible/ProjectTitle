@@ -1296,7 +1296,12 @@ function ListMenu:_updateItemsBuildUI()
             if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
                 table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) })
             end
-            table.insert(self.item_group, ptutil.lightLine(line_width))
+            local is_boundary_here = (self.recent_boundary_index and self.recent_boundary_index > 0 and index == self.recent_boundary_index + 1)
+            if is_boundary_here then
+                table.insert(self.item_group, ptutil.darkLine(line_width))
+            else
+                table.insert(self.item_group, ptutil.lightLine(line_width))
+            end
         end
         local item_tmp = ListMenuItem:new {
             height = self.item_height,

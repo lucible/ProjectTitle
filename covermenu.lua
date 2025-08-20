@@ -268,7 +268,8 @@ function CoverMenu:onCloseWidget()
 end
 
 function CoverMenu:genItemTable(dirs, files, path)
-    is_pathchooser = ptutil.isPathChooser(self)
+    self.recent_boundary_index = nil
+
     if meta_browse_mode == true and is_pathchooser == false and G_reader_settings:readSetting("home_dir") ~= nil then
         -- build item tables from coverbrowser-style sqlite db
         local SQ3 = require("lua-ljsqlite3/init")
@@ -314,6 +315,7 @@ function CoverMenu:genItemTable(dirs, files, path)
                 end
             end
             if util.tableSize(items_place_at_top) > 0 then
+                self.recent_boundary_index = util.tableSize(items_place_at_top)
                 util.tableMerge(custom_item_table, items_place_at_top)
             end
         end
