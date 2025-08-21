@@ -8,9 +8,14 @@
     https://github.com/joshuacant/ProjectTitle/wiki/Installation
 --]]
 
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local DataStorage = require("datastorage")
+local UIManager = require("ui/uimanager")
+local InfoMessage = require("ui/widget/infomessage")
 local logger = require("logger")
 local Version = require("version")
+local _ = require("l10n.gettext")
+local T = require("ffi/util").template
 local ptutil = require("ptutil")
 local util = require("util")
 local ptdbg = require("ptdbg")
@@ -18,44 +23,30 @@ local ptdbg = require("ptdbg")
 local data_dir = DataStorage:getDataDir()
 logger.info(ptdbg.logprefix, "Checking requirements in '" .. data_dir .. "'")
 
--- Disable this entire plugin if: fonts missing
-local font1_missing = true
-if util.fileExists(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") then
-    font1_missing = false
-else
-    logger.warn(ptdbg.logprefix, "Font1 missing")
-end
-local font2_missing = true
-if util.fileExists(data_dir .. "/fonts/source/SourceSerif4-Regular.ttf") then
-    font2_missing = false
-else
-    logger.warn(ptdbg.logprefix, "Font2 missing")
-end
-local font3_missing = true
-if util.fileExists(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") then
-    font3_missing = false
-else
-    logger.warn(ptdbg.logprefix, "Font3 missing")
-end
-
--- Disable this entire plugin if: icons missing
-local icons_missing = true
-if util.fileExists(data_dir .. "/icons/hero.svg") then
-    icons_missing = false -- check for one icon and assume the rest are there too
-else
-    logger.warn(ptdbg.logprefix, "Icons missing")
-end
-
--- Disable this entire plugin if: Cover Browser is enabled
+-- Disable this plugin entirely if Cover Browser is enabled
 local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
 if type(plugins_disabled) ~= "table" then
     plugins_disabled = {}
 end
-local coverbrowser_plugin = true
-if plugins_disabled["coverbrowser"] == true then
-    coverbrowser_plugin = false
-else
+if plugins_disabled["coverbrowser"] == false then
     logger.warn(ptdbg.logprefix, "CoverBrowser enabled")
+    return { disabled = true, }
+end
+
+local font_missing = true
+if util.fileExists(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") and
+    util.fileExists(data_dir .. "/fonts/source/SourceSerif4-Regular.ttf") and
+    util.fileExists(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") then
+    font_missing = false
+else
+    logger.warn(ptdbg.logprefix, "Fonts missing")
+end
+
+local icon_missing = true
+if util.fileExists(data_dir .. "/icons/hero.svg") then
+    icon_missing = false -- check for one icon and assume the rest are there too
+else
+    logger.warn(ptdbg.logprefix, "Icons missing")
 end
 
 --[[
@@ -65,7 +56,7 @@ end
     https://github.com/joshuacant/ProjectTitle/wiki/Use-With-Nightly-KOReader-Builds
 --]]
 local safe_version = 202508000000
-local cv_int, _ = Version:getNormalizedCurrentVersion()
+local cv_int, cv_commit = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
 if (cv_int == safe_version or util.fileExists(data_dir .. "/settings/pt-skipversioncheck.txt")) then
     version_unsafe = false
@@ -76,29 +67,47 @@ else
     end
 end
 
-if font1_missing or font2_missing or font3_missing or icons_missing or coverbrowser_plugin or version_unsafe then
-    logger.warn(ptdbg.logprefix, "Refusing to load the plugin")
-    return { disabled = true, }
+-- If any required files are missing, or if KOReader version is wrong, load an empty plugin 
+-- and display an error message to the user.
+if font_missing or icon_missing or version_unsafe then
+    logger.warn(ptdbg.logprefix, "Refusing to fully load the plugin")
+    local error_message_text = _("An error occurred while registering:") .. "  " ..  _("Project: Title")
+    if font_missing then
+        error_message_text = error_message_text .. "\n\n" .. _("Fonts") .." - ".. _("Not available")
+    end
+    if icon_missing then
+        error_message_text = error_message_text .. "\n\n" .. _("Icons") .." - ".. _("Not available")
+    end
+    if version_unsafe then
+        error_message_text = error_message_text .. "\n\n" .. "KOReader " ..
+        T(_("%1 ~Unsupported"):gsub("~",""), T(_("Version: %1"):gsub(": ", "\n"), cv_int))
+    end
+    UIManager:show(InfoMessage:new{
+        text = error_message_text,
+        show_icon = false,
+        alignment = "center",
+        timeout = 30,
+    })
+    local CoverBrowser = WidgetContainer:extend {
+        name = "coverbrowserclean",
+    }
+    return CoverBrowser
 end
-logger.info(ptdbg.logprefix, "All tests passed, loading into KOReader ver", tostring(cv_int))
 
--- carry on...
+-- Load full plugin if all tests pass
+logger.info(ptdbg.logprefix, "All tests passed, loading into KOReader ver", tostring(cv_int))
 local BookStatusWidget = require("ui/widget/bookstatuswidget")
 local AltBookStatusWidget = require("altbookstatuswidget")
+local BookInfoManager = require("bookinfomanager")
 local FileChooser = require("ui/widget/filechooser")
 local FileManager = require("apps/filemanager/filemanager")
 local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
 local FileManagerCollection = require("apps/filemanager/filemanagercollection")
 local FileManagerFileSearcher = require("apps/filemanager/filemanagerfilesearcher")
-local FFIUtil = require("ffi/util")
-local Dispatcher = require("dispatcher")
 local Menu = require("ui/widget/menu")
+local Dispatcher = require("dispatcher")
 local Trapper = require("ui/trapper")
-local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("l10n.gettext")
-local T = require("ffi/util").template
-local BookInfoManager = require("bookinfomanager")
+local FFIUtil = require("ffi/util")
 
 -- We need to save the original methods early here as locals.
 -- For some reason, saving them as attributes in init() does not allow
