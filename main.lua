@@ -70,8 +70,8 @@ local version_unsafe = true
 if (cv_int == safe_version or util.fileExists(data_dir .. "/settings/pt-skipversioncheck.txt")) then
     version_unsafe = false
 else
-    logger.warn(ptdbg.logprefix, "Version not safe ", tostring(cv_int))
-    if cv_int - safe_version < 1000 then
+    logger.warn(ptdbg.logprefix, "Version not safe", tostring(cv_int))
+    if safe_version - cv_int < 1000 then
         logger.warn(ptdbg.logprefix, "This is a KOReader nightly build, not the official release")
     end
 end
