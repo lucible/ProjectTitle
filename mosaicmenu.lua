@@ -411,7 +411,6 @@ local MosaicMenuItem = InputContainer:extend {
     cover_specs = nil,
     has_description = false,
     pages = nil,
-    is_boundary_item = false,
 }
 
 function MosaicMenuItem:init()
@@ -898,14 +897,6 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
 
-    if self.is_boundary_item then
-        local boundary_line = LineWidget:new {
-            dimen = Geom:new { w = Size.border.default, h = self.height },
-            background = Blitbuffer.COLOR_BLACK,
-        }
-        boundary_line:paintTo(bb, x + self.width + (Screen:scaleBySize(margin_size/2)), y)
-    end
-
     -- other paintings are anchored to the sub-widget (cover image)
     local target = self[1][1][1]
 
@@ -1308,7 +1299,37 @@ function MosaicMenu:_updateItemsBuildUI()
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             if idx > 1 then
                 table.insert(self.layout, line_layout)
-                table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+
+                -- Draw row separator based on the recent boundary.
+                -- If the previous row ends before the boundary → black line.
+                -- If boundary falls within the previous row → gray baseline + black overlay over recent columns.
+                -- Otherwise → thin GRAY.
+                local prev_row_start = idx_offset + (idx - self.nb_cols)
+                local prev_row_end = idx_offset + (idx - 1)
+                if self.recent_boundary_index and self.recent_boundary_index > 0 then
+                    if prev_row_end < self.recent_boundary_index then
+                        table.insert(self.item_group, ptutil.thinBlackLine(line_width))
+                    elseif prev_row_start <= self.recent_boundary_index and prev_row_end >= self.recent_boundary_index then
+                        local pad = Screen:scaleBySize(10)
+                        local inner_total = math.max(0, line_width - 2 * pad)
+                        local dark_cols = math.max(0, math.min(self.nb_cols, self.recent_boundary_index - prev_row_start + 1))
+                        local dark_inner = math.floor(inner_total * (dark_cols / self.nb_cols))
+
+                        table.insert(self.item_group, OverlapGroup:new {
+                            dimen = Geom:new { w = line_width, h = Size.line.thin },
+                            ptutil.thinGrayLine(line_width),
+                            LeftContainer:new {
+                                dimen = Geom:new { w = (2 * pad) + dark_inner, h = Size.line.thin },
+                                ptutil.thinBlackLine((2 * pad) + dark_inner),
+                            },
+                        })
+                    else
+                        table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+                    end
+                else
+                    table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+                end
+
                 table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             end
             line_layout = {}
@@ -1324,7 +1345,6 @@ function MosaicMenu:_updateItemsBuildUI()
             })
             table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
         end
-        local is_boundary_here = (self.recent_boundary_index and self.recent_boundary_index > 0 and index == self.recent_boundary_index)
         local item_tmp = MosaicMenuItem:new {
             height = self.item_height,
             width = self.item_width,
@@ -1336,7 +1356,6 @@ function MosaicMenu:_updateItemsBuildUI()
             menu = self,
             do_cover_image = self._do_cover_images,
             do_hint_opened = self._do_hint_opened,
-            is_boundary_item = is_boundary_here,
         }
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
