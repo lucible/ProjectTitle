@@ -1282,6 +1282,7 @@ function ListMenu:_updateItemsBuildUI()
     table.insert(self.item_group, ptutil.mediumBlackLine(line_width))
     local idx_offset = (self.page - 1) * self.perpage
     local select_number
+    if self.recent_boundary_index == nil then self.recent_boundary_index = 0 end
     for idx = 1, self.perpage do
         local itm_timer = ptdbg:new()
         local index = idx_offset + idx

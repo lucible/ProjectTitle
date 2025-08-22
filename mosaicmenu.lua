@@ -1287,6 +1287,7 @@ function MosaicMenu:_updateItemsBuildUI()
     local idx_offset = (self.page - 1) * self.perpage
     local line_layout = {}
     local select_number
+    if self.recent_boundary_index == nil then self.recent_boundary_index = 0 end
     for idx = 1, self.perpage do
         local itm_timer = ptdbg:new()
         local index = idx_offset + idx
