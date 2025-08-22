@@ -327,7 +327,6 @@ function CoverMenu:genItemTable(dirs, files, path)
             end
         end
         self.db_conn:close()
-        logger.info(self.recent_boundary_index)
         return custom_item_table
     else
         local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)
