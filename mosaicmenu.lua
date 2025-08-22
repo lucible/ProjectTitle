@@ -1162,8 +1162,8 @@ function MosaicMenu:_recalculateDimen()
 
     self.item_margin = Screen:scaleBySize(margin_size)
     self.others_height = self.others_height + (Size.line.thin * self.nb_rows) -- lines between items
-    self.others_height = self.others_height + (self.nb_rows * self.item_margin) -- margins between rows
-    self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
+    self.others_height = self.others_height + ((self.nb_rows + 1) * self.item_margin) -- margins between rows
+    -- self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
 
     -- Set our items target size
     self.item_height = math.floor(
@@ -1280,12 +1280,13 @@ function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
     local grid_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
+    local half_margin_size = margin_size / 2
     table.insert(self.item_group, ptutil.mediumBlackLine(line_width))
+    table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
     local line_layout = {}
     local select_number
-    local half_margin_size = margin_size / 2
     for idx = 1, self.perpage do
         local itm_timer = ptdbg:new()
         local index = idx_offset + idx
@@ -1296,43 +1297,8 @@ function MosaicMenu:_updateItemsBuildUI()
             select_number = idx
         end
         if idx % self.nb_cols == 1 then -- new row
-            table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
-            if idx > 1 then
-                table.insert(self.layout, line_layout)
-
-                -- Draw row separator based on the recent boundary.
-                -- If the previous row ends before the boundary → black line.
-                -- If boundary falls within the previous row → gray baseline + black overlay over recent columns.
-                -- Otherwise → thin GRAY.
-                local prev_row_start = idx_offset + (idx - self.nb_cols)
-                local prev_row_end = idx_offset + (idx - 1)
-                if self.recent_boundary_index > 0 then
-                    if prev_row_end < self.recent_boundary_index then
-                        table.insert(self.item_group, ptutil.thinBlackLine(line_width))
-                    elseif prev_row_start <= self.recent_boundary_index and prev_row_end >= self.recent_boundary_index then
-                        local pad = Screen:scaleBySize(10)
-                        local inner_total = math.max(0, line_width - 2 * pad)
-                        local dark_cols = math.max(0, math.min(self.nb_cols, self.recent_boundary_index - prev_row_start + 1))
-                        local dark_inner = math.floor(inner_total * (dark_cols / self.nb_cols))
-
-                        table.insert(self.item_group, OverlapGroup:new {
-                            dimen = Geom:new { w = line_width, h = Size.line.thin },
-                            ptutil.thinGrayLine(line_width),
-                            LeftContainer:new {
-                                dimen = Geom:new { w = (2 * pad) + dark_inner, h = Size.line.thin },
-                                ptutil.thinBlackLine((2 * pad) + dark_inner),
-                            },
-                        })
-                    else
-                        table.insert(self.item_group, ptutil.thinGrayLine(line_width))
-                    end
-                else
-                    table.insert(self.item_group, ptutil.thinGrayLine(line_width))
-                end
-
-                table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
-            end
             line_layout = {}
+            table.insert(self.layout, line_layout)
             cur_row = HorizontalGroup:new {}
             -- Have items on the possibly non-fully filled last row aligned to the left
             local container = self._do_center_partial_rows and CenterContainer or LeftContainer
@@ -1360,6 +1326,48 @@ function MosaicMenu:_updateItemsBuildUI()
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
 
+        -- Draw row separator based on the recent boundary.
+        -- If the previous row ends before the boundary → black line.
+        -- If boundary falls within the previous row → gray baseline + black overlay over recent columns.
+        -- Otherwise → thin GRAY.
+
+        -- not complete:
+        -- for the last row on a page, the full-width line should be COLOR_WHITE (and must be painted)
+        -- and if all items in the last row are opened, no COLOR_BLACK line should be painted.
+        -- note: the "last" row is sometimes not the same as the "bottom" row (eg: 5 items in a 3x3 grid)
+        -- 
+        -- this way there will only be a black underline if some items in the bottom line are opened
+        -- and only shown under those opened books.
+        if idx % self.nb_cols == 1 then -- new row
+            table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
+            local prev_row_start = idx_offset + (idx - self.nb_cols)
+            local prev_row_end = idx_offset + (idx - 1)
+            if self.recent_boundary_index > 0 then
+                if prev_row_end < self.recent_boundary_index then
+                    table.insert(self.item_group, ptutil.thinBlackLine(line_width))
+                elseif prev_row_start <= self.recent_boundary_index and prev_row_end >= self.recent_boundary_index then
+                    local pad = Screen:scaleBySize(10)
+                    local inner_total = math.max(0, line_width - 2 * pad)
+                    local dark_cols = math.max(0, math.min(self.nb_cols, self.recent_boundary_index - prev_row_start + 1))
+                    local dark_inner = math.floor(inner_total * (dark_cols / self.nb_cols))
+
+                    table.insert(self.item_group, OverlapGroup:new {
+                        dimen = Geom:new { w = line_width, h = Size.line.thin },
+                        ptutil.thinGrayLine(line_width),
+                        LeftContainer:new {
+                            dimen = Geom:new { w = (2 * pad) + dark_inner, h = Size.line.thin },
+                            ptutil.thinBlackLine((2 * pad) + dark_inner),
+                        },
+                    })
+                else
+                    table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+                end
+            else
+                table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+            end
+            table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
+        end
+
         -- this is for focus manager
         table.insert(line_layout, item_tmp)
 
@@ -1370,7 +1378,7 @@ function MosaicMenu:_updateItemsBuildUI()
         itm_timer:report("Draw grid item " .. getMenuText(entry))
     end
     table.insert(self.layout, line_layout)
-    table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) }) -- bottom padding
+    -- table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) }) -- bottom padding
     grid_timer:report("Draw cover grid page " .. self.perpage)
     return select_number
 end
