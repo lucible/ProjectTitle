@@ -1291,16 +1291,17 @@ function ListMenu:_updateItemsBuildUI()
         if index == self.itemnumber then -- focused item
             select_number = idx
         end
+        local is_boundary_crossed = true
         if idx > 1 then
             -- add focus indicator padding only for devices that need it
             if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
                 table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) })
             end
-            local is_boundary_here = (self.recent_boundary_index and self.recent_boundary_index > 0 and index == self.recent_boundary_index + 1)
-            if is_boundary_here then
-                table.insert(self.item_group, ptutil.thinBlackLine(line_width))
-            else
+            is_boundary_crossed = (index - 1 >= self.recent_boundary_index + 1)
+            if is_boundary_crossed then
                 table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+            else
+                table.insert(self.item_group, ptutil.thinBlackLine(line_width))
             end
         end
         local item_tmp = ListMenuItem:new {

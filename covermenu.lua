@@ -269,7 +269,7 @@ end
 
 function CoverMenu:genItemTable(dirs, files, path)
     is_pathchooser = ptutil.isPathChooser(self)
-    self.recent_boundary_index = nil
+    self.recent_boundary_index = 0
 
     if meta_browse_mode == true and is_pathchooser == false and G_reader_settings:readSetting("home_dir") ~= nil then
         -- build item tables from coverbrowser-style sqlite db
@@ -327,6 +327,7 @@ function CoverMenu:genItemTable(dirs, files, path)
             end
         end
         self.db_conn:close()
+        logger.info(self.recent_boundary_index)
         return custom_item_table
     else
         local item_table = CoverMenu._FileChooser_genItemTable_orig(self, dirs, files, path)

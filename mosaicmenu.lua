@@ -1306,7 +1306,7 @@ function MosaicMenu:_updateItemsBuildUI()
                 -- Otherwise → thin GRAY.
                 local prev_row_start = idx_offset + (idx - self.nb_cols)
                 local prev_row_end = idx_offset + (idx - 1)
-                if self.recent_boundary_index and self.recent_boundary_index > 0 then
+                if self.recent_boundary_index > 0 then
                     if prev_row_end < self.recent_boundary_index then
                         table.insert(self.item_group, ptutil.thinBlackLine(line_width))
                     elseif prev_row_start <= self.recent_boundary_index and prev_row_end >= self.recent_boundary_index then
