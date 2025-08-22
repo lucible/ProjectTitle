@@ -411,6 +411,7 @@ local MosaicMenuItem = InputContainer:extend {
     cover_specs = nil,
     has_description = false,
     pages = nil,
+    is_boundary_item = false,
 }
 
 function MosaicMenuItem:init()
@@ -897,6 +898,14 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
 
+    if self.is_boundary_item then
+        local boundary_line = LineWidget:new {
+            dimen = Geom:new { w = Size.border.default, h = self.height },
+            background = Blitbuffer.COLOR_BLACK,
+        }
+        boundary_line:paintTo(bb, x + self.width + (Screen:scaleBySize(margin_size/2)), y)
+    end
+
     -- other paintings are anchored to the sub-widget (cover image)
     local target = self[1][1][1]
 
@@ -1315,6 +1324,7 @@ function MosaicMenu:_updateItemsBuildUI()
             })
             table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
         end
+        local is_boundary_here = (self.recent_boundary_index and self.recent_boundary_index > 0 and index == self.recent_boundary_index)
         local item_tmp = MosaicMenuItem:new {
             height = self.item_height,
             width = self.item_width,
@@ -1326,6 +1336,7 @@ function MosaicMenu:_updateItemsBuildUI()
             menu = self,
             do_cover_image = self._do_cover_images,
             do_hint_opened = self._do_hint_opened,
+            is_boundary_item = is_boundary_here,
         }
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
