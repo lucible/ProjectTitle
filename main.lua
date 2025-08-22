@@ -154,7 +154,7 @@ local curr_display_modes = {
 local series_mode = nil  -- defaults to not display series
 
 local CoverBrowser = WidgetContainer:extend {
-    name = "coverbrowserclean",
+    name = "coverbrowser",
     modes = {
         { _("Cover List"),    "list_image_meta" },
         { _("Cover Grid"),    "mosaic_image" },
