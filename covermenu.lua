@@ -317,7 +317,13 @@ function CoverMenu:genItemTable(dirs, files, path)
             end
             if util.tableSize(items_place_at_top) > 0 then
                 self.recent_boundary_index = util.tableSize(items_place_at_top)
-                util.tableMerge(custom_item_table, items_place_at_top)
+                local function join_tables(t1,t2)
+                    for i=1,#t2 do
+                        t1[#t1+1] = t2[i]
+                    end
+                    return t1
+                end
+                custom_item_table = join_tables(items_place_at_top, custom_item_table)
             end
         end
         self.db_conn:close()
