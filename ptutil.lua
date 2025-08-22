@@ -346,9 +346,9 @@ function ptutil.line(width, color, thickness)
     }
 end
 
-ptutil.thinDarkLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.thin) end
-ptutil.thinLightLine = function(w) return ptutil.line(w, Blitbuffer.COLOR_GRAY,  Size.line.thin) end
-ptutil.mediumDarkLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.medium) end
+ptutil.thinBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.thin) end
+ptutil.thinGrayLine = function(w) return ptutil.line(w, Blitbuffer.COLOR_GRAY,  Size.line.thin) end
+ptutil.mediumBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.medium) end
 
 function ptutil.onFocus(_underline_container)
     if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then

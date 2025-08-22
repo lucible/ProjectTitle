@@ -1279,7 +1279,7 @@ function ListMenu:_updateItemsBuildUI()
     -- Build our list
     local list_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
-    table.insert(self.item_group, ptutil.mediumDarkLine(line_width))
+    table.insert(self.item_group, ptutil.mediumBlackLine(line_width))
     local idx_offset = (self.page - 1) * self.perpage
     local select_number
     for idx = 1, self.perpage do
@@ -1298,9 +1298,9 @@ function ListMenu:_updateItemsBuildUI()
             end
             local is_boundary_here = (self.recent_boundary_index and self.recent_boundary_index > 0 and index == self.recent_boundary_index + 1)
             if is_boundary_here then
-                table.insert(self.item_group, ptutil.thinDarkLine(line_width))
+                table.insert(self.item_group, ptutil.thinBlackLine(line_width))
             else
-                table.insert(self.item_group, ptutil.thinLightLine(line_width))
+                table.insert(self.item_group, ptutil.thinGrayLine(line_width))
             end
         end
         local item_tmp = ListMenuItem:new {
