@@ -1285,6 +1285,7 @@ function MosaicMenu:_updateItemsBuildUI()
     table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
+    local items_on_current_page = math.min(self.perpage, math.max(0, #self.item_table - idx_offset))
     local line_layout = {}
     local select_number
     if self.recent_boundary_index == nil then self.recent_boundary_index = 0 end
@@ -1330,26 +1331,26 @@ function MosaicMenu:_updateItemsBuildUI()
         -- Draw row separator based on the recent boundary.
         -- If the previous row ends before the boundary → black line.
         -- If boundary falls within the previous row → gray baseline + black overlay over recent columns.
-        -- Otherwise → thin GRAY.
+        -- Otherwise → thin gray.
 
         -- not complete:
         -- for the last row on a page, the full-width line should be COLOR_WHITE (and must be painted)
         -- and if all items in the last row are opened, no COLOR_BLACK line should be painted.
         -- note: the "last" row is sometimes not the same as the "bottom" row (eg: 5 items in a 3x3 grid)
-        -- 
+        --
         -- this way there will only be a black underline if some items in the bottom line are opened
         -- and only shown under those opened books.
         if idx % self.nb_cols == 1 then -- new row
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
-            local prev_row_start = idx_offset + (idx - self.nb_cols)
-            local prev_row_end = idx_offset + (idx - 1)
+            local row_start = index
+            local row_end   = math.min(index + (self.nb_cols - 1), idx_offset + items_on_current_page)
             if self.recent_boundary_index > 0 then
-                if prev_row_end < self.recent_boundary_index then
+                if row_end <= self.recent_boundary_index then
                     table.insert(self.item_group, ptutil.thinBlackLine(line_width))
-                elseif prev_row_start <= self.recent_boundary_index and prev_row_end >= self.recent_boundary_index then
+                elseif row_start <= self.recent_boundary_index and row_end >= self.recent_boundary_index then
                     local pad = Screen:scaleBySize(10)
                     local inner_total = math.max(0, line_width - 2 * pad)
-                    local dark_cols = math.max(0, math.min(self.nb_cols, self.recent_boundary_index - prev_row_start + 1))
+                    local dark_cols = math.max(0, math.min(self.nb_cols, self.recent_boundary_index - row_start + 1))
                     local dark_inner = math.floor(inner_total * (dark_cols / self.nb_cols))
 
                     table.insert(self.item_group, OverlapGroup:new {
