@@ -270,9 +270,11 @@ end
 function CoverMenu:genItemTable(dirs, files, path)
     is_pathchooser = ptutil.isPathChooser(self)
     self.recent_boundary_index = 0
+    self.meta_show_opened = nil
 
     if meta_browse_mode == true and is_pathchooser == false and G_reader_settings:readSetting("home_dir") ~= nil then
         -- build item tables from coverbrowser-style sqlite db
+        if BookInfoManager:getSetting("opened_at_top_of_library") then self.meta_show_opened = true end
         local SQ3 = require("lua-ljsqlite3/init")
         local DataStorage = require("datastorage")
         local lfs = require("libs/libkoreader-lfs")
