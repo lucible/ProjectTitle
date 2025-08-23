@@ -1161,9 +1161,8 @@ function MosaicMenu:_recalculateDimen()
     end
 
     self.item_margin = Screen:scaleBySize(margin_size)
-    self.others_height = self.others_height + (Size.line.thin * self.nb_rows) -- lines between items
+    self.others_height = self.others_height + (Size.line.thin * self.nb_rows) -- lines between rows
     self.others_height = self.others_height + ((self.nb_rows + 1) * self.item_margin) -- margins between rows
-    -- self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
 
     -- Set our items target size
     self.item_height = math.floor(
@@ -1300,8 +1299,8 @@ function MosaicMenu:_updateItemsBuildUI()
             select_number = idx
         end
         if idx % self.nb_cols == 1 then -- new row
+            if idx > 1 then table.insert(self.layout, line_layout) end
             line_layout = {}
-            table.insert(self.layout, line_layout)
             cur_row = HorizontalGroup:new {}
             -- Have items on the possibly non-fully filled last row aligned to the left
             local container = self._do_center_partial_rows and CenterContainer or LeftContainer
@@ -1329,14 +1328,9 @@ function MosaicMenu:_updateItemsBuildUI()
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
 
-
         -- Recent items that are sorted to top of the library are underlined in black (using the row separator line)
-
-        -- Draw row separator based on the recent boundary.
-        -- If the current row ends before the boundary → full black line.
-        -- If boundary falls within the current row → gray baseline + black overlay over recent columns.
-        -- Otherwise → thin gray.
-
+        -- If the current row ends before the boundary → full black line. If boundary falls within the current
+        -- row → gray baseline + black overlay over recent columns, otherwise → thin gray.
         -- Special case: last line gets a white (invisible) line instead of gray. Logic for black lines is unchanged.
         if idx % self.nb_cols == 1 then -- new row
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
@@ -1369,10 +1363,8 @@ function MosaicMenu:_updateItemsBuildUI()
             end
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
         end
-
         -- this is for focus manager
         table.insert(line_layout, item_tmp)
-
         if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
@@ -1380,7 +1372,6 @@ function MosaicMenu:_updateItemsBuildUI()
         itm_timer:report("Draw grid item " .. getMenuText(entry))
     end
     table.insert(self.layout, line_layout)
-    -- table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) }) -- bottom padding
     grid_timer:report("Draw cover grid page " .. self.perpage)
     return select_number
 end
