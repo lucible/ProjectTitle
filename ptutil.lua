@@ -346,8 +346,9 @@ function ptutil.line(width, color, thickness)
     }
 end
 
-ptutil.thinBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.thin) end
+ptutil.thinWhiteLine = function(w) return ptutil.line(w, Blitbuffer.COLOR_WHITE,  Size.line.thin) end
 ptutil.thinGrayLine = function(w) return ptutil.line(w, Blitbuffer.COLOR_GRAY,  Size.line.thin) end
+ptutil.thinBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.thin) end
 ptutil.mediumBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.medium) end
 
 function ptutil.onFocus(_underline_container)

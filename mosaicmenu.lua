@@ -1286,6 +1286,7 @@ function MosaicMenu:_updateItemsBuildUI()
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
     local items_on_current_page = math.min(self.perpage, math.max(0, #self.item_table - idx_offset))
+    local last_index  = idx_offset + items_on_current_page
     local line_layout = {}
     local select_number
     if self.recent_boundary_index == nil then self.recent_boundary_index = 0 end
@@ -1328,22 +1329,21 @@ function MosaicMenu:_updateItemsBuildUI()
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
 
+
+        -- Recent items that are sorted to top of the library are underlined in black (using the row separator line)
+
         -- Draw row separator based on the recent boundary.
-        -- If the previous row ends before the boundary → black line.
-        -- If boundary falls within the previous row → gray baseline + black overlay over recent columns.
+        -- If the current row ends before the boundary → full black line.
+        -- If boundary falls within the current row → gray baseline + black overlay over recent columns.
         -- Otherwise → thin gray.
 
-        -- not complete:
-        -- for the last row on a page, the full-width line should be COLOR_WHITE (and must be painted)
-        -- and if all items in the last row are opened, no COLOR_BLACK line should be painted.
-        -- note: the "last" row is sometimes not the same as the "bottom" row (eg: 5 items in a 3x3 grid)
-        --
-        -- this way there will only be a black underline if some items in the bottom line are opened
-        -- and only shown under those opened books.
+        -- Special case: last line gets a white (invisible) line instead of gray. Logic for black lines is unchanged.
         if idx % self.nb_cols == 1 then -- new row
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
             local row_start = index
-            local row_end   = math.min(index + (self.nb_cols - 1), idx_offset + items_on_current_page)
+            local row_end   = math.min(index + (self.nb_cols - 1), last_index)
+            local is_last_row = (row_end == last_index)
+            local baseline = is_last_row and ptutil.thinWhiteLine or ptutil.thinGrayLine
             if self.recent_boundary_index > 0 then
                 if row_end <= self.recent_boundary_index then
                     table.insert(self.item_group, ptutil.thinBlackLine(line_width))
@@ -1355,17 +1355,17 @@ function MosaicMenu:_updateItemsBuildUI()
 
                     table.insert(self.item_group, OverlapGroup:new {
                         dimen = Geom:new { w = line_width, h = Size.line.thin },
-                        ptutil.thinGrayLine(line_width),
+                        baseline(line_width),
                         LeftContainer:new {
                             dimen = Geom:new { w = (2 * pad) + dark_inner, h = Size.line.thin },
                             ptutil.thinBlackLine((2 * pad) + dark_inner),
                         },
                     })
                 else
-                    table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+                    table.insert(self.item_group, baseline(line_width))
                 end
             else
-                table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+                table.insert(self.item_group, baseline(line_width))
             end
             table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
         end
