@@ -335,27 +335,21 @@ function ptutil.getSubfolderCoverImages(filepath, max_w, max_h)
     end
 end
 
-function ptutil.darkLine(width)
+function ptutil.line(width, color, thickness)
     return HorizontalGroup:new {
         HorizontalSpan:new { width = Screen:scaleBySize(10) },
         LineWidget:new {
-            dimen = Geom:new { w = width - Screen:scaleBySize(20), h = Size.line.medium },
-            background = Blitbuffer.COLOR_BLACK,
+            dimen = Geom:new { w = width - Screen:scaleBySize(20), h = thickness },
+            background = color,
         },
         HorizontalSpan:new { width = Screen:scaleBySize(10) },
     }
 end
 
-function ptutil.lightLine(width)
-    return HorizontalGroup:new {
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-        LineWidget:new {
-            dimen = Geom:new { w = width - Screen:scaleBySize(20), h = Size.line.thin },
-            background = Blitbuffer.COLOR_GRAY,
-        },
-        HorizontalSpan:new { width = Screen:scaleBySize(10) },
-    }
-end
+ptutil.thinWhiteLine = function(w) return ptutil.line(w, Blitbuffer.COLOR_WHITE,  Size.line.thin) end
+ptutil.thinGrayLine = function(w) return ptutil.line(w, Blitbuffer.COLOR_GRAY,  Size.line.thin) end
+ptutil.thinBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.thin) end
+ptutil.mediumBlackLine  = function(w) return ptutil.line(w, Blitbuffer.COLOR_BLACK, Size.line.medium) end
 
 function ptutil.onFocus(_underline_container)
     if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then

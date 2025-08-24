@@ -269,8 +269,12 @@ end
 
 function CoverMenu:genItemTable(dirs, files, path)
     is_pathchooser = ptutil.isPathChooser(self)
+    self.recent_boundary_index = 0
+    self.meta_show_opened = nil
+
     if meta_browse_mode == true and is_pathchooser == false and G_reader_settings:readSetting("home_dir") ~= nil then
         -- build item tables from coverbrowser-style sqlite db
+        if BookInfoManager:getSetting("opened_at_top_of_library") then self.meta_show_opened = true end
         local SQ3 = require("lua-ljsqlite3/init")
         local DataStorage = require("datastorage")
         local lfs = require("libs/libkoreader-lfs")
@@ -314,7 +318,14 @@ function CoverMenu:genItemTable(dirs, files, path)
                 end
             end
             if util.tableSize(items_place_at_top) > 0 then
-                util.tableMerge(custom_item_table, items_place_at_top)
+                self.recent_boundary_index = util.tableSize(items_place_at_top)
+                local function join_tables(t1,t2)
+                    for i=1,#t2 do
+                        t1[#t1+1] = t2[i]
+                    end
+                    return t1
+                end
+                custom_item_table = join_tables(items_place_at_top, custom_item_table)
             end
         end
         self.db_conn:close()
@@ -717,7 +728,7 @@ function CoverMenu:menuInit()
             w = self.inner_dimen.w,
             h = self.inner_dimen.h - self.page_info:getSize().h,
         },
-        ptutil.darkLine(self.inner_dimen.w),
+        ptutil.mediumBlackLine(self.inner_dimen.w),
     }
     local footer = OverlapGroup:new {
         -- This unique allow_mirroring=false looks like it's enough

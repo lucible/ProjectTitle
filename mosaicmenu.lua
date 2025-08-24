@@ -1157,9 +1157,11 @@ function MosaicMenu:_recalculateDimen()
     end
 
     self.item_margin = Screen:scaleBySize(margin_size)
-    self.others_height = self.others_height + (Size.line.thin * self.nb_rows) -- lines between items
-    self.others_height = self.others_height + (self.nb_rows * self.item_margin) -- margins between rows
-    self.others_height = self.others_height + Screen:scaleBySize(3) -- bottom padding
+    -- in meta mode, an extra line and margins are drawn between bottom row and footer to indicate read status
+    local additional_padding = 0
+    if self.meta_show_opened ~= nil then additional_padding = 1 end
+    self.others_height = self.others_height + ((self.nb_rows + additional_padding) * Size.line.thin) -- lines between rows
+    self.others_height = self.others_height + ((self.nb_rows + additional_padding) * self.item_margin) -- margins between rows
 
     -- Set our items target size
     self.item_height = math.floor(
@@ -1276,12 +1278,16 @@ function MosaicMenu:_updateItemsBuildUI()
     -- Build our grid
     local grid_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
-    table.insert(self.item_group, ptutil.darkLine(line_width))
+    local half_margin_size = margin_size / 2
+    table.insert(self.item_group, ptutil.mediumBlackLine(line_width))
+    table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
     local cur_row = nil
     local idx_offset = (self.page - 1) * self.perpage
+    local items_on_current_page = math.min(self.perpage, math.max(0, #self.item_table - idx_offset))
+    local last_index  = idx_offset + items_on_current_page
     local line_layout = {}
     local select_number
-    local half_margin_size = margin_size / 2
+    if self.recent_boundary_index == nil then self.recent_boundary_index = 0 end
     for idx = 1, self.perpage do
         local itm_timer = ptdbg:new()
         local index = idx_offset + idx
@@ -1292,12 +1298,7 @@ function MosaicMenu:_updateItemsBuildUI()
             select_number = idx
         end
         if idx % self.nb_cols == 1 then -- new row
-            table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
-            if idx > 1 then
-                table.insert(self.layout, line_layout)
-                table.insert(self.item_group, ptutil.lightLine(line_width))
-                table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
-            end
+            if idx > 1 then table.insert(self.layout, line_layout) end
             line_layout = {}
             cur_row = HorizontalGroup:new {}
             -- Have items on the possibly non-fully filled last row aligned to the left
@@ -1326,17 +1327,58 @@ function MosaicMenu:_updateItemsBuildUI()
         table.insert(cur_row, item_tmp)
         table.insert(cur_row, HorizontalSpan:new({ width = self.item_margin }))
 
+        -- Recent items that are sorted to top of the library are underlined in black (using the row separator line)
+        -- If the current row ends before the boundary → full black line. If boundary falls within the current
+        -- row → gray baseline + black overlay over recent columns, otherwise → thin gray.
+        -- Special case: last line gets a white (invisible) line instead of gray. Logic for black lines is unchanged.
+        if idx % self.nb_cols == 1 then -- new row
+            local row_start = index
+            local row_end   = math.min(index + (self.nb_cols - 1), last_index)
+            local is_last_row = (row_end == last_index)
+            local draw_line = ((not is_last_row) or (is_last_row and self.meta_show_opened ~= nil))
+            if draw_line then
+                table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
+            end
+            local baseline = is_last_row and ptutil.thinWhiteLine or ptutil.thinGrayLine
+            if self.recent_boundary_index > 0 then
+                if row_end <= self.recent_boundary_index then
+                    table.insert(self.item_group, ptutil.thinBlackLine(line_width))
+                elseif row_start <= self.recent_boundary_index and row_end >= self.recent_boundary_index then
+                    local pad = Screen:scaleBySize(10)
+                    local inner_total = math.max(0, line_width - 2 * pad)
+                    local dark_cols = math.max(0, math.min(self.nb_cols, self.recent_boundary_index - row_start + 1))
+                    local dark_inner = math.floor(inner_total * (dark_cols / self.nb_cols))
+
+                    table.insert(self.item_group, OverlapGroup:new {
+                        dimen = Geom:new { w = line_width, h = Size.line.thin },
+                        baseline(line_width),
+                        LeftContainer:new {
+                            dimen = Geom:new { w = (2 * pad) + dark_inner, h = Size.line.thin },
+                            ptutil.thinBlackLine((2 * pad) + dark_inner),
+                        },
+                    })
+                else
+                    if draw_line then table.insert(self.item_group, baseline(line_width)) end
+                end
+            else
+                if draw_line then table.insert(self.item_group, baseline(line_width)) end
+            end
+            if draw_line then
+                table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
+            end
+        end
         -- this is for focus manager
         table.insert(line_layout, item_tmp)
-
         if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
             -- Register this item for update
             table.insert(self.items_to_update, item_tmp)
         end
         itm_timer:report("Draw grid item " .. getMenuText(entry))
     end
+    if self.meta_show_opened == nil then
+        table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(half_margin_size) })
+    end
     table.insert(self.layout, line_layout)
-    table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) }) -- bottom padding
     grid_timer:report("Draw cover grid page " .. self.perpage)
     return select_number
 end

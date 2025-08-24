@@ -1271,9 +1271,10 @@ function ListMenu:_updateItemsBuildUI()
     -- Build our list
     local list_timer = ptdbg:new()
     local line_width = self.width or self.screen_w
-    table.insert(self.item_group, ptutil.darkLine(line_width))
+    table.insert(self.item_group, ptutil.mediumBlackLine(line_width))
     local idx_offset = (self.page - 1) * self.perpage
     local select_number
+    if self.recent_boundary_index == nil then self.recent_boundary_index = 0 end
     for idx = 1, self.perpage do
         local itm_timer = ptdbg:new()
         local index = idx_offset + idx
@@ -1283,12 +1284,18 @@ function ListMenu:_updateItemsBuildUI()
         if index == self.itemnumber then -- focused item
             select_number = idx
         end
+        local is_boundary_crossed = true
         if idx > 1 then
             -- add focus indicator padding only for devices that need it
             if not Device:isTouchDevice() or BookInfoManager:getSetting("force_focus_indicator") then
                 table.insert(self.item_group, VerticalSpan:new { width = Screen:scaleBySize(3) })
             end
-            table.insert(self.item_group, ptutil.lightLine(line_width))
+            is_boundary_crossed = (index - 1 >= self.recent_boundary_index + 1)
+            if is_boundary_crossed then
+                table.insert(self.item_group, ptutil.thinGrayLine(line_width))
+            else
+                table.insert(self.item_group, ptutil.thinBlackLine(line_width))
+            end
         end
         local item_tmp = ListMenuItem:new {
             height = self.item_height,
