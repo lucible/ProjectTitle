@@ -763,8 +763,6 @@ function MosaicMenuItem:update()
                     image = bookinfo.cover_bb,
                     scale_factor = scale_factor,
                 }
-                -- image:_render()
-                -- local image_size = image:getSize()
                 local frame_radius = 0
                 local frame_color = Blitbuffer.COLOR_GRAY_3
                 if self.show_progress_bar then
@@ -773,10 +771,8 @@ function MosaicMenuItem:update()
                 widget = CenterContainer:new {
                     dimen = dimen,
                     FrameContainer:new {
-                        -- width = image_size.w + border_total,
-                        -- height = image_size.h + border_total,
-                        width = (bookinfo.cover_w * scale_factor) + border_total,
-                        height = (bookinfo.cover_h * scale_factor) + border_total,
+                        width = math.floor((bookinfo.cover_w * scale_factor) + border_total),
+                        height = math.floor((bookinfo.cover_h * scale_factor) + border_total),
                         margin = 0,
                         padding = 0,
                         radius = frame_radius,

@@ -338,15 +338,11 @@ function ListMenuItem:update()
                         image = bookinfo.cover_bb,
                         scale_factor = scale_factor,
                     }
-                    -- wimage:_render()
-                    -- local image_size = wimage:getSize() -- get final widget size
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
-                            -- width = image_size.w + border_total,
-                            -- height = image_size.h + border_total,
-                            width = (bookinfo.cover_w * scale_factor) + border_total,
-                            height = (bookinfo.cover_h * scale_factor) + border_total,
+                            width = math.floor((bookinfo.cover_w * scale_factor) + border_total),
+                            height = math.floor((bookinfo.cover_h * scale_factor) + border_total),
                             margin = 0,
                             padding = 0,
                             radius = Size.radius.default,
@@ -382,15 +378,11 @@ function ListMenuItem:update()
                             original_in_nightmode = false,
                         })
                     end
-                    -- wimage:_render()
-                    -- local image_size = wimage:getSize() -- get final widget size
                     wleft = CenterContainer:new {
                         dimen = Geom:new { w = wleft_width, h = wleft_height },
                         FrameContainer:new {
-                            -- width = image_size.w + 2 * padding_size,
-                            -- height = image_size.h + 2 * padding_size,
-                            width = (250 * scale_factor) + (2 * padding_size),
-                            height = (500 * scale_factor) + (2 * padding_size),
+                            width = math.floor((250 * scale_factor) + (2 * padding_size)),
+                            height = math.floor((500 * scale_factor) + (2 * padding_size)),
                             margin = 0,
                             padding = padding_size,
                             bordersize = 0,
