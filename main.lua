@@ -721,7 +721,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                 },
             },
             {
-                text = _("Show focus indicator on touchscreen devices"),
+                text = _("Show last item indicator on touchscreen devices"),
                 checked_func = function() return BookInfoManager:getSetting("force_focus_indicator") end,
                 callback = function()
                     BookInfoManager:toggleSetting("force_focus_indicator")
