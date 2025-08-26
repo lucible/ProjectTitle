@@ -48,46 +48,34 @@ local TitleBar = OverlapGroup:extend {
     right1_icon_tap_callback = function() end,
     right1_icon_hold_callback = function() end,
     right1_icon_allow_flash = true,
-    -- set any of these _callback to false to not handle the event
-    -- and let it propagate; otherwise the event is discarded
-    -- If provided, use right1_icon="exit" and use this as right1_icon_tap_callback
-    close_callback = nil,
-    close_hold_callback = nil,
     show_parent = nil,
-    button_padding = Screen:scaleBySize(11),
+    icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE),
+    icon_padding_top = Screen:scaleBySize(6),
+    icon_padding_bottom = nil,
+    icon_margin_lr = Screen:scaleBySize(6),
+    icon_reserved_width = nil,
+    title_top_padding = nil,
+    titlebar_margin_lr = Screen:scaleBySize(16),
     title = "",
     subtitle = "",
-    _initial_title_top_padding = nil,
-    _initial_title_text_baseline = nil,
-    _initial_titlebar_height = nil,
-    _initial_filler_height = nil,
-    _initial_re_init_needed = nil,
+    fullscreen = "true",
+    align = "center",
 }
 
 function TitleBar:init()
-    if self.close_callback then
-        self.right1_icon = "close"
-        self.right1_icon_tap_callback = self.close_callback
-        self.right1_icon_allow_flash = false
-        if self.close_hold_callback then
-            self.right1_icon_hold_callback = function() self.close_hold_callback() end
-        end
-    end
+    self.icon_padding_bottom = self.icon_size * 0.2
+    self.icon_reserved_width = (self.icon_size + self.icon_margin_lr) * 1.65
+    local padding1 = self.titlebar_margin_lr
+    local padding2 = self.titlebar_margin_lr + self.icon_reserved_width
+    local padding3 = self.titlebar_margin_lr + (2 * self.icon_reserved_width)
+    local center_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.center_icon_size_ratio)
+    local total_width = center_icon_size + (padding3 * 2) + (2 * self.icon_reserved_width)
 
-    local icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE)
-    local icon_height = icon_size
-    local icon_baseline = icon_height * 0.8 + self.button_padding
-
-    self.title_widget = TextWidget:new { -- Dummy textwidget to enforce vertical height
-        face = Font:getFace("smalltfont"),
-        text = self.title,
-    }
-    local text_baseline = self.title_widget:getBaseline()
-    local title_top_padding = Math.round(math.max(0, icon_baseline - text_baseline))
+    self.title_top_padding = self.icon_size + self.icon_padding_bottom
     self.title_group = VerticalGroup:new {
         align = "center",
         overlap_align = "center",
-        VerticalSpan:new { width = title_top_padding },
+        VerticalSpan:new { width = self.title_top_padding },
     }
     table.insert(self.title_group, self.title_widget)
     self.titlebar_height = self.title_group:getSize().h
@@ -102,93 +90,81 @@ function TitleBar:init()
         h = self.titlebar_height, -- buttons can overflow this
     }
 
-    local center_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.center_icon_size_ratio)
-    local center_icon_reserved_width = center_icon_size + self.button_padding
-    local icon_reserved_width = icon_size + self.button_padding
-    local icon_padding_width = icon_reserved_width * 0.65
-    local icon_padding_height = Screen:scaleBySize(6)
-    local icon_padding_side_offset = Screen:scaleBySize(14)
-    local total_width = center_icon_size + (icon_reserved_width * 2) +
-                        ((icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width)) * 2)
-
     self.left1_button = IconButton:new {
         icon = self.left1_icon,
         icon_rotation_angle = 0,
-        width = icon_reserved_width,
-        height = icon_size,
+        width = self.icon_size,
+        height = self.icon_size,
         padding = 0,
-        padding_bottom = icon_size * 0.2,
-        padding_top = icon_padding_height,
+        padding_bottom = self.icon_padding_bottom,
+        padding_top = self.icon_padding_top,
         callback = self.left1_icon_tap_callback,
         hold_callback = self.left1_icon_hold_callback,
         allow_flash = self.left1_icon_allow_flash,
         show_parent = self.show_parent,
     }
-    local left1_padding = icon_padding_side_offset
     self.left1_button_container = LeftContainer:new {
         dimen = self.dimen,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = left1_padding },
+            HorizontalSpan:new { width = padding1 },
             self.left1_button,
-            HorizontalSpan:new { width = self.width - left1_padding - self.left1_button:getSize().w },
+            HorizontalSpan:new { width = self.width - padding1 - self.left1_button:getSize().w },
         },
     }
 
     self.left2_button = IconButton:new {
         icon = self.left2_icon,
         icon_rotation_angle = 0,
-        width = icon_reserved_width,
-        height = icon_size,
+        width = self.icon_size,
+        height = self.icon_size,
         padding = 0,
-        padding_bottom = icon_size * 0.2,
-        padding_top = icon_padding_height,
+        padding_bottom = self.icon_padding_bottom,
+        padding_top = self.icon_padding_top,
         callback = self.left2_icon_tap_callback,
         hold_callback = self.left2_icon_hold_callback,
         allow_flash = self.left2_icon_allow_flash,
         show_parent = self.show_parent,
     }
-    local left2_padding = icon_padding_side_offset + icon_reserved_width + icon_padding_width
     self.left2_button_container = LeftContainer:new {
         dimen = self.dimen,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = left2_padding },
+            HorizontalSpan:new { width = padding2 },
             self.left2_button,
-            HorizontalSpan:new { width = self.width - left2_padding - self.left2_button:getSize().w },
+            HorizontalSpan:new { width = self.width - padding2 - self.left2_button:getSize().w },
         },
     }
 
     self.left3_button = IconButton:new {
         icon = self.left3_icon,
         icon_rotation_angle = 0,
-        width = icon_reserved_width,
-        height = icon_size,
+        width = self.icon_size,
+        height = self.icon_size,
         padding = 0,
-        padding_bottom = icon_size * 0.2,
-        padding_top = icon_padding_height,
+        padding_bottom = self.icon_padding_bottom,
+        padding_top = self.icon_padding_top,
         callback = self.left3_icon_tap_callback,
         hold_callback = self.left3_icon_hold_callback,
         allow_flash = self.left3_icon_allow_flash,
         show_parent = self.show_parent,
     }
-    local left3_padding = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width)
     self.left3_button_container = LeftContainer:new {
         dimen = self.dimen,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = left3_padding },
+            HorizontalSpan:new { width = padding3 },
             self.left3_button,
-            HorizontalSpan:new { width = self.width - left3_padding - self.left3_button:getSize().w },
+            HorizontalSpan:new { width = self.width - padding3 - self.left3_button:getSize().w },
         },
     }
 
     self.center_button = IconButton:new {
         icon = self.center_icon,
         icon_rotation_angle = 0,
-        width = center_icon_reserved_width,
+        width = center_icon_size,
         height = center_icon_size,
         padding = 0,
         padding_bottom = 0,
         padding_top = Screen:scaleBySize(3),
-        overlap_align = "center",
+        overlap_align = "center", -- this does all the work of centering itself, no container needed
         callback = self.center_icon_tap_callback,
         hold_callback = self.center_icon_hold_callback,
         allow_flash = self.center_icon_allow_flash,
@@ -199,69 +175,66 @@ function TitleBar:init()
     self.right3_button = IconButton:new {
         icon = self.right3_icon,
         icon_rotation_angle = 0,
-        width = icon_reserved_width,
-        height = icon_size,
+        width = self.icon_size,
+        height = self.icon_size,
         padding = 0,
-        padding_bottom = icon_size * 0.2,
-        padding_top = icon_padding_height,
+        padding_bottom = self.icon_padding_bottom,
+        padding_top = self.icon_padding_top,
         callback = self.right3_icon_tap_callback,
         hold_callback = self.right3_icon_hold_callback,
         allow_flash = self.right3_icon_allow_flash,
         show_parent = self.show_parent,
     }
-    local right3_padding = icon_padding_side_offset + (2 * icon_reserved_width) + (2 * icon_padding_width)
     self.right3_button_container = RightContainer:new {
         dimen = self.dimen,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = self.width - right3_padding - self.right3_button:getSize().w },
+            HorizontalSpan:new { width = self.width - padding3 - self.right3_button:getSize().w },
             self.right3_button,
-            HorizontalSpan:new { width = right3_padding },
+            HorizontalSpan:new { width = padding3 },
         },
     }
 
     self.right2_button = IconButton:new {
         icon = self.right2_icon,
         icon_rotation_angle = 0,
-        width = icon_reserved_width,
-        height = icon_size,
+        width = self.icon_size,
+        height = self.icon_size,
         padding = 0,
-        padding_bottom = icon_size * 0.2,
-        padding_top = icon_padding_height,
+        padding_bottom = self.icon_padding_bottom,
+        padding_top = self.icon_padding_top,
         callback = self.right2_icon_tap_callback,
         hold_callback = self.right2_icon_hold_callback,
         allow_flash = self.right2_icon_allow_flash,
         show_parent = self.show_parent,
     }
-    local right2_padding = icon_padding_side_offset + icon_reserved_width + icon_padding_width
     self.right2_button_container = RightContainer:new {
         dimen = self.dimen,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = self.width - right2_padding - self.right2_button:getSize().w },
+            HorizontalSpan:new { width = self.width - padding2 - self.right2_button:getSize().w },
             self.right2_button,
-            HorizontalSpan:new { width = right2_padding },
+            HorizontalSpan:new { width = padding2 },
         },
     }
 
     self.right1_button = IconButton:new {
         icon = self.right1_icon,
         icon_rotation_angle = 0,
-        width = icon_reserved_width,
-        height = icon_size,
+        width = self.icon_size,
+        height = self.icon_size,
         padding = 0,
-        padding_bottom = icon_size * 0.2,
-        padding_top = icon_padding_height,
+        padding_bottom = self.icon_padding_bottom,
+        padding_top = self.icon_padding_top,
         callback = self.right1_icon_tap_callback,
         hold_callback = self.right1_icon_hold_callback,
         allow_flash = self.right1_icon_allow_flash,
         show_parent = self.show_parent,
     }
-    local right1_padding = icon_padding_side_offset
     self.right1_button_container = RightContainer:new {
         dimen = self.dimen,
         HorizontalGroup:new {
-            HorizontalSpan:new { width = self.width - right1_padding - self.right1_button:getSize().w },
+            HorizontalSpan:new { width = self.width - padding1 - self.right1_button:getSize().w },
             self.right1_button,
-            HorizontalSpan:new { width = right1_padding },
+            HorizontalSpan:new { width = padding1 },
         },
     }
 

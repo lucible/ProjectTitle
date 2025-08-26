@@ -350,14 +350,8 @@ function CoverMenu:setupLayout()
     self.show_parent = self.show_parent or self
     self.title_bar = TitleBar:new {
         show_parent = self.show_parent,
-        fullscreen = "true",
-        align = "center",
         title = "",
-        title_top_padding = Screen:scaleBySize(6),
         subtitle = "",
-        subtitle_truncate_left = true,
-        subtitle_fullwidth = true,
-        button_padding = Screen:scaleBySize(5),
 
         -- home
         left1_icon = "home",
