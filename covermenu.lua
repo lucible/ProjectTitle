@@ -352,7 +352,6 @@ function CoverMenu:setupLayout()
         show_parent = self.show_parent,
         title = "",
         subtitle = "",
-
         -- home
         left1_icon = "home",
         left1_icon_tap_callback = function() self:onHome() end,

@@ -3,7 +3,6 @@ local Geom = require("ui/geometry")
 local IconButton = require("ui/widget/iconbutton")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local LeftContainer = require("ui/widget/container/leftcontainer")
-local RightContainer = require("ui/widget/container/rightcontainer")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local Screen = Device.screen

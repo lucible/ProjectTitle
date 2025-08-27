@@ -27,7 +27,6 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local logger = require("logger")
 local util = require("util")
-local time = require("ui/time")
 local _ = require("l10n.gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template

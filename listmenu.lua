@@ -26,7 +26,6 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local logger = require("logger")
 local util = require("util")
-local time = require("ui/time")
 local _ = require("l10n.gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
