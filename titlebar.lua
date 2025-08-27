@@ -66,6 +66,26 @@ function TitleBar:init()
     self.center_icon_size = math.ceil(self.icon_size * self.center_icon_size_ratio)
     local total_width = self.center_icon_size + (padding3 * 2) + (self.icon_total_width * 2)
 
+    local function build_container(button, is_left_button, padding)
+        local pre_padding
+        local post_padding
+        if is_left_button then
+            pre_padding = padding
+            post_padding = self.width - padding - button:getSize().w
+        else
+            pre_padding = self.width - padding - button:getSize().w
+            post_padding = padding
+        end
+        return LeftContainer:new {
+            dimen = self.dimen,
+            HorizontalGroup:new {
+                HorizontalSpan:new { width = pre_padding },
+                button,
+                HorizontalSpan:new { width = post_padding },
+            },
+        }
+    end
+
     self.left1_button = IconButton:new {
         icon = self.left1_icon,
         icon_rotation_angle = 0,
@@ -78,14 +98,7 @@ function TitleBar:init()
         hold_callback = self.left1_icon_hold_callback,
         show_parent = self.show_parent,
     }
-    self.left1_button_container = LeftContainer:new {
-        dimen = self.dimen,
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = padding1 },
-            self.left1_button,
-            HorizontalSpan:new { width = self.width - padding1 - self.left1_button:getSize().w },
-        },
-    }
+    self.left1_button_container = build_container(self.left1_button, true, padding1)
 
     self.left2_button = IconButton:new {
         icon = self.left2_icon,
@@ -98,14 +111,7 @@ function TitleBar:init()
         hold_callback = self.left2_icon_hold_callback,
         show_parent = self.show_parent,
     }
-    self.left2_button_container = LeftContainer:new {
-        dimen = self.dimen,
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = padding2 },
-            self.left2_button,
-            HorizontalSpan:new { width = self.width - padding2 - self.left2_button:getSize().w },
-        },
-    }
+    self.left2_button_container = build_container(self.left2_button, true, padding2)
 
     self.left3_button = IconButton:new {
         icon = self.left3_icon,
@@ -118,14 +124,7 @@ function TitleBar:init()
         hold_callback = self.left3_icon_hold_callback,
         show_parent = self.show_parent,
     }
-    self.left3_button_container = LeftContainer:new {
-        dimen = self.dimen,
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = padding3 },
-            self.left3_button,
-            HorizontalSpan:new { width = self.width - padding3 - self.left3_button:getSize().w },
-        },
-    }
+    self.left3_button_container = build_container(self.left3_button, true, padding3)
 
     self.center_button = IconButton:new {
         icon = self.center_icon,
@@ -152,14 +151,7 @@ function TitleBar:init()
         hold_callback = self.right3_icon_hold_callback,
         show_parent = self.show_parent,
     }
-    self.right3_button_container = RightContainer:new {
-        dimen = self.dimen,
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = self.width - padding3 - self.right3_button:getSize().w },
-            self.right3_button,
-            HorizontalSpan:new { width = padding3 },
-        },
-    }
+    self.right3_button_container = build_container(self.right3_button, false, padding3)
 
     self.right2_button = IconButton:new {
         icon = self.right2_icon,
@@ -172,14 +164,7 @@ function TitleBar:init()
         hold_callback = self.right2_icon_hold_callback,
         show_parent = self.show_parent,
     }
-    self.right2_button_container = RightContainer:new {
-        dimen = self.dimen,
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = self.width - padding2 - self.right2_button:getSize().w },
-            self.right2_button,
-            HorizontalSpan:new { width = padding2 },
-        },
-    }
+    self.right2_button_container = build_container(self.right2_button, false, padding2)
 
     self.right1_button = IconButton:new {
         icon = self.right1_icon,
@@ -192,14 +177,7 @@ function TitleBar:init()
         hold_callback = self.right1_icon_hold_callback,
         show_parent = self.show_parent,
     }
-    self.right1_button_container = RightContainer:new {
-        dimen = self.dimen,
-        HorizontalGroup:new {
-            HorizontalSpan:new { width = self.width - padding1 - self.right1_button:getSize().w },
-            self.right1_button,
-            HorizontalSpan:new { width = padding1 },
-        },
-    }
+    self.right1_button_container = build_container(self.right1_button, false, padding1)
 
     -- insert buttons into final layout...
     table.insert(self, self.center_button_container)
