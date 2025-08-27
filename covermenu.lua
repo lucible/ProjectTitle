@@ -355,23 +355,18 @@ function CoverMenu:setupLayout()
 
         -- home
         left1_icon = "home",
-        left1_icon_size_ratio = 1,
         left1_icon_tap_callback = function() self:onHome() end,
         left1_icon_hold_callback = function() self:onShowFolderMenu() end,
         -- favorites
         left2_icon = "favorites",
-        left2_icon_size_ratio = 1,
         left2_icon_tap_callback = function() FileManager.instance.collections:onShowColl() end,
         left2_icon_hold_callback = function() FileManager.instance.folder_shortcuts:onShowFolderShortcutsDialog() end,
         -- history
         left3_icon = "history",
-        left3_icon_size_ratio = 1,
         left3_icon_tap_callback = function() FileManager.instance.history:onShowHist() end,
         left3_icon_hold_callback = false,
-
         -- centered logo
         center_icon = "hero",
-        center_icon_size_ratio = 1.25, -- larger "hero" size compared to rest of titlebar icons
         center_icon_tap_callback = false,
         center_icon_hold_callback = function()
             if G_reader_settings:readSetting("home_dir") ~= nil then
@@ -379,20 +374,16 @@ function CoverMenu:setupLayout()
                 self:onHome()
             end
         end,
-
         -- open last file
         right3_icon = "last_document",
-        right3_icon_size_ratio = 1,
         right3_icon_tap_callback = function() FileManager.instance.menu:onOpenLastDoc() end,
         right3_icon_hold_callback = false,
         -- up folder
         right2_icon = "go_up",
-        right2_icon_size_ratio = 1,
         right2_icon_tap_callback = function() onFolderUp() end,
         right2_icon_hold_callback = false,
         -- plus menu
         right1_icon = self.selected_files and "check" or "plus",
-        right1_icon_size_ratio = 1,
         right1_icon_tap_callback = function() self:onShowPlusMenu() end,
         right1_icon_hold_callback = false,
     }
