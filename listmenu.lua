@@ -557,6 +557,33 @@ function ListMenuItem:update()
                     HorizontalGroup:new(progressbar_items),
                 }
                 table.insert(wright_items, progress)
+            else
+                if status == "complete" or status == "abandoned" then
+                    -- books marked as "On Hold" get a little pause icon
+                    -- books marked as "Finished" get a little trophy
+                    local bar_icon_size = Screen:scaleBySize(wright_font_size)
+                    local bar_icon_padding = Size.padding.small
+                    filename = sourcedir .. "/resources/pause.svg"
+                    if status == "complete" then
+                        filename = sourcedir .. "/resources/trophy.svg"
+                    end
+                    table.insert(wright_items, RightContainer:new {
+                        dimen =  Geom:new {
+                            x = 0, y = 0, w = bar_icon_size + bar_icon_padding, h = bar_icon_size,
+                        },
+                        HorizontalGroup:new {
+                            ImageWidget:new({
+                                file = filename,
+                                width = bar_icon_size,
+                                height = bar_icon_size,
+                                scale_factor = 0,
+                                alpha = true,
+                                original_in_nightmode = false,
+                            }),
+                            HorizontalSpan:new { width = bar_icon_padding },
+                        }
+                    })
+                end
             end
 
             -- show progress text, page text, and/or file info text
