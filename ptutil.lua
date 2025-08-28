@@ -188,19 +188,23 @@ local function build_cover_images(db_res, max_w, max_h)
             if util.fileExists(fullpath) then
                 local bookinfo = BookInfoManager:getBookInfo(fullpath, true)
                 if bookinfo then
+                    local border_total = (Size.border.thin * 2)
                     local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
-                        bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h
-                    )
+                        bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h)
+                    local wimage = ImageWidget:new {
+                        image = bookinfo.cover_bb,
+                        scale_factor = scale_factor,
+                    }
                     table.insert(covers, FrameContainer:new {
-                        radius = Size.radius.default,
+                        width = math.floor((bookinfo.cover_w * scale_factor) + border_total),
+                        height = math.floor((bookinfo.cover_h * scale_factor) + border_total),
                         margin = 0,
                         padding = 0,
+                        radius = Size.radius.default,
                         bordersize = Size.border.thin,
-                        color = Blitbuffer.COLOR_DARK_GRAY,
-                        ImageWidget:new {
-                            image = bookinfo.cover_bb,
-                            scale_factor = scale_factor,
-                        }
+                        color = Blitbuffer.COLOR_GRAY_3,
+                        background = Blitbuffer.COLOR_GRAY_3,
+                        wimage,
                     })
                 end
                 if #covers == 4 then break end

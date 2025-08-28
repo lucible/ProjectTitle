@@ -755,6 +755,10 @@ function MosaicMenuItem:update()
             if self.do_cover_image and bookinfo.has_cover and not bookinfo.ignore_cover then
                 cover_bb_used = true
                 -- Let ImageWidget do the scaling and give us a bb that fit
+                local frame_radius = 0
+                if self.show_progress_bar then
+                    frame_radius = Size.radius.default
+                end
                 local border_total = Size.border.thin * 2
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h,
                     max_img_w - border_total, max_img_h - border_total)
@@ -762,11 +766,6 @@ function MosaicMenuItem:update()
                     image = bookinfo.cover_bb,
                     scale_factor = scale_factor,
                 }
-                local frame_radius = 0
-                local frame_color = Blitbuffer.COLOR_GRAY_3
-                if self.show_progress_bar then
-                    frame_radius = Size.radius.default
-                end
                 widget = CenterContainer:new {
                     dimen = dimen,
                     FrameContainer:new {
@@ -777,7 +776,7 @@ function MosaicMenuItem:update()
                         radius = frame_radius,
                         bordersize = Size.border.thin,
                         dim = self.file_deleted,
-                        color = frame_color,
+                        color = Blitbuffer.COLOR_GRAY_3,
                         image,
                     }
                 }
