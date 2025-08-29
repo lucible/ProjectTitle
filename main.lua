@@ -9,7 +9,6 @@
 --]]
 
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local DataStorage = require("datastorage")
 local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local logger = require("logger")
@@ -20,7 +19,7 @@ local ptutil = require("ptutil")
 local util = require("util")
 local ptdbg = require("ptdbg")
 
-local data_dir = DataStorage:getDataDir()
+local data_dir = ptutil.koreader_dir
 logger.info(ptdbg.logprefix, "Checking requirements in '" .. data_dir .. "'")
 
 -- Disable this plugin entirely if Cover Browser is enabled
@@ -33,18 +32,16 @@ if plugins_disabled["coverbrowser"] == nil or plugins_disabled["coverbrowser"] =
     return { disabled = true }
 end
 
-local font_missing = true
-if util.fileExists(data_dir .. "/fonts/source/SourceSans3-Regular.ttf") and
-    util.fileExists(data_dir .. "/fonts/source/SourceSerif4-Regular.ttf") and
-    util.fileExists(data_dir .. "/fonts/source/SourceSerif4-BoldIt.ttf") then
-    font_missing = false
+local fonts_missing = true
+if ptutil.installFonts() then
+    fonts_missing = false
 else
     logger.warn(ptdbg.logprefix, "Fonts missing")
 end
 
-local icon_missing = true
-if util.fileExists(data_dir .. "/icons/hero.svg") then
-    icon_missing = false -- check for one icon and assume the rest are there too
+local icons_missing = true
+if ptutil.installIcons() then
+    icons_missing = false
 else
     logger.warn(ptdbg.logprefix, "Icons missing")
 end
@@ -69,13 +66,13 @@ end
 
 -- If any required files are missing, or if KOReader version is wrong, load an empty plugin 
 -- and display an error message to the user.
-if font_missing or icon_missing or version_unsafe then
+if fonts_missing or icons_missing or version_unsafe then
     logger.warn(ptdbg.logprefix, "Refusing to fully load the plugin")
     local error_message_text = _("An error occurred while registering:") .. "  " ..  _("Project: Title")
-    if font_missing then
+    if fonts_missing then
         error_message_text = error_message_text .. "\n\n" .. _("Fonts") .." - ".. _("Not available")
     end
-    if icon_missing then
+    if icons_missing then
         error_message_text = error_message_text .. "\n\n" .. _("Icons") .." - ".. _("Not available")
     end
     if version_unsafe then

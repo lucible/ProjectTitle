@@ -37,7 +37,7 @@ local ptdbg = require("ptdbg")
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)
 local is_pathchooser = false
-local sourcedir = ptutil.getSourceDir()
+local plugin_dir = ptutil.getPluginDir()
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
 
 -- Based on menu.lua's MenuItem
@@ -224,7 +224,7 @@ function ListMenuItem:update()
                 subfolder_cover_image = ptutil.getSubfolderCoverImages(self.filepath, max_img_w, max_img_h)
             end
             -- use stock folder icon
-            local stock_image = sourcedir .. "/resources/folder.svg"
+            local stock_image = plugin_dir .. "/resources/folder.svg"
             if subfolder_cover_image == nil then
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w, max_img_h)
                 subfolder_cover_image = ImageWidget:new {
@@ -364,14 +364,14 @@ function ListMenuItem:update()
                     local wimage
                     if bookinfo._no_provider then
                         wimage = ImageWidget:new({
-                            file = sourcedir .. "/resources/file-unsupported.svg",
+                            file = plugin_dir .. "/resources/file-unsupported.svg",
                             alpha = true,
                             scale_factor = scale_factor,
                             original_in_nightmode = false,
                         })
                     else
                         wimage = ImageWidget:new({
-                            file = sourcedir .. "/resources/file.svg",
+                            file = plugin_dir .. "/resources/file.svg",
                             alpha = true,
                             scale_factor = scale_factor,
                             original_in_nightmode = false,
@@ -502,7 +502,7 @@ function ListMenuItem:update()
                 -- books with fn_page_count larger than the max get an indicator at the left edge of the progress bar
                 if fn_pages > (max_progress_size * pixels_per_page) then
                     local max_widget = ImageWidget:new({
-                        file = sourcedir .. "/resources/large_book.svg",
+                        file = plugin_dir .. "/resources/large_book.svg",
                         width = bar_icon_size,
                         height = bar_icon_size,
                         scale_factor = 0,
@@ -518,11 +518,11 @@ function ListMenuItem:update()
                 if status == "complete" or status == "abandoned" then
                     -- books marked as "On Hold" get a little pause icon
                     -- books marked as "Finished" get a little trophy
-                    filename = sourcedir .. "/resources/pause.svg"
+                    filename = plugin_dir .. "/resources/pause.svg"
                     progress_bar.percentage = percent_finished or 0
                     if status == "complete" then
                         progress_bar.percentage = 1
-                        filename = sourcedir .. "/resources/trophy.svg"
+                        filename = plugin_dir .. "/resources/trophy.svg"
                     end
                     local progress_statusicon_widget = ImageWidget:new({
                         file = filename,
@@ -563,9 +563,9 @@ function ListMenuItem:update()
                     -- books marked as "Finished" get a little trophy
                     local bar_icon_size = Screen:scaleBySize(wright_font_size)
                     local bar_icon_padding = Size.padding.small
-                    filename = sourcedir .. "/resources/pause.svg"
+                    filename = plugin_dir .. "/resources/pause.svg"
                     if status == "complete" then
-                        filename = sourcedir .. "/resources/trophy.svg"
+                        filename = plugin_dir .. "/resources/trophy.svg"
                     end
                     table.insert(wright_items, RightContainer:new {
                         dimen =  Geom:new {

@@ -1,6 +1,7 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local FileManager = require("apps/filemanager/filemanager")
 local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
@@ -13,6 +14,11 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local logger = require("logger")
 local Device = require("device")
 local Screen = Device.screen
+local BD = require("ui/bidi")
+local T = require("ffi/util").template
+local DataStorage = require("datastorage")
+local SQ3 = require("lua-ljsqlite3/init")
+local ffiUtil = require("ffi/util")
 local util = require("util")
 local _ = require("l10n.gettext")
 local ptdbg = require("ptdbg")
@@ -24,11 +30,108 @@ ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
 ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
 ptutil.good_sans = "source/SourceSans3-Regular.ttf"
 
-function ptutil.getSourceDir()
+ptutil.koreader_dir = DataStorage:getDataDir()
+
+function ptutil.getPluginDir()
     local callerSource = debug.getinfo(2, "S").source
     if callerSource:find("^@") then
         return callerSource:gsub("^@(.*)/[^/]*", "%1")
     end
+end
+
+local function copyRecursive(from, to)
+    -- from: koreader/frontend/apps/filemanager/filemanager.lua
+    local cp_bin = Device:isAndroid() and "/system/bin/cp" or "/bin/cp"
+    return ffiUtil.execute(cp_bin, "-r", from, to ) == 0
+end
+
+function ptutil.installFonts()
+    local fonts_path = ptutil.koreader_dir .. "/fonts"
+    local function checkfonts()
+        logger.info(ptdbg.logprefix, "Checking for fonts")
+        if util.fileExists(fonts_path .. "/source/SourceSans3-Regular.ttf") and
+            util.fileExists(fonts_path .. "/source/SourceSerif4-Regular.ttf") and
+            util.fileExists(fonts_path .. "/source/SourceSerif4-BoldIt.ttf") then
+            logger.info(ptdbg.logprefix, "Fonts found")
+            return true
+        else
+            return false
+        end
+    end
+
+    if checkfonts() then return true end
+
+    local result
+    if not util.directoryExists(fonts_path) then
+        result = util.makePath(ptutil.koreader_dir .. "/fonts/")
+        logger.info(ptdbg.logprefix, "Creating fonts folder")
+        if not result then return false end
+    end
+    if util.directoryExists(fonts_path) then
+        -- copy the entire "source" 
+        result = copyRecursive(ptutil.getPluginDir() .. "/fonts/source", fonts_path)
+        logger.info(ptdbg.logprefix, "Copying fonts")
+        if not result then return false end
+        package.loaded["ui/font"] = nil
+    end
+
+    if checkfonts() then return true end
+    return false
+end
+
+function ptutil.installIcons()
+    local icons_path = ptutil.koreader_dir .. "/icons"
+    local icons_list = {
+        "favorites",
+        "go_up",
+        "hero",
+        "history",
+        "last_document",
+        "plus",
+    }
+    local function checkicons()
+        logger.info(ptdbg.logprefix, "Checking for icons")
+        local icons_found = true
+        for _, icon in ipairs(icons_list) do
+            local icon_file = icons_path .. "/" .. icon .. ".svg"
+            if not util.fileExists(icon_file) then
+                icons_found = false
+            end
+        end
+        if icons_found then
+            logger.info(ptdbg.logprefix, "All icons found")
+            return true
+        else
+            return false
+        end
+    end
+
+    if checkicons() then return true end
+
+    local result
+    if not util.directoryExists(icons_path) then
+        result = util.makePath(ptutil.koreader_dir .. "/icons/")
+        logger.info(ptdbg.logprefix, "Creating icons folder")
+        if not result then return false end
+    end
+
+    if util.directoryExists(icons_path) then
+        for _, icon in ipairs(icons_list) do
+            -- check icon files one at a time, and only copy when missing
+            -- this will preserve custom icons set by the user
+            local icon_file = icons_path .. "/" .. icon .. ".svg"
+            if not util.fileExists(icon_file) then
+                local bundled_icon_file = ptutil.getPluginDir() .. "/icons/" .. icon .. ".svg"
+                logger.info(ptdbg.logprefix, "Copying icon")
+                ffiUtil.copyFile(bundled_icon_file, icon_file)
+            end
+        end
+        package.loaded["ui/widget/iconwidget"] = nil
+        package.loaded["ui/widget/iconbutton"] = nil
+    end
+
+    if checkicons() then return true end
+    return false
 end
 
 local function findCover(dir_path)
@@ -124,7 +227,7 @@ function ptutil.getFolderCover(filepath, max_img_w, max_img_h)
                 padding = 0,
                 bordersize = 0,
                 ImageWidget:new {
-                    file = ptutil.getSourceDir() .. "/resources/file-unsupported.svg",
+                    file = ptutil.getPluginDir() .. "/resources/file-unsupported.svg",
                     alpha = true,
                     scale_factor = scale_factor,
                     original_in_nightmode = false,
@@ -137,8 +240,6 @@ function ptutil.getFolderCover(filepath, max_img_w, max_img_h)
 end
 
 local function query_cover_paths(folder, include_subfolders)
-    local SQ3 = require("lua-ljsqlite3/init")
-    local DataStorage = require("datastorage")
     local db_conn = SQ3.open(DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3")
     db_conn:set_busy_timeout(5000)
 
@@ -389,8 +490,6 @@ function ptutil.isPathChooser(self)
 end
 
 function ptutil.formatAuthors(authors, authors_limit)
-    local BD = require("ui/bidi")
-    local T = require("ffi/util").template
     local formatted_authors
     if authors and authors:find("\n") then
         local full_authors_list = util.splitToArray(authors, "\n")

@@ -38,7 +38,7 @@ local ptdbg = require("ptdbg")
 -- Here is the specific UI implementation for "grid" display modes
 -- (see covermenu.lua for the generic code)
 local is_pathchooser = false
-local sourcedir = ptutil.getSourceDir()
+local plugin_dir = ptutil.getPluginDir()
 local alpha_level = 0.84
 local tag_width = 0.35
 local margin_size = 10
@@ -509,7 +509,7 @@ function MosaicMenuItem:update()
             end
             -- use stock folder icon
             if subfolder_cover_image == nil then
-                local stock_image = sourcedir .. "/resources/folder.svg"
+                local stock_image = plugin_dir .. "/resources/folder.svg"
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(250, 500, max_img_w * 1.1, max_img_h * 1.1)
                 subfolder_cover_image = FrameContainer:new {
                     width = dimen.w,
@@ -982,7 +982,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                     margin = 0,
                     background = Blitbuffer.COLOR_WHITE,
                     ImageWidget:new {
-                        file = sourcedir .. "/resources/trophy.svg",
+                        file = plugin_dir .. "/resources/trophy.svg",
                         alpha = true,
                         width = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
                         height = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
@@ -998,7 +998,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                     margin = 0,
                     background = Blitbuffer.COLOR_WHITE,
                     ImageWidget:new {
-                        file = sourcedir .. "/resources/pause.svg",
+                        file = plugin_dir .. "/resources/pause.svg",
                         alpha = true,
                         width = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
                         height = status_icon_size - (Size.border.thin * 2) - Size.padding.small,
@@ -1008,7 +1008,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 }
             elseif not bookinfo._no_provider and percent_done == 0 then
                 local unopened_widget = ImageWidget:new {
-                    file = sourcedir .. "/resources/new.svg",
+                    file = plugin_dir .. "/resources/new.svg",
                     alpha = true,
                     width = Screen:scaleBySize(8),
                     height = Screen:scaleBySize(8),
@@ -1031,7 +1031,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
             if large_book then
                 local large_book_icon_size = Screen:scaleBySize(19)
                 local max_widget = ImageWidget:new({
-                    file = sourcedir .. "/resources/large_book.svg",
+                    file = plugin_dir .. "/resources/large_book.svg",
                     width = large_book_icon_size,
                     height = large_book_icon_size,
                     scale_factor = 0,
@@ -1193,7 +1193,7 @@ function MosaicMenu:_recalculateDimen()
         margin = 0,
         background = Blitbuffer.COLOR_WHITE,
         ImageWidget:new {
-            file = sourcedir .. "/resources/trophy.svg",
+            file = plugin_dir .. "/resources/trophy.svg",
             alpha = true,
             width = corner_mark_size,
             height = corner_mark_size,
@@ -1228,7 +1228,7 @@ function MosaicMenu:_recalculateDimen()
         margin = 0,
         background = Blitbuffer.COLOR_WHITE,
         ImageWidget:new {
-            file = sourcedir .. "/resources/pause.svg",
+            file = plugin_dir .. "/resources/pause.svg",
             alpha = true,
             width = corner_mark_size,
             height = corner_mark_size,
