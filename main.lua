@@ -135,6 +135,7 @@ local DISPLAY_MODES = {
     mosaic_image    = true, -- 3x3 grid covers with images
     list_image_meta = true, -- image with metadata (title/authors)
     list_only_meta  = true, -- metadata with no image
+    list_no_meta    = true, -- title and author only
 }
 local display_mode_db_names = {
     filemanager = "filemanager_display_mode",
@@ -156,7 +157,8 @@ local CoverBrowser = WidgetContainer:extend {
         { _("Cover List"),    "list_image_meta" },
         { _("Cover Grid"),    "mosaic_image" },
         { _("Details List"),  "list_only_meta" },
-        { _("Filenames List") },
+        { _("Filenames List"),  "list_no_meta" },
+        -- { _("Filenames List") },
     },
 }
 
@@ -920,8 +922,13 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         FileChooser._recalculateDimen = ListMenu._recalculateDimen
         FileChooser._updateItemsBuildUI = ListMenu._updateItemsBuildUI
         -- Set ListMenu behaviour:
-        FileChooser._do_cover_images = display_mode ~= "list_only_meta"
-        FileChooser._do_filename_only = display_mode == "list_image_filename"
+        if (display_mode == "list_only_meta") or (display_mode == "list_no_meta") then
+            FileChooser._do_cover_images = false
+        else
+            FileChooser._do_cover_images = true
+        end
+        -- booklist_menu._do_cover_images = display_mode ~= "list_only_meta"
+        FileChooser._do_filename_only = display_mode == "list_no_meta"
         FileChooser._do_hint_opened = true -- dogear at bottom
     end
 
@@ -1014,8 +1021,13 @@ function CoverBrowser.getUpdateItemTableFunc(display_mode)
                 booklist_menu._recalculateDimen = ListMenu._recalculateDimen
                 booklist_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
                 -- Set ListMenu behaviour:
-                booklist_menu._do_cover_images = display_mode ~= "list_only_meta"
-                booklist_menu._do_filename_only = display_mode == "list_image_filename"
+                if (display_mode == "list_only_meta") or (display_mode == "list_no_meta") then
+                    booklist_menu._do_cover_images = false
+                else
+                    booklist_menu._do_cover_images = true
+                end
+                -- booklist_menu._do_cover_images = display_mode ~= "list_only_meta"
+                booklist_menu._do_filename_only = display_mode == "list_no_meta"
             end
 
             if widget_id == "history" then

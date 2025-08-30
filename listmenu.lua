@@ -662,7 +662,7 @@ function ListMenuItem:update()
                 table.insert(wright_items, 1, wfileinfo)
             end
 
-            if #wright_items > 0 then
+            if #wright_items > 0 and not self.do_filename_only then
                 for _, w in ipairs(wright_items) do
                     wright_width = math.max(wright_width, w:getSize().w)
                     wright_height = wright_height + w:getSize().h
