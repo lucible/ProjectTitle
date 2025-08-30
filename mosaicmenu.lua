@@ -891,6 +891,10 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- Original painting
     InputContainer.paintTo(self, bb, x, y)
 
+    -- No further painting is required over directories
+    self.is_directory = not (self.entry.is_file or self.entry.file)
+    if self.is_directory then return end
+
     -- other paintings are anchored to the sub-widget (cover image)
     local target = self[1][1][1]
 
@@ -909,8 +913,6 @@ function MosaicMenuItem:paintTo(bb, x, y)
             corner_mark:paintTo(bb, ix, iy)
         end
     end
-
-    self.is_directory = not (self.entry.is_file or self.entry.file)
 
     local bookinfo = BookInfoManager:getBookInfo(self.filepath, false)
     if bookinfo and self.init_done then
@@ -949,7 +951,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
             series_widget:paintTo(bb, pos_x, pos_y)
         end
 
-        if self.show_progress_bar and is_pathchooser == false and not self.is_directory then
+        if self.show_progress_bar and is_pathchooser == false then
             local progress_widget_width_mult = 1.0
             local est_page_count = self.pages or nil
             local large_book = false
@@ -1043,7 +1045,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
                     (pos_y - progress_widget:getSize().h / 3)
                 )
             end
-        elseif not self.is_directory and is_pathchooser == false then
+        elseif is_pathchooser == false then
             local progresstxt = nil
             if not BookInfoManager:getSetting("hide_file_info") then
                 progresstxt = (" " .. self.mandatory .. " ") or " ??? "
