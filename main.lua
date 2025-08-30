@@ -86,7 +86,7 @@ if fonts_missing or icons_missing or version_unsafe then
         timeout = 30,
     })
     local CoverBrowser = WidgetContainer:extend {
-        name = "coverbrowserclean",
+        name = "coverbrowsernil",
     }
     return CoverBrowser
 end
