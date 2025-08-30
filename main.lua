@@ -135,7 +135,7 @@ local DISPLAY_MODES = {
     mosaic_image    = true, -- 3x3 grid covers with images
     list_image_meta = true, -- image with metadata (title/authors)
     list_only_meta  = true, -- metadata with no image
-    list_no_meta    = true, -- title and author only
+    list_no_meta    = true, -- filename only
 }
 local display_mode_db_names = {
     filemanager = "filemanager_display_mode",
