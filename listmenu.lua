@@ -248,7 +248,10 @@ function ListMenuItem:update()
             self.menu._has_cover_images = true
             self._has_cover_image = true
         else
-            folder_cover = HorizontalSpan:new { width = Screen:scaleBySize(5) }
+            local no_folder_width = 5
+            -- extra padding in filename only mode, but not in pathchooser
+            if self.do_filename_only then no_folder_width = 15 end
+            folder_cover = HorizontalSpan:new { width = Screen:scaleBySize(no_folder_width) }
         end
 
         local wleft_width = dimen.w - dimen.h - wright_width - 3 * pad_width
@@ -260,7 +263,7 @@ function ListMenuItem:update()
 
         local folderfont = ptutil.good_serif
         -- style folder names differently in pathchooser
-        if is_pathchooser then
+        if is_pathchooser or self.do_filename_only then
             wlefttext = BD.directory(self.text)
             folderfont = ptutil.good_sans
         end
@@ -275,6 +278,9 @@ function ListMenuItem:update()
             height_adjust = true,
             height_overflow_show_ellipsis = true,
         }
+
+        -- extra right side padding in filename only mode
+        if self.do_filename_only then pad_width = Screen:scaleBySize(20) end
 
         widget = OverlapGroup:new {
             LeftContainer:new {
@@ -678,6 +684,13 @@ function ListMenuItem:update()
                 wmain_left_padding = Screen:scaleBySize(5)
             end
 
+            -- If in filenames list, add extra padding and empty wright of all items
+            if self.do_filename_only then
+                wright_right_padding = Screen:scaleBySize(20)
+                wmain_left_padding = Screen:scaleBySize(20)
+                wright_items = { align = "right" }
+            end
+
             local wmain_width = dimen.w - wleft_width - wmain_left_padding
             local fontname_title = ptutil.title_serif
             local fontname_authors = ptutil.good_serif
@@ -697,11 +710,11 @@ function ListMenuItem:update()
             if self.do_filename_only or bookinfo.ignore_meta then
                 title = filename_without_suffix -- made out above
                 title = BD.auto(title)
+                fontname_title = ptutil.good_sans
                 authors = nil
             else
                 title = bookinfo.title and bookinfo.title or filename_without_suffix
                 title = BD.auto(title)
-
                 local authors_limit = 2
                 if (show_series and series_mode == "series_in_separate_line") then authors_limit = 1 end
                 authors = ptutil.formatAuthors(bookinfo.authors, authors_limit)
@@ -812,6 +825,8 @@ function ListMenuItem:update()
 
             while true do
                 build_title()
+                -- blank out the authors and series text for filenames only
+                if self.do_filename_only then authors = "" end
                 build_authors(authors_width)
 
                 -- if the single-line title is ... then reduce font to try fitting it
@@ -908,7 +923,10 @@ function ListMenuItem:update()
                 end
             end
 
-            local wtitle_container = TopContainer:new {
+            -- align to top normally, align to center in filename only list
+            local wtitle_container_style = self.do_filename_only and LeftContainer or TopContainer
+            local wtitle_container = wtitle_container_style:new {
+                dimen = dimen:copy(),
                 wtitle,
             }
 
