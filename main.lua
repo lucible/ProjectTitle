@@ -1069,7 +1069,7 @@ function CoverBrowser:onIncreaseItemsPerPage()
     local fc = self.ui.file_chooser
     local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
     -- list modes
-    if display_mode == "list_image_meta" or display_mode == "list_only_meta" then
+    if display_mode == "list_image_meta" or display_mode == "list_only_meta" or display_mode == "list_no_meta" then
         local files_per_page = fc.files_per_page or default_items_per_page
         files_per_page = math.min(files_per_page + 1, max_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
@@ -1113,7 +1113,7 @@ function CoverBrowser:onDecreaseItemsPerPage()
     local fc = self.ui.file_chooser
     local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
     -- list modes
-    if display_mode == "list_image_meta" or display_mode == "list_only_meta" then
+    if display_mode == "list_image_meta" or display_mode == "list_only_meta" or display_mode == "list_no_meta" then
         local files_per_page = fc.files_per_page or default_items_per_page
         files_per_page = math.max(files_per_page - 1, min_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
