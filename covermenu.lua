@@ -757,7 +757,7 @@ function CoverMenu:updatePageInfo(select_number)
     if not is_pathchooser and self.cur_folder_text and type(self.path) == "string" and self.path ~= '' then
         self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
         if BookInfoManager:getSetting("replace_footer_text") then
-            local config = {
+            local config = self.footer_config or {
                 order = {
                     "clock",
                     "wifi",
