@@ -408,7 +408,7 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
 
     local bookinfo = {}
     for num, col in ipairs(BOOKINFO_COLS_SET) do
-        if col == "pages" then
+        if col == "pages" or col == "locations" then
             -- See http://scilua.org/ljsqlite3.html "SQLite Type Mappings"
             bookinfo[col] = tonumber(row[num]) -- convert cdata<int64_t> to lua number
         else

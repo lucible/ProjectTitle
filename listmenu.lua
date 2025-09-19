@@ -559,118 +559,120 @@ function ListMenuItem:update()
                 }
                 table.insert(wright_items, progress_container)
 
-            elseif draw_progress and progress_mode == "bars" then
+            elseif draw_progress and progress_mode == "bars" and est_page_count then
                 local progressbar_items = { align = "center" }
 
-                local fn_pages = tonumber(est_page_count)
-                local max_progress_size = 235
-                local pixels_per_page = 3
-                local min_progress_size = 25
-                local progress_bar_height = wright_font_size -- progress bar same height as progress text
-                local total_pixels = math.max(
-                    (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
-                local progress_bar = ProgressWidget:new {
-                    width = Screen:scaleBySize(total_pixels),
-                    height = Screen:scaleBySize(progress_bar_height),
-                    margin_v = 0,
-                    margin_h = 0,
-                    bordersize = Screen:scaleBySize(0.5),
-                    bordercolor = Blitbuffer.COLOR_BLACK,
-                    bgcolor = Blitbuffer.COLOR_GRAY_E,
-                    fillcolor = Blitbuffer.COLOR_GRAY_6,
-                    percentage = 0,
-                }
-
-                local progress_width = progress_bar:getSize().w
-                local progress_dimen
-                local bar_and_icons
-                local bar_icon_size = Screen:scaleBySize(progress_bar_height * 1.5333)  -- size for icons used with progress bar
-
-                if fn_pages > (max_progress_size * pixels_per_page) then
-                    progress_width = progress_width + math.floor(bar_icon_size / 2) -- add extra width for max size indicator
-                    progress_dimen = Geom:new {
-                        x = 0, y = 0,
-                        w = progress_width,
-                        h = bar_icon_size,
+                local fn_pages = tonumber(est_page_count) or 0
+                if fn_pages > 0 then
+                    local max_progress_size = 235
+                    local pixels_per_page = 3
+                    local min_progress_size = 25
+                    local progress_bar_height = wright_font_size -- progress bar same height as progress text
+                    local total_pixels = math.max(
+                        (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
+                    local progress_bar = ProgressWidget:new {
+                        width = Screen:scaleBySize(total_pixels),
+                        height = Screen:scaleBySize(progress_bar_height),
+                        margin_v = 0,
+                        margin_h = 0,
+                        bordersize = Screen:scaleBySize(0.5),
+                        bordercolor = Blitbuffer.COLOR_BLACK,
+                        bgcolor = Blitbuffer.COLOR_GRAY_E,
+                        fillcolor = Blitbuffer.COLOR_GRAY_6,
+                        percentage = 0,
                     }
-                    bar_and_icons = RightContainer:new {
-                        dimen = progress_dimen,
-                        progress_bar,
-                    }
-                else
-                    progress_dimen = Geom:new {
-                        x = 0, y = 0,
-                        w = progress_width, -- no icons needs no width added
-                        h = bar_icon_size,
-                    }
-                    bar_and_icons = CenterContainer:new {
-                        dimen = progress_dimen,
-                        progress_bar,
-                    }
-                end
-                local progress_block = OverlapGroup:new {
-                    dimen = progress_dimen,
-                }
-                table.insert(progress_block, bar_and_icons)
 
-                -- books with fn_page_count larger than the max get an indicator at the left edge of the progress bar
-                if fn_pages > (max_progress_size * pixels_per_page) then
-                    local max_widget = ImageWidget:new({
-                        file = plugin_dir .. "/resources/large_book.svg",
-                        width = bar_icon_size,
-                        height = bar_icon_size,
-                        scale_factor = 0,
-                        alpha = true,
-                        original_in_nightmode = false,
-                    })
-                    table.insert(progress_block, LeftContainer:new {
-                        dimen = progress_dimen,
-                        max_widget,
-                    })
-                end
+                    local progress_width = progress_bar:getSize().w
+                    local progress_dimen
+                    local bar_and_icons
+                    local bar_icon_size = Screen:scaleBySize(progress_bar_height * 1.5333)  -- size for icons used with progress bar
 
-                if status == "complete" or status == "abandoned" then
-                    -- books marked as "On Hold" get a little pause icon
-                    -- books marked as "Finished" get a little trophy
-                    filename = plugin_dir .. "/resources/pause.svg"
-                    progress_bar.percentage = percent_finished or 0
-                    if status == "complete" then
-                        progress_bar.percentage = 1
-                        filename = plugin_dir .. "/resources/trophy.svg"
-                    end
-                    local progress_statusicon_widget = ImageWidget:new({
-                        file = filename,
-                        width = bar_icon_size,
-                        height = bar_icon_size,
-                        scale_factor = 0,
-                        alpha = true,
-                        original_in_nightmode = false,
-                    })
-                    local right_padding = Size.padding.default
-                    table.insert(progress_block, RightContainer:new {
-                        dimen = progress_dimen,
-                        HorizontalGroup:new {
-                            progress_statusicon_widget,
-                            HorizontalSpan:new { width = right_padding },
+                    if fn_pages > (max_progress_size * pixels_per_page) then
+                        progress_width = progress_width + math.floor(bar_icon_size / 2) -- add extra width for max size indicator
+                        progress_dimen = Geom:new {
+                            x = 0, y = 0,
+                            w = progress_width,
+                            h = bar_icon_size,
                         }
-                    })
-                    table.insert(progressbar_items, progress_block)
-                elseif percent_finished then
-                    progress_bar.percentage = percent_finished
-                    table.insert(progressbar_items, progress_block)
-                else
-                    table.insert(progressbar_items, progress_block)
-                end
+                        bar_and_icons = RightContainer:new {
+                            dimen = progress_dimen,
+                            progress_bar,
+                        }
+                    else
+                        progress_dimen = Geom:new {
+                            x = 0, y = 0,
+                            w = progress_width, -- no icons needs no width added
+                            h = bar_icon_size,
+                        }
+                        bar_and_icons = CenterContainer:new {
+                            dimen = progress_dimen,
+                            progress_bar,
+                        }
+                    end
+                    local progress_block = OverlapGroup:new {
+                        dimen = progress_dimen,
+                    }
+                    table.insert(progress_block, bar_and_icons)
 
-                for _, w in ipairs(progressbar_items) do
-                    wright_width = wright_width + w:getSize().w
+                    -- books with fn_page_count larger than the max get an indicator at the left edge of the progress bar
+                    if fn_pages > (max_progress_size * pixels_per_page) then
+                        local max_widget = ImageWidget:new({
+                            file = plugin_dir .. "/resources/large_book.svg",
+                            width = bar_icon_size,
+                            height = bar_icon_size,
+                            scale_factor = 0,
+                            alpha = true,
+                            original_in_nightmode = false,
+                        })
+                        table.insert(progress_block, LeftContainer:new {
+                            dimen = progress_dimen,
+                            max_widget,
+                        })
+                    end
+
+                    if status == "complete" or status == "abandoned" then
+                        -- books marked as "On Hold" get a little pause icon
+                        -- books marked as "Finished" get a little trophy
+                        filename = plugin_dir .. "/resources/pause.svg"
+                        progress_bar.percentage = percent_finished or 0
+                        if status == "complete" then
+                            progress_bar.percentage = 1
+                            filename = plugin_dir .. "/resources/trophy.svg"
+                        end
+                        local progress_statusicon_widget = ImageWidget:new({
+                            file = filename,
+                            width = bar_icon_size,
+                            height = bar_icon_size,
+                            scale_factor = 0,
+                            alpha = true,
+                            original_in_nightmode = false,
+                        })
+                        local right_padding = Size.padding.default
+                        table.insert(progress_block, RightContainer:new {
+                            dimen = progress_dimen,
+                            HorizontalGroup:new {
+                                progress_statusicon_widget,
+                                HorizontalSpan:new { width = right_padding },
+                            }
+                        })
+                        table.insert(progressbar_items, progress_block)
+                    elseif percent_finished then
+                        progress_bar.percentage = percent_finished
+                        table.insert(progressbar_items, progress_block)
+                    else
+                        table.insert(progressbar_items, progress_block)
+                    end
+
+                    for _, w in ipairs(progressbar_items) do
+                        wright_width = wright_width + w:getSize().w
+                    end
+                    local progress_block_height = progress_block:getSize().h
+                    local progress = RightContainer:new {
+                        dimen = Geom:new { w = wright_width, h = progress_block_height },
+                        HorizontalGroup:new(progressbar_items),
+                    }
+                    table.insert(wright_items, progress)
                 end
-                local progress_block_height = progress_block:getSize().h
-                local progress = RightContainer:new {
-                    dimen = Geom:new { w = wright_width, h = progress_block_height },
-                    HorizontalGroup:new(progressbar_items),
-                }
-                table.insert(wright_items, progress)
             else
                 if status == "complete" or status == "abandoned" then
                     -- books marked as "On Hold" get a little pause icon
