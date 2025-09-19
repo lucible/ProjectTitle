@@ -50,6 +50,7 @@ local BOOKINFO_DB_SCHEMA = [[
 
         -- Book info
         pages               INTEGER,
+        locations           INTEGER,
 
         -- Metadata (only these are returned by the engines)
         title               TEXT,
@@ -90,13 +91,14 @@ local BOOKINFO_COLS_SET = {
     "ignore_meta",
     "ignore_cover",
     "pages", -- 13: start index for getDocProps()
+    "locations",
     "title",
     "authors",
     "series",
     "series_index",
     "language",
     "keywords",
-    "description", -- 20: end index for getDocProps()
+    "description", -- 21: end index for getDocProps()
     "cover_w",
     "cover_h",
     "cover_bb_type",
@@ -209,6 +211,31 @@ function BookInfoManager:createDB()
     --     -- Say hi!
     --     UIManager:show(InfoMessage:new { text = _("Book info cache database updated."), timeout = 3 })
     -- end
+
+    -- Check if locations column exists and add it if it doesn't
+    -- Claude says that checking for noop from the schema exec isn't worth it?
+    -- That this is more reliable and very fast. OK. (I don't know enough to say for sure.)
+    local has_locations_col = false
+    local res = db_conn:exec("PRAGMA table_info(bookinfo);")
+    if res then
+        local col_names = res[2] -- column names are in the second array
+        for _, col_name in ipairs(col_names) do
+            if col_name == "locations" then
+                has_locations_col = true
+                break
+            end
+        end
+    end
+
+    if not has_locations_col then
+        logger.info(ptdbg.logprefix, "Adding locations column to bookinfo table")
+        local ok, err = pcall(function()
+            db_conn:exec("ALTER TABLE bookinfo ADD COLUMN locations INTEGER;")
+        end)
+        if not ok then
+            logger.warn(ptdbg.logprefix, "Failed to add locations column:", err)
+        end
+    end
 
     db_conn:close()
     self.db_created = true
@@ -431,7 +458,7 @@ function BookInfoManager:getDocProps(filepath)
     local row = self.get_stmt:bind(directory, filename):step()
     if row ~= nil then
         bookinfo = {}
-        for i = 13, 20 do
+        for i = 13, 21 do
             bookinfo[BOOKINFO_COLS_SET[i]] = row[i]
         end
         bookinfo.pages = tonumber(bookinfo.pages)
@@ -521,6 +548,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     local loaded = true
     if document then
         local pages
+        local locations
         if document.loadDocument then                -- needed for crengine
             if not document:loadDocument(false) then -- load only metadata
                 -- failed loading, calling other methods would segfault
@@ -629,8 +657,23 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                     logger.dbg(ptdbg.logprefix, "Pagecount not found", fname)
                     return nil
                 end
+                -- try finding location count in filename
+                local function getEstimatedLocations(fname)
+                    local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(fname)
+
+                    local fn_location = string.match(filename_without_suffix, "L%((%d+)%)")
+                    if fn_location and fn_location ~= "0" then
+                        logger.dbg(ptdbg.logprefix, "Location found in filename", fname, fn_location)
+                        return fn_location
+                    end
+
+                    logger.dbg(ptdbg.logprefix, "Location not found in filename", fname)
+                    return nil
+                end
                 local success, response = pcall(getEstimatedPagecount, filepath)
                 if success then pages = response end
+                local success, response = pcall(getEstimatedLocations, filepath)
+                if success then locations = response end
             end
         else
             -- for all others than crengine, we seem to get an accurate nb of pages
@@ -638,6 +681,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
         end
         if loaded then
             dbrow.pages = pages
+            dbrow.locations = locations
             local props = FileManagerBookInfo.extendProps(document:getProps(), filepath)
             if next(props) then -- there's at least one item
                 dbrow.has_meta = 'Y'

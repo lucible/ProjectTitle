@@ -266,6 +266,14 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("use_stacked_foldercovers", false)
         BookInfoManager:saveSetting("config_version", "4")
     end
+    if BookInfoManager:getSetting("config_version") == 4 then
+        logger.info(ptdbg.logprefix, "Migrating settings to version 5")
+        BookInfoManager:saveSetting("use_progress_dots", false)      -- default to bars
+        BookInfoManager:saveSetting("prefer_locations", true)        -- prefer locations over pages when available
+        BookInfoManager:saveSetting("dots_per_location_unit", 340)   -- configurable constant
+        BookInfoManager:saveSetting("dots_per_page_unit", 75)        -- configurable constant
+        BookInfoManager:saveSetting("config_version", "5")
+    end
 
     -- restart if needed
     if restart_needed then
@@ -593,6 +601,101 @@ function CoverBrowser:addToMainMenu(menu_items)
                             BookInfoManager:toggleSetting("force_max_progressbars")
                             fc:updateItems(1, true)
                         end,
+                    },
+                    {
+                        text = _("Use progress dots instead of progress bars"),
+                        separator = true,
+                        enabled_func = function()
+                            return not (
+                                    BookInfoManager:getSetting("force_no_progressbars") or
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
+                        end,
+                        checked_func = function() return BookInfoManager:getSetting("use_progress_dots") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("use_progress_dots")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Prefer locations over pages for dots"),
+                        enabled_func = function()
+                            return BookInfoManager:getSetting("use_progress_dots") and not (
+                                    BookInfoManager:getSetting("force_no_progressbars") or
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
+                        end,
+                        checked_func = function() return BookInfoManager:getSetting("prefer_locations") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("prefer_locations")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Configure dots density"),
+                        enabled_func = function()
+                            return BookInfoManager:getSetting("use_progress_dots") and not (
+                                    BookInfoManager:getSetting("force_no_progressbars") or
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
+                        end,
+                        sub_item_table = {
+                            {
+                                text_func = function()
+                                    local dots_per_loc = BookInfoManager:getSetting("dots_per_location_unit") or 340
+                                    return _("Locations per dot") .. T(_(": %1"), dots_per_loc)
+                                end,
+                                callback = function()
+                                    local current_value = BookInfoManager:getSetting("dots_per_location_unit") or 340
+                                    local SpinWidget = require("ui/widget/spinwidget")
+                                    local widget = SpinWidget:new {
+                                        title_text = _("Locations per dot"),
+                                        value = current_value,
+                                        value_min = 50,
+                                        value_max = 1000,
+                                        value_step = 10,
+                                        default_value = 340,
+                                        keep_shown_on_apply = true,
+                                        callback = function(spin)
+                                            BookInfoManager:saveSetting("dots_per_location_unit", spin.value)
+                                            if fc.display_mode_type == "list" then
+                                                fc:updateItems(1, true)
+                                            end
+                                        end,
+                                    }
+                                    UIManager:show(widget)
+                                end,
+                            },
+                            {
+                                text_func = function()
+                                    local dots_per_page = BookInfoManager:getSetting("dots_per_page_unit") or 25
+                                    return _("Pages per dot") .. T(_(": %1"), dots_per_page)
+                                end,
+                                callback = function()
+                                    local current_value = BookInfoManager:getSetting("dots_per_page_unit") or 25
+                                    local SpinWidget = require("ui/widget/spinwidget")
+                                    local widget = SpinWidget:new {
+                                        title_text = _("Pages per dot"),
+                                        value = current_value,
+                                        value_min = 5,
+                                        value_max = 100,
+                                        value_step = 1,
+                                        default_value = 25,
+                                        keep_shown_on_apply = true,
+                                        callback = function(spin)
+                                            BookInfoManager:saveSetting("dots_per_page_unit", spin.value)
+                                            if fc.display_mode_type == "list" then
+                                                fc:updateItems(1, true)
+                                            end
+                                        end,
+                                    }
+                                    UIManager:show(widget)
+                                end,
+                            },
+                        },
                     },
                     {
                         text = _("Show series"),

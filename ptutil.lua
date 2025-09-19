@@ -32,6 +32,10 @@ ptutil.good_sans = "source/SourceSans3-Regular.ttf"
 
 ptutil.koreader_dir = DataStorage:getDataDir()
 
+-- Constants for dot calculation (configurable via settings)
+ptutil.DOTS_PER_LOCATION_UNIT = 340  -- locations per dot
+ptutil.DOTS_PER_PAGE_UNIT = 75       -- pages per dot
+
 function ptutil.getPluginDir()
     local callerSource = debug.getinfo(2, "S").source
     if callerSource:find("^@") then
@@ -468,17 +472,74 @@ function ptutil.onUnfocus(_underline_container)
     end
 end
 
-function ptutil.showProgressBar(pages)
+-- function ptutil.showProgressBar(pages)
+--     local show_progress_bar = false
+--     local est_page_count = pages or nil
+--     if BookInfoManager:getSetting("force_max_progressbars") and not BookInfoManager:getSetting("show_pages_read_as_progress") then
+--         est_page_count = "700"
+--     end
+--     show_progress_bar = est_page_count ~= nil and
+--         BookInfoManager:getSetting("hide_file_info") and                    -- "show file info"
+--         not BookInfoManager:getSetting("show_pages_read_as_progress") and   -- "show pages read"
+--         not BookInfoManager:getSetting("force_no_progressbars")             -- "show progress %"
+--     return est_page_count, show_progress_bar
+-- end
+
+function ptutil.showProgressBar(bookinfo)
     local show_progress_bar = false
-    local est_page_count = pages or nil
-    if BookInfoManager:getSetting("force_max_progressbars") and not BookInfoManager:getSetting("show_pages_read_as_progress") then
-        est_page_count = "700"
+    local est_page_count = nil
+    local progress_mode = nil -- "bars", "dots_locations", "dots_pages"
+    local units_per_dot = nil
+
+    -- Check basic progress display conditions
+    local progress_enabled = BookInfoManager:getSetting("hide_file_info") and  -- "show file info"
+        not BookInfoManager:getSetting("show_pages_read_as_progress") and      -- "show pages read"
+        not BookInfoManager:getSetting("force_no_progressbars")                -- "show progress %"
+
+    if not progress_enabled then
+        return est_page_count, show_progress_bar, progress_mode, units_per_dot
     end
-    show_progress_bar = est_page_count ~= nil and
-        BookInfoManager:getSetting("hide_file_info") and                    -- "show file info"
-        not BookInfoManager:getSetting("show_pages_read_as_progress") and   -- "show pages read"
-        not BookInfoManager:getSetting("force_no_progressbars")             -- "show progress %"
-    return est_page_count, show_progress_bar
+
+    -- Handle bookinfo input
+    local pages = bookinfo and bookinfo.pages or bookinfo
+    local locations = bookinfo and bookinfo.locations or nil
+
+    -- Determine progress display mode
+    local use_dots = BookInfoManager:getSetting("use_progress_dots")
+    local prefer_locations = BookInfoManager:getSetting("prefer_locations")
+
+    if use_dots then
+        -- Try dots mode first
+        if prefer_locations and locations and locations > 0 then
+            est_page_count = locations
+            progress_mode = "dots_locations"
+            units_per_dot = BookInfoManager:getSetting("dots_per_location_unit") or ptutil.DOTS_PER_LOCATION_UNIT
+            show_progress_bar = true
+        elseif pages and pages > 0 then
+            est_page_count = pages
+            progress_mode = "dots_pages"
+            units_per_dot = BookInfoManager:getSetting("dots_per_page_unit") or ptutil.DOTS_PER_PAGE_UNIT
+            show_progress_bar = true
+        elseif not prefer_locations and locations and locations > 0 then
+            -- Fallback to locations if pages not available
+            est_page_count = locations
+            progress_mode = "dots_locations"
+            units_per_dot = BookInfoManager:getSetting("dots_per_location_unit") or ptutil.DOTS_PER_LOCATION_UNIT
+            show_progress_bar = true
+        end
+    else
+        -- Original progress bar logic
+        est_page_count = pages or nil
+        if BookInfoManager:getSetting("force_max_progressbars") and not BookInfoManager:getSetting("show_pages_read_as_progress") then
+            est_page_count = "700"
+        end
+        if est_page_count ~= nil then
+            progress_mode = "bars"
+            show_progress_bar = true
+        end
+    end
+
+    return est_page_count, show_progress_bar, progress_mode, units_per_dot
 end
 
 function ptutil.isPathChooser(self)

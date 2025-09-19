@@ -119,6 +119,30 @@ function ListMenuItem:update()
         h = self.height,
     }
 
+    -- Calculate total number of dots needed based on total units (locations or pages)
+    local function calculateTotalDots(total_units, units_per_dot)
+        if not total_units or total_units <= 0 then
+            return 1 -- minimum one dot
+        end
+        return math.max(1, math.ceil(total_units / units_per_dot))
+    end
+
+    -- Calculate number of filled dots based on progress percentage
+    local function calculateFilledDots(progress_percent, total_dots)
+        if not progress_percent or progress_percent <= 0 then
+            return 0
+        end
+        if progress_percent >= 1 then
+            return total_dots
+        end
+
+        -- Calculate how many dots should be filled
+        local filled_dots = progress_percent * total_dots
+
+        -- Round to nearest whole dot - if more than half of a dot would be filled, round up
+        return math.floor(filled_dots + 0.5)
+    end
+
     local function _fontSize(nominal, max)
         -- Nominal font sizes are based on a theoretical 64px ListMenuItem height.
         -- Keep ratio of font size to item height based on that theoretical ideal,
@@ -446,12 +470,96 @@ function ListMenuItem:update()
             local wright_width = 0
             local wright_height = 0
             local wright_items = { align = "right" }
-            local est_page_count, draw_progressbar = ptutil.showProgressBar(bookinfo.pages)
+
+            -- Check what kind of progress display we should use
+            local est_page_count, draw_progress, progress_mode, units_per_dot = ptutil.showProgressBar(bookinfo)
+
+            -- page logic
             self.pages = est_page_count
             bookinfo.pages = est_page_count
             local pages = bookinfo.pages -- limit to value in database
 
-            if draw_progressbar then
+            -- locations logic
+            if progress_mode == "dots_locations" then
+                self.locations = est_page_count  -- ADD THIS
+                bookinfo.locations = est_page_count
+                local locations = bookinfo.locations
+            end
+
+            if draw_progress and (progress_mode == "dots_locations" or progress_mode == "dots_pages") then
+                -- DOTS MODE
+                local unit_type = progress_mode == "dots_locations" and "locations" or "pages"
+                logger.dbg(ptdbg.logprefix, "Using progress dots for", filename, "with", est_page_count, unit_type)
+
+                local total_dots = calculateTotalDots(est_page_count, units_per_dot)
+                local filled_dots = 0
+
+                -- Handle different status cases
+                if status == "complete" then
+                    filled_dots = total_dots
+                elseif status == "abandoned" then
+                    filled_dots = calculateFilledDots(percent_finished or 0, total_dots)
+                elseif percent_finished then
+                    filled_dots = calculateFilledDots(percent_finished, total_dots)
+                end
+
+                -- Build the dot string
+                local dot_string = ""
+                local filled_char = "●" -- U+25CF filled circle
+                local empty_char = "○"  -- U+25CB empty circle
+
+                for i = 1, total_dots do
+                    if i <= filled_dots then
+                        dot_string = dot_string .. filled_char
+                    else
+                        dot_string = dot_string .. empty_char
+                    end
+                end
+
+                -- Create dots widget
+                local progress_dots = TextWidget:new {
+                    text = dot_string,
+                    face = wright_font_face,
+                    padding = 0,
+                }
+
+                -- Add status icon if needed (pause/trophy)
+                local progress_items = { align = "center" }
+                table.insert(progress_items, progress_dots)
+
+                if status == "complete" or status == "abandoned" then
+                    local bar_icon_size = Screen:scaleBySize(wright_font_size)
+                    local bar_icon_padding = Size.padding.small
+                    local icon_filename = plugin_dir .. "/resources/pause.svg"
+                    if status == "complete" then
+                        icon_filename = plugin_dir .. "/resources/trophy.svg"
+                    end
+
+                    local status_icon = ImageWidget:new({
+                        file = icon_filename,
+                        width = bar_icon_size,
+                        height = bar_icon_size,
+                        scale_factor = 0,
+                        alpha = true,
+                        original_in_nightmode = false,
+                    })
+
+                    table.insert(progress_items, HorizontalSpan:new { width = bar_icon_padding })
+                    table.insert(progress_items, status_icon)
+                end
+
+                -- Calculate width and add to wright_items
+                for _, w in ipairs(progress_items) do
+                    wright_width = wright_width + w:getSize().w
+                end
+
+                local progress_container = RightContainer:new {
+                    dimen = Geom:new { w = wright_width, h = wright_font_size },
+                    HorizontalGroup:new(progress_items),
+                }
+                table.insert(wright_items, progress_container)
+
+            elseif draw_progress and progress_mode == "bars" then
                 local progressbar_items = { align = "center" }
 
                 local fn_pages = tonumber(est_page_count)
@@ -600,7 +708,7 @@ function ListMenuItem:update()
                     progress_str = abandoned_string
                 elseif percent_finished then
                     progress_str = read_text
-                    if not draw_progressbar then
+                    if not draw_progress then
                         percent_str = math.floor(100 * percent_finished) .. "%"
                     end
                     if pages then
