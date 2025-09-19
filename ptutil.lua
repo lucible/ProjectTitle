@@ -501,8 +501,16 @@ function ptutil.showProgressBar(bookinfo)
     end
 
     -- Handle bookinfo input
-    local pages = bookinfo and bookinfo.pages or bookinfo
-    local locations = bookinfo and bookinfo.locations or nil
+    local pages = nil
+    local locations = nil
+
+    if type(bookinfo) == "table" then
+        pages = bookinfo.pages
+        locations = bookinfo.locations
+    else
+        pages = bookinfo
+        locations = nil
+    end
 
     -- Determine progress display mode
     local use_dots = BookInfoManager:getSetting("use_progress_dots")
