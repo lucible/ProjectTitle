@@ -271,7 +271,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("use_progress_dots", false)      -- default to bars
         BookInfoManager:saveSetting("prefer_locations", true)        -- prefer locations over pages when available
         BookInfoManager:saveSetting("dots_per_location_unit", 340)   -- configurable constant
-        BookInfoManager:saveSetting("dots_per_page_unit", 75)        -- configurable constant
+        BookInfoManager:saveSetting("dots_per_page_unit", 92)        -- configurable constant
         BookInfoManager:saveSetting("config_version", "5")
     end
 

@@ -34,7 +34,7 @@ ptutil.koreader_dir = DataStorage:getDataDir()
 
 -- Constants for dot calculation (configurable via settings)
 ptutil.DOTS_PER_LOCATION_UNIT = 340  -- locations per dot
-ptutil.DOTS_PER_PAGE_UNIT = 75       -- pages per dot
+ptutil.DOTS_PER_PAGE_UNIT = 92       -- pages per dot
 
 function ptutil.getPluginDir()
     local callerSource = debug.getinfo(2, "S").source
