@@ -532,7 +532,7 @@ function ListMenuItem:update()
                 local show_progress_percent = BookInfoManager:getSetting("show_progress_percent")
 
                 -- Build progress items array
-                local progress_items = { align = dots_align_left and "left" or "center" }
+                local progress_items = {}
                 table.insert(progress_items, progress_dots)
 
                 -- Add percentage if enabled
@@ -976,10 +976,8 @@ function ListMenuItem:update()
 
                 -- Create the combined container
                 if #authors_components > 0 then
-                    wauthors = VerticalGroup:new {
-                        align = "left",
-                        authors_components
-                    }
+                    wauthors = VerticalGroup:new(authors_components)
+                    wauthors.align = "left"
                 else
                     -- Fallback: create empty widget with minimal height to maintain layout
                     wauthors = VerticalGroup:new {
