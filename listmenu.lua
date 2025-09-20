@@ -936,13 +936,18 @@ function ListMenuItem:update()
                 end
                 local series = bookinfo.series
                 if not authors then
-                    if series_mode == "series_in_separate_line" then
-                        authors = series
-                    end
+                    -- No authors, so series goes where authors would go (all modes behave the same)
+                    authors = series
                 else
+                    -- We have authors, so combine based on mode
                     if series_mode == "series_in_separate_line" then
-                        authors = series .. "\n" .. authors
+                        authors = series .. "\n" .. authors  -- series above authors
+                    elseif series_mode == "series_in_separate_line_below" then
+                        authors = authors .. "\n" .. series  -- authors above series
+                    elseif series_mode == "series_inline" then
+                        authors = authors .. " – " .. series  -- append series to authors with separator
                     end
+                    -- Note: if series_mode is nil or any other value, series is not displayed
                 end
             end
             if bookinfo.unsupported then

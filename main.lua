@@ -729,17 +729,45 @@ function CoverBrowser:addToMainMenu(menu_items)
                         },
                     },
                     {
-                        text = _("Show series"),
-                        checked_func = function() return series_mode == "series_in_separate_line" end,
-                        callback = function()
-                            if series_mode == "series_in_separate_line" then
-                                series_mode = nil
-                            else
-                                series_mode = "series_in_separate_line"
-                            end
-                            BookInfoManager:saveSetting("series_mode", series_mode)
-                            fc:updateItems(1, true)
-                        end,
+                        text = _("Series display"),
+                        sub_item_table = {
+                            {
+                                text = _("Don't show series"),
+                                checked_func = function() return series_mode == nil end,
+                                callback = function()
+                                    series_mode = nil
+                                    BookInfoManager:saveSetting("series_mode", series_mode)
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show series above authors"),
+                                checked_func = function() return series_mode == "series_in_separate_line" end,
+                                callback = function()
+                                    series_mode = "series_in_separate_line"
+                                    BookInfoManager:saveSetting("series_mode", series_mode)
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show authors above series"),
+                                checked_func = function() return series_mode == "series_in_separate_line_below" end,
+                                callback = function()
+                                    series_mode = "series_in_separate_line_below"
+                                    BookInfoManager:saveSetting("series_mode", series_mode)
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show series inline with authors"),
+                                checked_func = function() return series_mode == "series_inline" end,
+                                callback = function()
+                                    series_mode = "series_inline"
+                                    BookInfoManager:saveSetting("series_mode", series_mode)
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                        },
                     },
                     {
                         text = _("Use custom book status screen"),
