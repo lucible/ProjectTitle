@@ -23,12 +23,133 @@ local util = require("util")
 local _ = require("l10n.gettext")
 local ptdbg = require("ptdbg")
 local BookInfoManager = require("bookinfomanager")
+local FontList = require("fontlist")
+local Font = require("ui/font")
 
 local ptutil = {}
 
-ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
-ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
-ptutil.good_sans = "source/SourceSans3-Regular.ttf"
+function ptutil.getTitleFont()
+    return BookInfoManager:getSetting("font_title") or "source/SourceSerif4-BoldIt.ttf"
+end
+
+function ptutil.getContentFont() 
+    return BookInfoManager:getSetting("font_content") or "source/SourceSerif4-Regular.ttf"
+end
+
+function ptutil.getUIFont()
+    return BookInfoManager:getSetting("font_ui") or "source/SourceSans3-Regular.ttf" 
+end
+
+ptutil.title_serif = ptutil.getTitleFont() -- Dynamic
+ptutil.good_serif = ptutil.getContentFont() -- Dynamic  
+ptutil.good_sans = ptutil.getUIFont() -- Dynamic
+
+function ptutil.getAvailableFonts()
+    local fonts = {}
+    local all_fonts = FontList:getFontList()
+    
+    -- Add bundled Project: Title fonts first
+    table.insert(fonts, {
+        name = _("Source Serif 4 (Bold Italic)"),
+        path = "source/SourceSerif4-BoldIt.ttf"
+    })
+    table.insert(fonts, {
+        name = _("Source Serif 4 (Regular)"),
+        path = "source/SourceSerif4-Regular.ttf"
+    })
+    table.insert(fonts, {
+        name = _("Source Sans 3 (Regular)"),
+        path = "source/SourceSans3-Regular.ttf"
+    })
+    
+    -- Add separator
+    table.insert(fonts, {
+        separator = true
+    })
+    
+    -- Add system fonts from KOReader's FontList
+    for _, font_path in ipairs(all_fonts) do
+        local _, font_filename = util.splitFilePathName(font_path)
+        if font_filename then
+            -- Create readable font name from filename
+            local font_name = font_filename:gsub("%.%w+$", "") -- remove extension
+            font_name = font_name:gsub("[-_]", " ") -- replace dashes/underscores with spaces
+            
+            table.insert(fonts, {
+                name = font_name,
+                path = font_path
+            })
+        end
+    end
+    
+    return fonts
+end
+
+-- Validate that a font path exists and is usable
+function ptutil.isValidFont(font_path)
+    if not font_path then return false end
+    
+    -- Check if it's one of our bundled fonts
+    local bundled_fonts = {
+        "source/SourceSerif4-BoldIt.ttf",
+        "source/SourceSerif4-Regular.ttf", 
+        "source/SourceSans3-Regular.ttf"
+    }
+    
+    for _, bundled in ipairs(bundled_fonts) do
+        if font_path == bundled then
+            return util.fileExists(ptutil.koreader_dir .. "/fonts/" .. font_path)
+        end
+    end
+    
+    -- For system fonts, check if FontList knows about it
+    local all_fonts = FontList:getFontList()
+    for _, system_font in ipairs(all_fonts) do
+        if system_font == font_path then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- Create font selection menu for a specific setting
+function ptutil.createFontSelectionMenu(setting_key, refresh_callback)
+    local fonts = ptutil.getAvailableFonts()
+    local menu_items = {}
+    
+    for _, font in ipairs(fonts) do
+        if font.separator then
+            table.insert(menu_items, {
+                text = "────────────",
+                enabled = false,
+            })
+        else
+            table.insert(menu_items, {
+                text = font.name,
+                checked_func = function()
+                    return BookInfoManager:getSetting(setting_key) == font.path
+                end,
+                callback = function()
+                    if ptutil.isValidFont(font.path) then
+                        BookInfoManager:saveSetting(setting_key, font.path)
+                        -- Refresh UI if callback provided
+                        if refresh_callback then
+                            refresh_callback()
+                        end
+                    else
+                        local InfoMessage = require("ui/widget/infomessage")
+                        UIManager:show(InfoMessage:new{
+                            text = T(_("Font not available: %1"), font.name),
+                        })
+                    end
+                end,
+            })
+        end
+    end
+    
+    return menu_items
+end
 
 ptutil.koreader_dir = DataStorage:getDataDir()
 

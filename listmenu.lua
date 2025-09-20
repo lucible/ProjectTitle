@@ -160,7 +160,7 @@ function ListMenuItem:update()
     local fontsize_dec_step = 2 -- math.ceil(_fontSize(100) * (1 / 100))
     -- calculate font used in all right widget text
     local wright_font_size = _fontSize(12, 18)
-    local wright_font_face = Font:getFace(ptutil.good_sans, wright_font_size)
+    local wright_font_face = Font:getFace(ptutil.getUIFont(), wright_font_size)
     -- and font sizes used for title and author/series
     local title_font_size = _fontSize(20, 26)   -- 22
     local authors_font_size = _fontSize(14, 18) -- 16
@@ -285,11 +285,11 @@ function ListMenuItem:update()
         end
         wlefttext = BD.directory(wlefttext)
 
-        local folderfont = ptutil.good_serif
+        local folderfont = ptutil.getContentFont()
         -- style folder names differently in pathchooser
         if is_pathchooser or self.do_filename_only then
             wlefttext = BD.directory(self.text)
-            folderfont = ptutil.good_sans
+            folderfont = ptutil.getUIFont()
         end
 
         local wleft = TextBoxWidget:new {
@@ -896,8 +896,8 @@ function ListMenuItem:update()
             end
 
             local wmain_width = dimen.w - wleft_width - wmain_left_padding
-            local fontname_title = ptutil.title_serif
-            local fontname_authors = ptutil.good_serif
+            local fontname_title = ptutil.getTitleFont()
+            local fontname_authors = ptutil.getContentFont()
             local bold_title = false
             local fontsize_title = title_font_size
             local fontsize_authors = authors_font_size
@@ -914,7 +914,7 @@ function ListMenuItem:update()
             if self.do_filename_only or bookinfo.ignore_meta then
                 title = filename_without_suffix -- made out above
                 title = BD.auto(title)
-                fontname_title = ptutil.good_sans
+                fontname_title = ptutil.getUIFont()
                 authors = nil
             else
                 title = bookinfo.title and bookinfo.title or filename_without_suffix
@@ -1282,7 +1282,7 @@ function ListMenuItem:update()
 
             local wleft_width = dimen.w - dimen.h - wright_width - 3 * pad_width
             local wlefttext = BD.filename(self.text)
-            local filefont = ptutil.good_sans
+            local filefont = ptutil.getUIFont()
             local wleft = TextBoxWidget:new {
                 text = wlefttext,
                 face = Font:getFace(filefont, title_font_size),
@@ -1371,7 +1371,7 @@ function ListMenuItem:update()
                 end
                 text_widget = TextBoxWidget:new {
                     text = text .. hint,
-                    face = Font:getFace(ptutil.good_sans, fontsize_no_bookinfo),
+                    face = Font:getFace(ptutil.getUIFont(), fontsize_no_bookinfo),
                     width = dimen.w - 2 * Screen:scaleBySize(10) - wright_width - wright_right_padding,
                     alignment = "left",
                     fgcolor = fgcolor,

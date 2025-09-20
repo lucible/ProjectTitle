@@ -281,6 +281,13 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("show_progress_percent", false)  -- show percentage after dots
         BookInfoManager:saveSetting("config_version", "6")
     end
+    if BookInfoManager:getSetting("config_version") == 6 then
+        logger.info(ptdbg.logprefix, "Migrating settings to version 7")
+        BookInfoManager:saveSetting("font_title", "source/SourceSerif4-BoldIt.ttf")
+        BookInfoManager:saveSetting("font_content", "source/SourceSerif4-Regular.ttf") 
+        BookInfoManager:saveSetting("font_ui", "source/SourceSans3-Regular.ttf")
+        BookInfoManager:saveSetting("config_version", "7")
+    end
 
     -- restart if needed
     if restart_needed then
@@ -796,6 +803,67 @@ function CoverBrowser:addToMainMenu(menu_items)
                         callback = function()
                             BookInfoManager:toggleSetting("reverse_footer")
                             UIManager:askForRestart()
+                        end,
+                    },
+                },
+            },
+            {
+                text = _("Font settings"),
+                sub_item_table = {
+                    {
+                        text = _("Title font"),
+                        help_text = _("Font used for book titles"),
+                        sub_item_table_func = function()
+                            return ptutil.createFontSelectionMenu("font_title", function()
+                                if self.ui and self.ui.file_chooser then
+                                    self.ui.file_chooser:updateItems(1, true)
+                                end
+                            end)
+                        end
+                    },
+                    {
+                        text = _("Content font"),
+                        help_text = _("Font used for authors, series, and folder names"),
+                        sub_item_table_func = function()
+                            return ptutil.createFontSelectionMenu("font_content", function()
+                                if self.ui and self.ui.file_chooser then
+                                    self.ui.file_chooser:updateItems(1, true)
+                                end
+                            end)
+                        end
+                    },
+                    {
+                        text = _("UI font"),
+                        help_text = _("Font used for file info, progress text, and counts"),
+                        sub_item_table_func = function()
+                            return ptutil.createFontSelectionMenu("font_ui", function()
+                                if self.ui and self.ui.file_chooser then
+                                    self.ui.file_chooser:updateItems(1, true)
+                                end
+                            end)
+                        end
+                    },
+                    {
+                        text = _("Reset to defaults"),
+                        separator = true,
+                        callback = function()
+                            local ConfirmBox = require("ui/widget/confirmbox")
+                            UIManager:show(ConfirmBox:new{
+                                text = _("Reset all fonts to default Project: Title fonts?"),
+                                ok_text = _("Reset"),
+                                ok_callback = function()
+                                    BookInfoManager:saveSetting("font_title", "source/SourceSerif4-BoldIt.ttf")
+                                    BookInfoManager:saveSetting("font_content", "source/SourceSerif4-Regular.ttf")
+                                    BookInfoManager:saveSetting("font_ui", "source/SourceSans3-Regular.ttf")
+                                    if self.ui and self.ui.file_chooser then
+                                        self.ui.file_chooser:updateItems(1, true)
+                                    end
+                                    local InfoMessage = require("ui/widget/infomessage")
+                                    UIManager:show(InfoMessage:new{
+                                        text = _("Fonts reset to defaults"),
+                                    })
+                                end,
+                            })
                         end,
                     },
                 },
