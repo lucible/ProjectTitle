@@ -503,6 +503,11 @@ function ListMenuItem:update()
                     filled_dots = calculateFilledDots(percent_finished, total_dots)
                 end
 
+                -- Get display options
+                local dots_align_left = BookInfoManager:getSetting("dots_align_left")
+                local show_book_status_text = BookInfoManager:getSetting("show_book_status_text")
+                local show_progress_percent = BookInfoManager:getSetting("show_progress_percent")
+
                 -- "●" -- U+25CF filled circle 
                 -- "○"  -- U+25CB empty circle
                 -- dot options: ⚬○⚫⬤●
@@ -511,29 +516,82 @@ function ListMenuItem:update()
                 local empty_char = "⚬"
                 local filled_char = "●"
 
-                for i = 1, total_dots do
-                    if i <= filled_dots then
-                        dot_string = dot_string .. filled_char
-                    else
-                        dot_string = dot_string .. empty_char
+                -- Create separate strings for filled and empty dots
+                local filled_string = string.rep(filled_char, filled_dots)
+                local empty_string = string.rep(empty_char, total_dots - filled_dots)
+
+                -- Start with original font for both
+                local filled_font_face = wright_font_face
+                local empty_font_face = wright_font_face
+
+                -- Filled dots width normalization
+                if filled_dots > 0 then
+                    -- Calculate what the width should be for the filled portion
+                    -- by measuring equivalent empty dots
+                    local equivalent_empty = string.rep(empty_char, filled_dots)
+                    local target_empty_widget = TextWidget:new {
+                        text = equivalent_empty,
+                        face = wright_font_face,
+                        padding = 0,
+                    }
+                    local target_width = target_empty_widget:getSize().w
+                    target_empty_widget:free()
+
+                    -- Check if filled dots exceed this width
+                    local filled_test_widget = TextWidget:new {
+                        text = filled_string,
+                        face = wright_font_face,
+                        padding = 0,
+                    }
+                    local filled_width = filled_test_widget:getSize().w
+                    filled_test_widget:free()
+
+                    -- If filled dots are too wide, reduce their font size
+                    if filled_width > target_width then
+                        local font_size = wright_font_size
+                        local min_font_size = math.max(8, wright_font_size * 0.7)
+
+                        while font_size >= min_font_size do
+                            font_size = font_size - 1
+                            local test_face = Font:getFace(ptutil.good_sans, font_size)
+                            local test_widget = TextWidget:new {
+                                text = filled_string,
+                                face = test_face,
+                                padding = 0,
+                            }
+                            local test_width = test_widget:getSize().w
+                            test_widget:free()
+
+                            if test_width <= target_width then
+                                filled_font_face = test_face
+                                break
+                            end
+                        end
                     end
                 end
 
-                -- Create dots widget
-                local progress_dots = TextWidget:new {
-                    text = dot_string,
-                    face = wright_font_face,
-                    padding = 0,
-                }
-
-                -- Get display options
-                local dots_align_left = BookInfoManager:getSetting("dots_align_left")
-                local show_book_status_text = BookInfoManager:getSetting("show_book_status_text")
-                local show_progress_percent = BookInfoManager:getSetting("show_progress_percent")
-
                 -- Build progress items array
                 local progress_items = {}
-                table.insert(progress_items, progress_dots)
+
+                -- Add filled dots widget (if any)
+                if filled_dots > 0 then
+                    local filled_dots_widget = TextWidget:new {
+                        text = filled_string,
+                        face = filled_font_face,
+                        padding = 0,
+                    }
+                    table.insert(progress_items, filled_dots_widget)
+                end
+
+                -- Add empty dots widget (if any)
+                if total_dots > filled_dots then
+                    local empty_dots_widget = TextWidget:new {
+                        text = empty_string,
+                        face = empty_font_face,
+                        padding = 0,
+                    }
+                    table.insert(progress_items, empty_dots_widget)
+                end
 
                 -- Add percentage if enabled
                 if show_progress_percent and percent_finished then
