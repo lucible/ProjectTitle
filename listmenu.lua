@@ -591,38 +591,6 @@ function ListMenuItem:update()
                     }
                     table.insert(wright_items, right_progress_container)
                 end
-
-                -- Handle status text display
-                if show_book_status_text then
-                    local status_text = ""
-                    if status == "complete" then
-                        status_text = finished_text
-                    elseif status == "abandoned" then
-                        status_text = abandoned_string
-                    elseif percent_finished then
-                        status_text = read_text
-                    elseif not bookinfo._no_provider then
-                        status_text = unread_text
-                    end
-
-                    if status_text ~= "" then
-                        local status_widget = TextWidget:new {
-                            text = status_text,
-                            face = wright_font_face,
-                            fgcolor = fgcolor,
-                            padding = 0,
-                        }
-
-                        if dots_align_left then
-                            -- For left-aligned dots, add status text to wright_items (right side)
-                            table.insert(wright_items, 1, status_widget)
-                            wright_width = math.max(wright_width, status_widget:getSize().w)
-                        else
-                            -- For right-aligned dots, add status text before dots
-                            table.insert(wright_items, #wright_items, status_widget) -- insert before the dots
-                        end
-                    end
-                end
             elseif draw_progress and progress_mode == "bars" and est_page_count then
                 local progressbar_items = { align = "center" }
 
@@ -768,12 +736,13 @@ function ListMenuItem:update()
             end
 
             -- show progress text, page text, and/or file info text
+            local show_book_status_text = BookInfoManager:getSetting("show_book_status_text")
             if BookInfoManager:getSetting("hide_file_info") then
-                if status == "complete" then
+                if status == "complete" and show_book_status_text then
                     progress_str = finished_text
-                elseif status == "abandoned" then
+                elseif status == "abandoned" and show_book_status_text then
                     progress_str = abandoned_string
-                elseif percent_finished then
+                elseif percent_finished and show_book_status_text then
                     progress_str = read_text
                     if not draw_progress then
                         percent_str = math.floor(100 * percent_finished) .. "%"
@@ -788,7 +757,7 @@ function ListMenuItem:update()
                             pages_left_str = T(_("%1 pages left"), Math.round(pages - percent_finished * pages), pages)
                         end
                     end
-                elseif not bookinfo._no_provider then
+                elseif not bookinfo._no_provider and show_book_status_text then
                     progress_str = unread_text
                 end
 
@@ -976,6 +945,7 @@ function ListMenuItem:update()
                     wauthors:free(true)
                     wauthors = nil
                 end
+                width = math.max(width or 100, 50) -- minimum 50 pixels
                 wauthors = TextBoxWidget:new {
                     text = authors,
                     lang = bookinfo.language,
@@ -988,7 +958,11 @@ function ListMenuItem:update()
             end
 
             -- make title and author/wright fit within the line height
-            local authors_width = wmain_width - wright_right_padding
+            local authors_width = math.max(wmain_width - wright_right_padding, 50)
+            local dots_align_left = BookInfoManager:getSetting("dots_align_left")
+            if dots_align_left and self.dots_widget_for_left_align then
+                authors_width = math.max(wmain_width - wright_right_padding, 50)
+            end
             local avail_dimen_h = dimen.h
             local height
             local title_height
@@ -1136,15 +1110,18 @@ function ListMenuItem:update()
             -- Build enhanced authors widget that can include left-aligned dots
             local authors_and_dots_container
             if self.dots_widget_for_left_align then
-                -- Create container with authors and dots
+                -- Create container with authors and dots stacked vertically
+                local dots_container = LeftContainer:new {
+                    dimen = Geom:new { w = wmain_width - wright_right_padding, h = self.dots_widget_height or wright_font_size },
+                    self.dots_widget_for_left_align
+                }
+
                 authors_and_dots_container = VerticalGroup:new {
                     wauthors,
                     VerticalSpan:new { width = Size.padding.small },
-                    LeftContainer:new {
-                        dimen = Geom:new { w = wmain_width - wright_right_padding, h = self.dots_widget_height or wright_font_size },
-                        self.dots_widget_for_left_align
-                    }
+                    dots_container
                 }
+
                 -- Clear the stored widget
                 self.dots_widget_for_left_align = nil
                 self.dots_widget_height = nil
