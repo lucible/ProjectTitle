@@ -579,17 +579,19 @@ function ListMenuItem:update()
                 local progress_container = HorizontalGroup:new(progress_items)
 
                 if dots_align_left then
-                    -- Store for later use in layout - we'll add this to the author area
+                    -- Store for later use - we'll add this to the author area
                     self.dots_widget_for_left_align = progress_container
                     self.dots_widget_height = wright_font_size
                 else
-                    -- Right-aligned dots: add to wright_items as before
+                    -- Right-aligned dots: add to wright_items
                     wright_width = math.max(wright_width, progress_width)
                     local right_progress_container = RightContainer:new {
                         dimen = Geom:new { w = progress_width, h = wright_font_size },
                         progress_container
                     }
                     table.insert(wright_items, right_progress_container)
+                    -- Clear the left-align variable since we're not using it
+                    self.dots_widget_for_left_align = nil
                 end
             elseif draw_progress and progress_mode == "bars" and est_page_count then
                 local progressbar_items = { align = "center" }
@@ -946,15 +948,45 @@ function ListMenuItem:update()
                     wauthors = nil
                 end
                 width = math.max(width or 100, 50) -- minimum 50 pixels
-                wauthors = TextBoxWidget:new {
-                    text = authors,
-                    lang = bookinfo.language,
-                    face = Font:getFace(fontname_authors, fontsize_authors),
-                    width = width,
-                    height_adjust = true,
-                    alignment = "left",
-                    fgcolor = Blitbuffer.COLOR_GRAY_2,
-                }
+
+                local authors_components = {}
+
+                -- Add authors text if it exists
+                if authors and authors ~= "" then
+                    local authors_widget = TextBoxWidget:new {
+                        text = authors,
+                        lang = bookinfo.language,
+                        face = Font:getFace(fontname_authors, fontsize_authors),
+                        width = width,
+                        height_adjust = true,
+                        alignment = "left",
+                        fgcolor = Blitbuffer.COLOR_GRAY_2,
+                    }
+                    table.insert(authors_components, authors_widget)
+                end
+
+                -- Add left-aligned progress container if in that mode & it exists
+                local dots_align_left = BookInfoManager:getSetting("dots_align_left")
+                if dots_align_left and self.dots_widget_for_left_align then
+                    if #authors_components > 0 then
+                        table.insert(authors_components, VerticalSpan:new { width = Size.padding.small })
+                    end
+                    table.insert(authors_components, self.dots_widget_for_left_align)
+                end
+
+                -- Create the combined container
+                if #authors_components > 0 then
+                    wauthors = VerticalGroup:new {
+                        align = "left",
+                        authors_components
+                    }
+                else
+                    -- Fallback: create empty widget with minimal height to maintain layout
+                    wauthors = VerticalGroup:new {
+                        align = "left",
+                        VerticalSpan:new { width = 1 }
+                    }
+                end
             end
 
             -- make title and author/wright fit within the line height
@@ -1107,29 +1139,6 @@ function ListMenuItem:update()
                 logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
             end
 
-            -- Build enhanced authors widget that can include left-aligned dots
-            local authors_and_dots_container
-            if self.dots_widget_for_left_align then
-                -- Create container with authors and dots stacked vertically
-                local dots_container = LeftContainer:new {
-                    dimen = Geom:new { w = wmain_width - wright_right_padding, h = self.dots_widget_height or wright_font_size },
-                    self.dots_widget_for_left_align
-                }
-
-                authors_and_dots_container = VerticalGroup:new {
-                    wauthors,
-                    VerticalSpan:new { width = Size.padding.small },
-                    dots_container
-                }
-
-                -- Clear the stored widget
-                self.dots_widget_for_left_align = nil
-                self.dots_widget_height = nil
-            else
-                -- Just the authors widget
-                authors_and_dots_container = wauthors
-            end
-
             -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
                 dimen = dimen:copy(),
@@ -1140,7 +1149,7 @@ function ListMenuItem:update()
                             VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    authors_and_dots_container,
+                                    wauthors,
                                 },
                                 TopContainer:new {
                                     HorizontalGroup:new {
