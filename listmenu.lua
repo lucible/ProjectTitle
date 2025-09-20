@@ -508,8 +508,8 @@ function ListMenuItem:update()
                 -- dot options: ⚬○⚫⬤●
                 -- Build the dot string
                 local dot_string = ""
-                local filled_char = "⚫"
-                local empty_char = "⬤"
+                local empty_char = "⚬"
+                local filled_char = "●"
 
                 for i = 1, total_dots do
                     if i <= filled_dots then
