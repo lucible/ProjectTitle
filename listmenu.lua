@@ -503,10 +503,13 @@ function ListMenuItem:update()
                     filled_dots = calculateFilledDots(percent_finished, total_dots)
                 end
 
+                -- "●" -- U+25CF filled circle 
+                -- "○"  -- U+25CB empty circle
+                -- dot options: ⚬○⚫⬤●
                 -- Build the dot string
                 local dot_string = ""
-                local filled_char = "●" -- U+25CF filled circle
-                local empty_char = "○"  -- U+25CB empty circle
+                local filled_char = "⚫"
+                local empty_char = "⬤"
 
                 for i = 1, total_dots do
                     if i <= filled_dots then
@@ -523,10 +526,28 @@ function ListMenuItem:update()
                     padding = 0,
                 }
 
-                -- Add status icon if needed (pause/trophy)
-                local progress_items = { align = "center" }
+                -- Get display options
+                local dots_align_left = BookInfoManager:getSetting("dots_align_left")
+                local show_book_status_text = BookInfoManager:getSetting("show_book_status_text")
+                local show_progress_percent = BookInfoManager:getSetting("show_progress_percent")
+
+                -- Build progress items array
+                local progress_items = { align = dots_align_left and "left" or "center" }
                 table.insert(progress_items, progress_dots)
 
+                -- Add percentage if enabled
+                if show_progress_percent and percent_finished then
+                    local percent_text = math.floor(100 * percent_finished) .. "%"
+                    local percent_widget = TextWidget:new {
+                        text = percent_text,
+                        face = wright_font_face,
+                        padding = 0,
+                    }
+                    table.insert(progress_items, HorizontalSpan:new { width = Size.padding.small })
+                    table.insert(progress_items, percent_widget)
+                end
+
+                -- Add status icon if needed (pause/trophy)
                 if status == "complete" or status == "abandoned" then
                     local bar_icon_size = Screen:scaleBySize(wright_font_size)
                     local bar_icon_padding = Size.padding.small
@@ -548,17 +569,60 @@ function ListMenuItem:update()
                     table.insert(progress_items, status_icon)
                 end
 
-                -- Calculate width and add to wright_items
+                -- Calculate width for positioning
+                local progress_width = 0
                 for _, w in ipairs(progress_items) do
-                    wright_width = wright_width + w:getSize().w
+                    progress_width = progress_width + w:getSize().w
                 end
 
-                local progress_container = RightContainer:new {
-                    dimen = Geom:new { w = wright_width, h = wright_font_size },
-                    HorizontalGroup:new(progress_items),
-                }
-                table.insert(wright_items, progress_container)
+                -- Create the progress container
+                local progress_container = HorizontalGroup:new(progress_items)
 
+                if dots_align_left then
+                    -- Store for later use in layout - we'll add this to the author area
+                    self.dots_widget_for_left_align = progress_container
+                    self.dots_widget_height = wright_font_size
+                else
+                    -- Right-aligned dots: add to wright_items as before
+                    wright_width = math.max(wright_width, progress_width)
+                    local right_progress_container = RightContainer:new {
+                        dimen = Geom:new { w = progress_width, h = wright_font_size },
+                        progress_container
+                    }
+                    table.insert(wright_items, right_progress_container)
+                end
+
+                -- Handle status text display
+                if show_book_status_text then
+                    local status_text = ""
+                    if status == "complete" then
+                        status_text = finished_text
+                    elseif status == "abandoned" then
+                        status_text = abandoned_string
+                    elseif percent_finished then
+                        status_text = read_text
+                    elseif not bookinfo._no_provider then
+                        status_text = unread_text
+                    end
+
+                    if status_text ~= "" then
+                        local status_widget = TextWidget:new {
+                            text = status_text,
+                            face = wright_font_face,
+                            fgcolor = fgcolor,
+                            padding = 0,
+                        }
+
+                        if dots_align_left then
+                            -- For left-aligned dots, add status text to wright_items (right side)
+                            table.insert(wright_items, 1, status_widget)
+                            wright_width = math.max(wright_width, status_widget:getSize().w)
+                        else
+                            -- For right-aligned dots, add status text before dots
+                            table.insert(wright_items, #wright_items, status_widget) -- insert before the dots
+                        end
+                    end
+                end
             elseif draw_progress and progress_mode == "bars" and est_page_count then
                 local progressbar_items = { align = "center" }
 
@@ -674,7 +738,8 @@ function ListMenuItem:update()
                     table.insert(wright_items, progress)
                 end
             else
-                if status == "complete" or status == "abandoned" then
+                local show_book_status_text = BookInfoManager:getSetting("show_book_status_text")
+                if show_book_status_text and (status == "complete" or status == "abandoned") then
                     -- books marked as "On Hold" get a little pause icon
                     -- books marked as "Finished" get a little trophy
                     local bar_icon_size = Screen:scaleBySize(wright_font_size)
@@ -1068,6 +1133,26 @@ function ListMenuItem:update()
                 logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
             end
 
+            -- Build enhanced authors widget that can include left-aligned dots
+            local authors_and_dots_container
+            if self.dots_widget_for_left_align then
+                -- Create container with authors and dots
+                authors_and_dots_container = VerticalGroup:new {
+                    wauthors,
+                    VerticalSpan:new { width = Size.padding.small },
+                    LeftContainer:new {
+                        dimen = Geom:new { w = wmain_width - wright_right_padding, h = self.dots_widget_height or wright_font_size },
+                        self.dots_widget_for_left_align
+                    }
+                }
+                -- Clear the stored widget
+                self.dots_widget_for_left_align = nil
+                self.dots_widget_height = nil
+            else
+                -- Just the authors widget
+                authors_and_dots_container = wauthors
+            end
+
             -- build the main widget which holds wtitle, wauthors, and wright
             local wmain = LeftContainer:new {
                 dimen = dimen:copy(),
@@ -1078,7 +1163,7 @@ function ListMenuItem:update()
                             VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    wauthors,
+                                    authors_and_dots_container,
                                 },
                                 TopContainer:new {
                                     HorizontalGroup:new {

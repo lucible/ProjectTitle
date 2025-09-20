@@ -274,6 +274,13 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("dots_per_page_unit", 92)        -- configurable constant
         BookInfoManager:saveSetting("config_version", "5")
     end
+    if BookInfoManager:getSetting("config_version") == 5 then
+        logger.info(ptdbg.logprefix, "Migrating settings to version 6")
+        BookInfoManager:saveSetting("dots_align_left", false)        -- align dots under title instead of right
+        BookInfoManager:saveSetting("show_book_status_text", true)   -- show "New", "Reading", etc text
+        BookInfoManager:saveSetting("show_progress_percent", false)  -- show percentage after dots
+        BookInfoManager:saveSetting("config_version", "6")
+    end
 
     -- restart if needed
     if restart_needed then
@@ -604,7 +611,6 @@ function CoverBrowser:addToMainMenu(menu_items)
                     },
                     {
                         text = _("Use progress dots instead of progress bars"),
-                        separator = true,
                         enabled_func = function()
                             return not (
                                     BookInfoManager:getSetting("force_no_progressbars") or
@@ -634,7 +640,8 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Configure dots density"),
+                        text = _("Configure dots display"),
+                        separator = true,
                         enabled_func = function()
                             return BookInfoManager:getSetting("use_progress_dots") and not (
                                     BookInfoManager:getSetting("force_no_progressbars") or
@@ -643,6 +650,30 @@ function CoverBrowser:addToMainMenu(menu_items)
                                 )
                         end,
                         sub_item_table = {
+                            {
+                                text = _("Align dots under title instead of right side"),
+                                checked_func = function() return BookInfoManager:getSetting("dots_align_left") end,
+                                callback = function()
+                                    BookInfoManager:toggleSetting("dots_align_left")
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show book status text (New, Reading, etc.)"),
+                                checked_func = function() return BookInfoManager:getSetting("show_book_status_text") end,
+                                callback = function()
+                                    BookInfoManager:toggleSetting("show_book_status_text")
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show progress percentage after dots"),
+                                checked_func = function() return BookInfoManager:getSetting("show_progress_percent") end,
+                                callback = function()
+                                    BookInfoManager:toggleSetting("show_progress_percent")
+                                    fc:updateItems(1, true)
+                                end,
+                            },
                             {
                                 text_func = function()
                                     local dots_per_loc = BookInfoManager:getSetting("dots_per_location_unit") or 340
