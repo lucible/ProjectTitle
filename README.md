@@ -1,6 +1,21 @@
-<a href="resources/collage.jpg"><img src="resources/collage.jpg" width="600px"></a><br />
-<sub>A collage of screenshots showing KOReader with Project: Title installed demonstrating a variety of possible display settings.</sub><br />
-<sup>The books used are from the Standard Ebooks collection and the text visible is part of their cover design, not overlaid by this plugin.</sup> 
+<a href="resources/collage.jpg"><img src="resources/FileManager_2025-09-21_153749.png" width="300px"></a><br />
+
+A personal mod of Project: Title to make it look more like the stock Kindle UI, including:
+- Option to show relative book lengths as "dots" instead of a progress bar; these go from empty to filled as reading percentage increases
+  - Parses file names for `L(##)` alongside `P(##)` for use with a script to generate a Kindle-like "locations" number for an ePUB (insert gist link here)
+  - Option to prefer using "locations" number over "pages" number (falls back to pages if locations not found) or to prefer pages
+  - Option to set the # of locations or pages that are equivalent to one dot
+  - Option to show/hide progress percentage at the end of the dots bar
+  - Option to align the dots bar on the left side of the listbox instead of the right
+- Option to show/hide book status text (New/Reading/On Hold/etc)
+- Expanded series display options:
+  - Don't show series
+  - Show series above authors
+  - Show authors above series
+  - Show series inline with authors
+- Font settings menu to easily change book title font, content font, and ui font (currently only working for Cover List??)
+
+<hr>
 
 #### A new view for KOReader, based on Cover Browser.
 Project: Title is a project by two people who love KOreader but wanted to expand upon the Cover Browser plugin. We desired an interface that would blend in with the very best that commercial eReaders have. Something that would make the time between books, looking for that next read, as pleasant as possible.
