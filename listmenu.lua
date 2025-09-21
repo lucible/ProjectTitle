@@ -510,11 +510,11 @@ function ListMenuItem:update()
 
                 -- "●" -- U+25CF filled circle 
                 -- "○"  -- U+25CB empty circle
-                -- dot options: ⚬○⚫⬤●
+                -- dot options: ⚬○⚫⬤●●
                 -- Build the dot string
                 local dot_string = ""
-                local empty_char = "⚬"
-                local filled_char = "●"
+                local empty_char = "⚬" -- medium small white circle
+                local filled_char = "⦁" -- z notation spot
 
                 -- Create separate strings for filled and empty dots
                 local filled_string = string.rep(filled_char, filled_dots)
@@ -601,14 +601,14 @@ function ListMenuItem:update()
                         face = wright_font_face,
                         padding = 0,
                     }
-                    table.insert(progress_items, HorizontalSpan:new { width = Size.padding.small })
+                    table.insert(progress_items, HorizontalSpan:new { width = Size.padding.default })
                     table.insert(progress_items, percent_widget)
                 end
 
                 -- Add status icon if needed (pause/trophy)
                 if status == "complete" or status == "abandoned" then
                     local bar_icon_size = Screen:scaleBySize(wright_font_size)
-                    local bar_icon_padding = Size.padding.small
+                    local bar_icon_padding = Size.padding.default
                     local icon_filename = plugin_dir .. "/resources/pause.svg"
                     if status == "complete" then
                         icon_filename = plugin_dir .. "/resources/trophy.svg"
@@ -930,7 +930,12 @@ function ListMenuItem:update()
                 end
                 if bookinfo.series_index then
                     -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
-                    bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
+                    if series_mode == "series_inline" then
+                        -- don't need the separator, change the order to make more sense
+                        bookinfo.series = BD.auto(bookinfo.series) .. " #" .. bookinfo.series_index
+                    else
+                        bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
+                    end
                 else
                     bookinfo.series = BD.auto(bookinfo.series)
                 end
@@ -1005,7 +1010,11 @@ function ListMenuItem:update()
                 }
             end
 
-            local build_authors = function(width)
+            -- Declare this early so it's available in build_authors
+            local avail_dimen_h = dimen.h
+
+            local build_authors = function(width, final_positioning)
+                local final_positioning = final_positioning or false
                 if wauthors then
                     wauthors:free(true)
                     wauthors = nil
@@ -1031,9 +1040,23 @@ function ListMenuItem:update()
                 -- Add left-aligned progress container if in that mode & it exists
                 local dots_align_left = BookInfoManager:getSetting("dots_align_left")
                 if dots_align_left and self.dots_widget_for_left_align then
-                    if #authors_components > 0 then
-                        table.insert(authors_components, VerticalSpan:new { width = Size.padding.small })
+                    -- insert spacing above the dots widget to align it at the bottom of the listbox
+                    if final_positioning then
+                        local title_height = wtitle:getSize().h
+                        local authors_height = authors_widget and authors_widget:getSize().h or 0
+                        local dots_height = self.dots_widget_for_left_align:getSize().h or 0
+                        local remaining_space = avail_dimen_h - title_height - authors_height - (dots_height*2) - (Size.padding.default * 2)
+                        remaining_space = math.max(0, remaining_space)
+
+                        if remaining_space > 0 then
+                            table.insert(authors_components, VerticalSpan:new { width = remaining_space })
+                        else
+                            table.insert(authors_components, VerticalSpan:new { width = Size.padding.default })
+                        end
                     end
+
+                    -- insert the dots widget ahead of final positioning so that the vertical space they take up
+                    -- is accounted for during the title/author font sizing calculations
                     table.insert(authors_components, self.dots_widget_for_left_align)
                 end
 
@@ -1052,11 +1075,6 @@ function ListMenuItem:update()
 
             -- make title and author/wright fit within the line height
             local authors_width = math.max(wmain_width - wright_right_padding, 50)
-            local dots_align_left = BookInfoManager:getSetting("dots_align_left")
-            if dots_align_left and self.dots_widget_for_left_align then
-                authors_width = math.max(wmain_width - wright_right_padding, 50)
-            end
-            local avail_dimen_h = dimen.h
             local height
             local title_height
             local title_line_height
@@ -1165,14 +1183,24 @@ function ListMenuItem:update()
                 end
             end
 
-            -- align to top normally, align to center in filename only list
+            -- If the progress dots are aligned left, build authors with final sizes
+            -- so that dots can be properly aligned to the bottom of the listbox
+            build_authors(authors_width, true)
+
+            -- align title to top normally, align to center in filename only list
             local wtitle_container_style = self.do_filename_only and LeftContainer or TopContainer
-            local wtitle_container = wtitle_container_style:new {
-                dimen = dimen:copy(),
+
+            -- add some padding to the title top so it's not butting up against the line separating listboxes
+            local wtitle_with_padding = VerticalGroup:new {
+                VerticalSpan:new { width = Size.padding.default },
                 wtitle,
             }
+            local wtitle_container = wtitle_container_style:new {
+                dimen = dimen:copy(),
+                wtitle_with_padding,
+            }
 
-            local title_padding = wtitle:getSize().h
+            local title_padding = wtitle_with_padding:getSize().h
             local wauthors_padding = wmain_width - wright_width - wright_right_padding
             -- affix wright to bottom of vertical space
             local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
@@ -1180,7 +1208,7 @@ function ListMenuItem:update()
 
             -- The combined size of the elements in a listbox should not exceed the available
             -- height of that listbox. Log if they do.
-            if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+            if wtitle_with_padding:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
                 logger.info(ptdbg.logprefix, "Listbox height exceeded")
                 logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
                 logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
@@ -1206,6 +1234,7 @@ function ListMenuItem:update()
                 OverlapGroup:new {
                     dimen = dimen:copy(),
                     TopContainer:new {
+                        dimen = dimen:copy(),
                         VerticalGroup:new {
                             VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
