@@ -17,6 +17,13 @@ A personal mod of Project: Title to make it look more like the stock Kindle UI, 
 
 <hr>
 
+Current issues:
+- align dots left is broken for multi-line author+series option
+- show book status text should NOT be nested under dots settings
+- percentage text is a darker font? can it be the same color as the author font?
+
+<hr>
+
 #### A new view for KOReader, based on Cover Browser.
 Project: Title is a project by two people who love KOreader but wanted to expand upon the Cover Browser plugin. We desired an interface that would blend in with the very best that commercial eReaders have. Something that would make the time between books, looking for that next read, as pleasant as possible.
 
