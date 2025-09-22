@@ -2,7 +2,7 @@
 
 A personal mod of Project: Title to make it look more like the stock Kindle UI, including:
 - Option to show relative book lengths as "dots" instead of a progress bar; these go from empty to filled as reading percentage increases
-  - Parses file names for `L(##)` alongside `P(##)` for use with a script to generate a Kindle-like "locations" number for an ePUB (insert gist link here)
+  - Parses file names for `L(##)` alongside `P(##)` for use with [a script](https://gist.github.com/lucible/546dd6a79a34299b9ba0ac1d47cd6a72) to generate a Kindle-like "locations" number for an ePUB
   - Option to prefer using "locations" number over "pages" number (falls back to pages if locations not found) or to prefer pages
   - Option to set the # of locations or pages that are equivalent to one dot
   - Option to show/hide progress percentage at the end of the dots bar
