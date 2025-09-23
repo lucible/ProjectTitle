@@ -22,6 +22,17 @@ Current issues:
 - show book status text should NOT be nested under dots settings
 - percentage text is a darker font? can it be the same color as the author font?
 
+Display Mode:
+- ✅ Cover List
+    - Built & tested on this display mode, works great except for the issues above
+- ⛔ Cover Grid
+    - Dots don't make sense to display on top of cover images (not enough space, etc) so no plans to support this mode
+    - Believe there should be no bugs introduced in this mode by the changes made in this fork but not comprehensively tested
+- ✔️ Details List
+    - On first glance it looks like it works fine with changes from this fork but not comprehensively tested
+- ❌ Filenames List
+    - Broken, dots display when they shouldn't. Needs to be fixed!
+
 <hr>
 
 #### A new view for KOReader, based on Cover Browser.
