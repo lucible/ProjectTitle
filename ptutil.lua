@@ -262,7 +262,6 @@ local function query_cover_paths(folder, include_subfolders)
             ]], folder)
     end
 
-    logger.info(query)
     local res = db_conn:exec(query)
     db_conn:close()
     return res
