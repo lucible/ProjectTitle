@@ -246,20 +246,23 @@ local function query_cover_paths(folder, include_subfolders)
     if not util.pathExists(folder) then return nil end
 
     local query
+    folder = folder:gsub("'", "''")
+    folder = folder:gsub(";","_") -- ljsqlite3 splits commands on semicolons
     if include_subfolders then
         query = string.format([[
-                            SELECT directory, filename FROM bookinfo
-                            WHERE directory LIKE '%s/%%' AND has_cover = 'Y'
-                            ORDER BY RANDOM() LIMIT 16;
-                        ]], folder:gsub("'", "''"))
+            SELECT directory, filename FROM bookinfo
+            WHERE directory LIKE '%s/%%' AND has_cover = 'Y'
+            ORDER BY RANDOM() LIMIT 16;
+            ]], folder)
     else
         query = string.format([[
-                            SELECT directory, filename FROM bookinfo
-                            WHERE directory = '%s/' AND has_cover = 'Y'
-                            ORDER BY RANDOM() LIMIT 16;
-                        ]], folder:gsub("'", "''"))
+            SELECT directory, filename FROM bookinfo
+            WHERE directory = '%s/' AND has_cover = 'Y'
+            ORDER BY RANDOM() LIMIT 16;
+            ]], folder)
     end
 
+    logger.info(query)
     local res = db_conn:exec(query)
     db_conn:close()
     return res
