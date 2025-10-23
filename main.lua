@@ -64,7 +64,7 @@ else
     end
 end
 
--- If any required files are missing, or if KOReader version is wrong, load an empty plugin 
+-- If any required files are missing, or if KOReader version is wrong, load an empty plugin
 -- and display an error message to the user.
 if fonts_missing or icons_missing or version_unsafe then
     logger.warn(ptdbg.logprefix, "Refusing to fully load the plugin")
@@ -232,6 +232,7 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("hide_file_info", true)
         BookInfoManager:saveSetting("unified_display_mode", true)
         BookInfoManager:saveSetting("show_progress_in_mosaic", true)
+        BookInfoManager:saveSetting("show_tags", true)
         BookInfoManager:saveSetting("autoscan_on_eject", false)
         G_reader_settings:makeTrue("aaaProjectTitle_initial_default_setup_done2")
         restart_needed = true
@@ -265,6 +266,11 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("force_focus_indicator", false)
         BookInfoManager:saveSetting("use_stacked_foldercovers", false)
         BookInfoManager:saveSetting("config_version", "4")
+    end
+
+    -- Ensure new boolean defaults for older installs
+    if BookInfoManager:getSetting("show_tags") == nil then
+        BookInfoManager:saveSetting("show_tags", true)
     end
 
     -- restart if needed
@@ -604,6 +610,14 @@ function CoverBrowser:addToMainMenu(menu_items)
                                 series_mode = "series_in_separate_line"
                             end
                             BookInfoManager:saveSetting("series_mode", series_mode)
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Show calibre tags/keywords"),
+                        checked_func = function() return BookInfoManager:getSetting("show_tags") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("show_tags")
                             fc:updateItems(1, true)
                         end,
                     },

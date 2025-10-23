@@ -700,7 +700,8 @@ function ListMenuItem:update()
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
-            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
+            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 and not bookinfo.ignore_meta -- suppress series if index is "0"
+            local show_tags = BookInfoManager:getSetting("show_tags") and not self.do_filename_only and not bookinfo.ignore_meta and bookinfo.keywords and bookinfo.keywords ~= ""
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them
@@ -801,15 +802,49 @@ function ListMenuItem:update()
                     wauthors:free(true)
                     wauthors = nil
                 end
-                wauthors = TextBoxWidget:new {
+                local safe_width = math.max(1, width)
+                local main_authors = TextBoxWidget:new {
                     text = authors,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_authors, fontsize_authors),
-                    width = width,
+                    width = safe_width,
                     height_adjust = true,
                     alignment = "left",
                     fgcolor = Blitbuffer.COLOR_GRAY_2,
                 }
+
+                local vgroup_items = { main_authors }
+
+                if show_tags then
+                    -- Estimate how many tags can fit horizontally
+                    local est_tag_px = Screen:scaleBySize(70)
+                    local tags_limit = math.min(6, math.max(1, math.floor(safe_width / est_tag_px)))
+                    local formatted_tags = ptutil.formatTags(bookinfo.keywords, tags_limit)
+
+                    if formatted_tags then
+                        -- Use font size slightly smaller than authors
+                        local tags_font_size = math.max(8, fontsize_authors - 3)
+                        local wtags = TextBoxWidget:new {
+                            text = formatted_tags,
+                            face = Font:getFace(fontname_authors, tags_font_size),
+                            width = safe_width,
+                            height_adjust = true,
+                            height_overflow_show_ellipsis = true,
+                            alignment = "left",
+                            fgcolor = Blitbuffer.COLOR_GRAY_2,
+                        }
+
+                        local avail_height = math.max(0, dimen.h - (wtitle and wtitle:getSize().h or 0))
+                        local combined_height = main_authors:getSize().h + wtags:getSize().h
+                        if combined_height <= avail_height then
+                            table.insert(vgroup_items, wtags)
+                        else
+                            wtags:free(true)
+                        end
+                    end
+                end
+
+                wauthors = VerticalGroup:new(vgroup_items)
             end
 
             -- make title and author/wright fit within the line height
@@ -850,7 +885,7 @@ function ListMenuItem:update()
                     title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
                     authors_height = authors and wauthors:getSize().h or 0
                     authors_height = math.max(authors_height, wright_height)
-                    authors_line_height = authors and wauthors:getLineHeight() or 0
+                    authors_line_height = authors and wauthors[1]:getLineHeight() or 0
                     authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
                     -- both labels fit in the allocated space.

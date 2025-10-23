@@ -68,6 +68,9 @@ msgid "Show series"
 msgstr "Serien anzeigen"
 # a better translation would be "Bücherreihen anzeigen" but in calibre it's translated with "Serien anzeigen"
 
+msgid "Show calibre tags/keywords"
+msgstr "Calibre Tags/Schlüsselwörter anzeigen"
+
 msgid "Show pages read instead of progress %"
 msgstr "Gelesene Seiten statt Prozent anzeigen"
 
