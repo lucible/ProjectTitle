@@ -804,6 +804,7 @@ function ListMenuItem:update()
                 end
 
                 local wmetadata_fgcolor = Blitbuffer.COLOR_GRAY_2
+                local fontname_tags = ptutil.good_serif_it
                 local safe_width = math.max(1, width)
 
                 local wauthors = TextBoxWidget:new {
@@ -833,7 +834,7 @@ function ListMenuItem:update()
 
                         local wtags = TextBoxWidget:new {
                             text = formatted_tags,
-                            face = Font:getFace(fontname_authors, fontsize_tags),
+                            face = Font:getFace(fontname_tags, fontsize_tags),
                             width = safe_width,
                             height = avail_height,
                             height_adjust = true,
@@ -846,7 +847,7 @@ function ListMenuItem:update()
                         -- local wtags = TextWidget:new {
                         --     text = formatted_tags,
                         --     lang = bookinfo.language,
-                        --     face = Font:getFace(fontname_authors, fontsize_tags),
+                        --     face = Font:getFace(fontname_tags, fontsize_tags),
                         --     max_width = safe_width,
                         --     padding = 0,
                         --     truncate_with_ellipsis = true,
