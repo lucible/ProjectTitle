@@ -267,10 +267,10 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("use_stacked_foldercovers", false)
         BookInfoManager:saveSetting("config_version", "4")
     end
-
-    -- Ensure new boolean defaults for older installs
-    if BookInfoManager:getSetting("show_tags") == nil then
-        BookInfoManager:saveSetting("show_tags", true)
+    if BookInfoManager:getSetting("config_version") == 4 then
+        logger.info(ptdbg.logprefix, "Migrating settings to version 5")
+        BookInfoManager:saveSetting("show_tags", false)
+        BookInfoManager:saveSetting("config_version", "5")
     end
 
     -- restart if needed
