@@ -697,7 +697,7 @@ function ListMenuItem:update()
             local bold_title = false
             local fontsize_title = title_font_size
             local fontsize_authors = authors_font_size
-            local wtitle, wauthors
+            local wtitle, wmetadata
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
             local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 and not bookinfo.ignore_meta -- suppress series if index is "0"
@@ -749,7 +749,7 @@ function ListMenuItem:update()
 
             -- Build title and authors texts with decreasing font size
             -- till it fits in the space available
-            local build_title = function()
+            local build_wtitle = function()
                 if wtitle then
                     wtitle:free(true)
                     wtitle = nil
@@ -778,7 +778,7 @@ function ListMenuItem:update()
                 }
             end
 
-            local build_multiline_title = function()
+            local build_multiline_wtitle = function()
                 if wtitle then
                     wtitle:free(true)
                     wtitle = nil
@@ -797,54 +797,80 @@ function ListMenuItem:update()
                 }
             end
 
-            local build_authors = function(width)
-                if wauthors then
-                    wauthors:free(true)
-                    wauthors = nil
+            local build_wmetadata = function(width)
+                if wmetadata then
+                    wmetadata:free(true)
+                    wmetadata = nil
                 end
+
+                local wmetadata_fgcolor = Blitbuffer.COLOR_GRAY_2
                 local safe_width = math.max(1, width)
-                local main_authors = TextBoxWidget:new {
+
+                local wauthors = TextBoxWidget:new {
                     text = authors,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_authors, fontsize_authors),
                     width = safe_width,
                     height_adjust = true,
                     alignment = "left",
-                    fgcolor = Blitbuffer.COLOR_GRAY_2,
+                    fgcolor = wmetadata_fgcolor,
                 }
-
-                local vgroup_items = { main_authors }
+                local vgroup_items = { wauthors }
 
                 if show_tags then
+                    local avail_height = math.max(0, dimen.h - (wtitle and wtitle:getSize().h or 0))
                     -- Estimate how many tags can fit horizontally
-                    local est_tag_px = Screen:scaleBySize(70)
-                    local tags_limit = math.min(6, math.max(1, math.floor(safe_width / est_tag_px)))
-                    local formatted_tags = ptutil.formatTags(bookinfo.keywords, tags_limit)
+                    -- local est_tag_px = Screen:scaleBySize(2)
+                    -- local tags_limit = math.min(6, math.max(1, math.floor(safe_width / est_tag_px)))
+                    local formatted_tags = ptutil.formatTags(bookinfo.keywords, 9999)
+                    -- logger.info("est_tag_px", est_tag_px)
+                    -- logger.info("tags_limit", tags_limit)
+                    -- logger.info("formatted_tags", formatted_tags)
 
                     if formatted_tags then
                         -- Use font size slightly smaller than authors
-                        local tags_font_size = math.max(8, fontsize_authors - 3)
+                        local fontsize_tags = math.max(10, fontsize_authors - 3)
+
                         local wtags = TextBoxWidget:new {
                             text = formatted_tags,
-                            face = Font:getFace(fontname_authors, tags_font_size),
+                            face = Font:getFace(fontname_authors, fontsize_tags),
                             width = safe_width,
+                            height = avail_height,
                             height_adjust = true,
                             height_overflow_show_ellipsis = true,
                             alignment = "left",
-                            fgcolor = Blitbuffer.COLOR_GRAY_2,
+                            fgcolor = wmetadata_fgcolor,
                         }
 
-                        local avail_height = math.max(0, dimen.h - (wtitle and wtitle:getSize().h or 0))
-                        local combined_height = main_authors:getSize().h + wtags:getSize().h
+                        -- disable above, enable below for textwidget
+                        -- local wtags = TextWidget:new {
+                        --     text = formatted_tags,
+                        --     lang = bookinfo.language,
+                        --     face = Font:getFace(fontname_authors, fontsize_tags),
+                        --     max_width = safe_width,
+                        --     padding = 0,
+                        --     truncate_with_ellipsis = true,
+                        --     alignment = "left",
+                        --     fgcolor = wmetadata_fgcolor,
+                        -- }
+
+                        local combined_height = wauthors:getSize().h + wtags:getSize().h
                         if combined_height <= avail_height then
                             table.insert(vgroup_items, wtags)
+
+                            -- disable above, enable below for textwidget
+                            -- table.insert(vgroup_items, HorizontalGroup:new {
+                            --     wtags,
+                            --     HorizontalSpan:new { width = (safe_width - wtags:getSize().w)}
+                            -- })
                         else
                             wtags:free(true)
+                            wtags = nil
                         end
                     end
                 end
 
-                wauthors = VerticalGroup:new(vgroup_items)
+                wmetadata = VerticalGroup:new(vgroup_items)
             end
 
             -- make title and author/wright fit within the line height
@@ -859,10 +885,10 @@ function ListMenuItem:update()
             local authors_min_height
 
             while true do
-                build_title()
+                build_wtitle()
                 -- blank out the authors and series text for filenames only
                 if self.do_filename_only then authors = "" end
-                build_authors(authors_width)
+                build_wmetadata(authors_width)
 
                 -- if the single-line title is ... then reduce font to try fitting it
                 while wtitle:isTruncated() do
@@ -870,11 +896,11 @@ function ListMenuItem:update()
                         break
                     end
                     fontsize_title = fontsize_title - fontsize_dec_step
-                    build_title()
+                    build_wtitle()
                 end
 
                 height = wtitle:getSize().h
-                height = height + wauthors:getSize().h
+                height = height + wmetadata:getSize().h
                 if height <= avail_dimen_h then -- We fit!
                     break
                 end
@@ -883,9 +909,9 @@ function ListMenuItem:update()
                     title_height = wtitle:getSize().h
                     title_line_height = wtitle:getLineHeight()
                     title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
-                    authors_height = authors and wauthors:getSize().h or 0
+                    authors_height = authors and wmetadata:getSize().h or 0
                     authors_height = math.max(authors_height, wright_height)
-                    authors_line_height = authors and wauthors[1]:getLineHeight() or 0
+                    authors_line_height = authors and wmetadata[1]:getLineHeight() or 0
                     authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
                     -- both labels fit in the allocated space.
@@ -899,10 +925,10 @@ function ListMenuItem:update()
                         end
                     end
                     if title_height < wtitle:getSize().h then
-                        build_title()
+                        build_wtitle()
                     end
-                    if authors and authors_height < wauthors:getSize().h then
-                        build_authors(authors_width)
+                    if authors and authors_height < wmetadata:getSize().h then
+                        build_wmetadata(authors_width)
                     end
                     break
                 end
@@ -913,24 +939,24 @@ function ListMenuItem:update()
 
             -- if there is room for a 2+ line title, do it and max out the font size
             local title_ismultiline = false
-            if wtitle:getSize().h * 2 < avail_dimen_h - math.max(wauthors:getSize().h, wright_height) then
+            if wtitle:getSize().h * 2 < avail_dimen_h - math.max(wmetadata:getSize().h, wright_height) then
                 title_ismultiline = true
-                build_multiline_title()
+                build_multiline_wtitle()
                 -- if the multiline title doesn't fit even with the smallest font size, give up
-                if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-                    build_title()
+                if wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
+                    build_wtitle()
                     title_ismultiline = false
                 else
-                    while wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) < avail_dimen_h do
+                    while wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) < avail_dimen_h do
                         if fontsize_title >= 26 then
                             break
                         end
                         fontsize_title = fontsize_title + fontsize_dec_step
-                        build_multiline_title()
+                        build_multiline_wtitle()
                         -- if we overshoot, go back a step
-                        if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+                        if wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                             fontsize_title = fontsize_title - fontsize_dec_step
-                            build_multiline_title()
+                            build_multiline_wtitle()
                             break
                         end
                     end
@@ -939,22 +965,22 @@ function ListMenuItem:update()
 
             -- if the wider wauthors+wright doesn't fit, go back to a reduced width and reduce font sizes
             local wauthors_iswider = true
-            if dimen.h - wtitle:getSize().h <= wauthors:getSize().h + wright_height then
+            if dimen.h - wtitle:getSize().h <= wmetadata:getSize().h + wright_height then
                 wauthors_iswider = false
                 authors_width = wmain_width - (wright_width + wright_right_padding)
-                build_authors(authors_width)
-                while wauthors:getSize().h > avail_dimen_h - wtitle:getSize().h do
+                build_wmetadata(authors_width)
+                while wmetadata:getSize().h > avail_dimen_h - wtitle:getSize().h do
                     if fontsize_authors <= 10 then
                         break
                     end
                     fontsize_authors = fontsize_authors - fontsize_dec_step
                     fontsize_title = fontsize_title - fontsize_dec_step
                     if title_ismultiline then
-                        build_multiline_title()
+                        build_multiline_wtitle()
                     else
-                        build_title()
+                        build_wtitle()
                     end
-                    build_authors(authors_width)
+                    build_wmetadata(authors_width)
                 end
             end
 
@@ -973,7 +999,7 @@ function ListMenuItem:update()
 
             -- The combined size of the elements in a listbox should not exceed the available
             -- height of that listbox. Log if they do.
-            if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+            if wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                 logger.info(ptdbg.logprefix, "Listbox height exceeded")
                 logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
                 logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
@@ -983,8 +1009,8 @@ function ListMenuItem:update()
                 logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
                 logger.info(ptdbg.logprefix, "authors ", authors)
                 logger.info(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
-                logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
-                logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
+                logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wmetadata:getSize().h)
+                logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wmetadata:getSize().w)
                 logger.info(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
                 logger.info(ptdbg.logprefix, "authors_width ", authors_width)
                 logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
@@ -1003,7 +1029,7 @@ function ListMenuItem:update()
                             VerticalSpan:new { width = title_padding },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    wauthors,
+                                    wmetadata,
                                 },
                                 TopContainer:new {
                                     HorizontalGroup:new {
