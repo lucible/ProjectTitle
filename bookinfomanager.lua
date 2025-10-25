@@ -591,7 +591,10 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                             else
                                 fp = string.match(l, "#pages")
                                 -- check for single line format
-                                fv = string.match(l, "&quot;#value#&quot;: (%d+),")
+                                -- only look for a numerical value if #pages is found
+                                if fp then
+                                    fv = string.match(l, "&quot;#value#&quot;: (%d+),")
+                                end
                                 if fv then
                                     return fp, fv, true
                                 end
