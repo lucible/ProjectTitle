@@ -232,7 +232,6 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("hide_file_info", true)
         BookInfoManager:saveSetting("unified_display_mode", true)
         BookInfoManager:saveSetting("show_progress_in_mosaic", true)
-        BookInfoManager:saveSetting("show_tags", true)
         BookInfoManager:saveSetting("autoscan_on_eject", false)
         G_reader_settings:makeTrue("aaaProjectTitle_initial_default_setup_done2")
         restart_needed = true
