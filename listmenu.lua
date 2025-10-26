@@ -847,11 +847,15 @@ function ListMenuItem:update()
                         }
                         if (wauthors:getSize().h + wtags_multiline:getSize().h) <= avail_height then
                             table.insert(vgroup_items, wtags_multiline)
+                            wtags_monoline:free(true)
+                            wtags_monoline = nil
                         elseif (wauthors:getSize().h + wtags_monoline:getSize().h) <= avail_height then
                             table.insert(vgroup_items, HorizontalGroup:new {
                                 wtags_monoline,
                                 HorizontalSpan:new { width = (safe_width - wtags_monoline:getSize().w)}
                             })
+                            wtags_multiline:free(true)
+                            wtags_multiline = nil
                         else
                             wtags_monoline:free(true)
                             wtags_monoline = nil
