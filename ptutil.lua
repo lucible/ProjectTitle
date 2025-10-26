@@ -538,7 +538,7 @@ function ptutil.formatTags(keywords, tags_limit)
     local full_list = util.splitToArray(keywords, "\n")
     local nb_tags = #full_list
     if nb_tags == 0 then return nil end
-    tags_limit = tags_limit or 3
+    tags_limit = tags_limit or 9999
     for i = 1, math.min(tags_limit, nb_tags) do
         local t = full_list[i]
         if t and t ~= "" then

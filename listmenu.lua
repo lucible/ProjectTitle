@@ -805,7 +805,7 @@ function ListMenuItem:update()
 
                 local wmetadata_fgcolor = Blitbuffer.COLOR_GRAY_2
                 local fontname_tags = ptutil.good_serif_it
-                local safe_width = math.max(1, width)
+                local safe_width = math.max(1, width - Size.padding.default)
 
                 local wauthors = TextBoxWidget:new {
                     text = authors,
@@ -820,19 +820,12 @@ function ListMenuItem:update()
 
                 if show_tags then
                     local avail_height = math.max(0, dimen.h - (wtitle and wtitle:getSize().h or 0))
-                    -- Estimate how many tags can fit horizontally
-                    -- local est_tag_px = Screen:scaleBySize(2)
-                    -- local tags_limit = math.min(6, math.max(1, math.floor(safe_width / est_tag_px)))
-                    local formatted_tags = ptutil.formatTags(bookinfo.keywords, 9999)
-                    -- logger.info("est_tag_px", est_tag_px)
-                    -- logger.info("tags_limit", tags_limit)
-                    -- logger.info("formatted_tags", formatted_tags)
-
+                    local formatted_tags = ptutil.formatTags(bookinfo.keywords)
                     if formatted_tags then
                         -- Use font size slightly smaller than authors
                         local fontsize_tags = math.max(10, fontsize_authors - 3)
-
-                        local wtags = TextBoxWidget:new {
+                        -- build both multiline and single line, one or neither will be used as fits
+                        local wtags_multiline = TextBoxWidget:new {
                             text = formatted_tags,
                             face = Font:getFace(fontname_tags, fontsize_tags),
                             width = safe_width,
@@ -842,31 +835,28 @@ function ListMenuItem:update()
                             alignment = "left",
                             fgcolor = wmetadata_fgcolor,
                         }
-
-                        -- disable above, enable below for textwidget
-                        -- local wtags = TextWidget:new {
-                        --     text = formatted_tags,
-                        --     lang = bookinfo.language,
-                        --     face = Font:getFace(fontname_tags, fontsize_tags),
-                        --     max_width = safe_width,
-                        --     padding = 0,
-                        --     truncate_with_ellipsis = true,
-                        --     alignment = "left",
-                        --     fgcolor = wmetadata_fgcolor,
-                        -- }
-
-                        local combined_height = wauthors:getSize().h + wtags:getSize().h
-                        if combined_height <= avail_height then
-                            table.insert(vgroup_items, wtags)
-
-                            -- disable above, enable below for textwidget
-                            -- table.insert(vgroup_items, HorizontalGroup:new {
-                            --     wtags,
-                            --     HorizontalSpan:new { width = (safe_width - wtags:getSize().w)}
-                            -- })
+                        local wtags_monoline = TextWidget:new {
+                            text = formatted_tags,
+                            lang = bookinfo.language,
+                            face = Font:getFace(fontname_tags, fontsize_tags),
+                            max_width = safe_width,
+                            padding = 0,
+                            truncate_with_ellipsis = true,
+                            alignment = "left",
+                            fgcolor = wmetadata_fgcolor,
+                        }
+                        if (wauthors:getSize().h + wtags_multiline:getSize().h) <= avail_height then
+                            table.insert(vgroup_items, wtags_multiline)
+                        elseif (wauthors:getSize().h + wtags_monoline:getSize().h) <= avail_height then
+                            table.insert(vgroup_items, HorizontalGroup:new {
+                                wtags_monoline,
+                                HorizontalSpan:new { width = (safe_width - wtags_monoline:getSize().w)}
+                            })
                         else
-                            wtags:free(true)
-                            wtags = nil
+                            wtags_monoline:free(true)
+                            wtags_monoline = nil
+                            wtags_multiline:free(true)
+                            wtags_multiline = nil
                         end
                     end
                 end
