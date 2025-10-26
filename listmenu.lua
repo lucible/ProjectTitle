@@ -694,10 +694,16 @@ function ListMenuItem:update()
             local wmain_width = dimen.w - wleft_width - wmain_left_padding
             local fontname_title = ptutil.title_serif
             local fontname_authors = ptutil.good_serif
+            local fontname_tags = ptutil.good_serif_it
+            local wmetadata_fgcolor = Blitbuffer.COLOR_GRAY_2
             local bold_title = false
             local fontsize_title = title_font_size
             local fontsize_authors = authors_font_size
-            local wtitle, wmetadata
+            local fontsize_tags = 10
+            local wtitle, wmetadata, wtags, wauthors
+            local wmetadata_items
+            local wtags_avail_height = 0
+            local wmetadata_safe_width = 0
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
             local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 and not bookinfo.ignore_meta -- suppress series if index is "0"
@@ -805,75 +811,43 @@ function ListMenuItem:update()
                 }
             end
 
-            local build_wmetadata = function(width)
+            local build_wmetadata = function(width, formatted_tags)
                 if wmetadata then
                     wmetadata:free(true)
                     wmetadata = nil
                 end
-
-                local wmetadata_fgcolor = Blitbuffer.COLOR_GRAY_2
-                local fontname_tags = ptutil.good_serif_it
-                local safe_width = math.max(1, width - Size.padding.default)
-
-                local wauthors = TextBoxWidget:new {
+                wmetadata_safe_width = math.max(1, width - Size.padding.default)
+                wauthors = TextBoxWidget:new {
                     text = authors,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_authors, fontsize_authors),
-                    width = safe_width,
+                    width = wmetadata_safe_width,
                     height_adjust = true,
                     alignment = "left",
                     fgcolor = wmetadata_fgcolor,
                 }
-                local vgroup_items = { wauthors }
-
-                if show_tags then
-                    local avail_height = math.max(0, dimen.h - (wtitle and wtitle:getSize().h or 0))
-                    local formatted_tags = ptutil.formatTags(bookinfo.keywords)
-                    if formatted_tags then
-                        -- Use font size slightly smaller than authors
-                        local fontsize_tags = math.max(10, fontsize_authors - 3)
-                        -- build both multiline and single line, one or neither will be used as fits
-                        local wtags_multiline = TextBoxWidget:new {
-                            text = formatted_tags,
-                            face = Font:getFace(fontname_tags, fontsize_tags),
-                            width = safe_width,
-                            height = avail_height,
-                            height_adjust = true,
-                            height_overflow_show_ellipsis = true,
-                            alignment = "left",
-                            fgcolor = wmetadata_fgcolor,
-                        }
-                        local wtags_monoline = TextWidget:new {
-                            text = formatted_tags,
-                            lang = bookinfo.language,
-                            face = Font:getFace(fontname_tags, fontsize_tags),
-                            max_width = safe_width,
-                            padding = 0,
-                            truncate_with_ellipsis = true,
-                            alignment = "left",
-                            fgcolor = wmetadata_fgcolor,
-                        }
-                        if (wauthors:getSize().h + wtags_multiline:getSize().h) <= avail_height then
-                            table.insert(vgroup_items, wtags_multiline)
-                            wtags_monoline:free(true)
-                            wtags_monoline = nil
-                        elseif (wauthors:getSize().h + wtags_monoline:getSize().h) <= avail_height then
-                            table.insert(vgroup_items, HorizontalGroup:new {
-                                wtags_monoline,
-                                HorizontalSpan:new { width = (safe_width - wtags_monoline:getSize().w)}
-                            })
-                            wtags_multiline:free(true)
-                            wtags_multiline = nil
-                        else
-                            wtags_monoline:free(true)
-                            wtags_monoline = nil
-                            wtags_multiline:free(true)
-                            wtags_multiline = nil
-                        end
+                wmetadata_items = { wauthors }
+                if show_tags and formatted_tags then
+                    fontsize_tags = math.max(10, fontsize_authors - 3)
+                    wtags_avail_height = dimen.h - (wtitle and wtitle:getSize().h or 0) - (wauthors and wauthors:getSize().h or 0)
+                    wtags = TextBoxWidget:new {
+                        text = formatted_tags,
+                        face = Font:getFace(fontname_tags, fontsize_tags),
+                        width = wmetadata_safe_width,
+                        height = wtags_avail_height,
+                        height_adjust = true,
+                        height_overflow_show_ellipsis = true,
+                        alignment = "left",
+                        fgcolor = wmetadata_fgcolor,
+                    }
+                    if (wtags:getSize().h) <= wtags_avail_height then
+                        table.insert(wmetadata_items, wtags)
+                    else
+                        wtags:free(true)
+                        wtags = nil
                     end
                 end
-
-                wmetadata = VerticalGroup:new(vgroup_items)
+                wmetadata = VerticalGroup:new(wmetadata_items)
             end
 
             -- make title and author/wright fit within the line height
@@ -886,12 +860,14 @@ function ListMenuItem:update()
             local authors_height
             local authors_line_height
             local authors_min_height
+            local formatted_tags = nil
+            if show_tags then formatted_tags = ptutil.formatTags(bookinfo.keywords) end
 
             while true do
                 build_wtitle()
                 -- blank out the authors and series text for filenames only
                 if self.do_filename_only then authors = "" end
-                build_wmetadata(authors_width)
+                build_wmetadata(authors_width, formatted_tags)
 
                 -- if the single-line title is ... then reduce font to try fitting it
                 while wtitle:isTruncated() do
@@ -931,7 +907,7 @@ function ListMenuItem:update()
                         build_wtitle()
                     end
                     if authors and authors_height < wmetadata:getSize().h then
-                        build_wmetadata(authors_width)
+                        build_wmetadata(authors_width, formatted_tags)
                     end
                     break
                 end
@@ -971,7 +947,7 @@ function ListMenuItem:update()
             if dimen.h - wtitle:getSize().h <= wmetadata:getSize().h + wright_height then
                 wauthors_iswider = false
                 authors_width = wmain_width - (wright_width + wright_right_padding)
-                build_wmetadata(authors_width)
+                build_wmetadata(authors_width, formatted_tags)
                 while wmetadata:getSize().h > avail_dimen_h - wtitle:getSize().h do
                     if fontsize_authors <= 10 then
                         break
@@ -983,7 +959,7 @@ function ListMenuItem:update()
                     else
                         build_wtitle()
                     end
-                    build_wmetadata(authors_width)
+                    build_wmetadata(authors_width, formatted_tags)
                 end
             end
 
