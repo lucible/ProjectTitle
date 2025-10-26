@@ -726,8 +726,12 @@ function ListMenuItem:update()
                     bookinfo.series = string.sub(bookinfo.series, util.lastIndexOf(bookinfo.series, ": ") + 1, -1)
                 end
                 if bookinfo.series_index then
-                    -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
-                    bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
+                    if show_tags then
+                        bookinfo.series = BD.auto(bookinfo.series) .. ' #' .. bookinfo.series_index
+                    else
+                        -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
+                        bookinfo.series = "#" .. bookinfo.series_index .. ptutil.separator.em_dash .. BD.auto(bookinfo.series)
+                    end
                 else
                     bookinfo.series = BD.auto(bookinfo.series)
                 end
@@ -738,7 +742,11 @@ function ListMenuItem:update()
                     end
                 else
                     if series_mode == "series_in_separate_line" then
-                        authors = series .. "\n" .. authors
+                        if show_tags then
+                            authors = authors .. ptutil.separator.em_dash .. series
+                        else
+                            authors = series .. "\n" .. authors
+                        end
                     end
                 end
             end
