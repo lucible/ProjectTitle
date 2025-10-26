@@ -28,7 +28,23 @@ local ptutil = {}
 
 ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
 ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
+ptutil.good_serif_it = "source/SourceSerif4-It.ttf"
+ptutil.good_serif_bold = "source/SourceSerif4-Bold.ttf"
 ptutil.good_sans = "source/SourceSans3-Regular.ttf"
+ptutil.good_sans_it = "source/SourceSans4-It.ttf"
+ptutil.good_sans_bold = "source/SourceSans4-Bold.ttf"
+
+-- a non-standard space is used here because it looks nicer and fools koreader
+-- text wrapping, ensuring the separator is always at the end of a line, never
+-- at the start of a new line
+ptutil.separator = {
+    bar     = " | ",
+    bullet  = " • ",
+    comma   = " , ",
+    dot     = " · ",
+    em_dash = " — ",
+    en_dash = " - ",
+}
 
 ptutil.koreader_dir = DataStorage:getDataDir()
 
@@ -68,7 +84,7 @@ function ptutil.installFonts()
         if not result then return false end
     end
     if util.directoryExists(fonts_path) then
-        -- copy the entire "source" 
+        -- copy the entire "source"
         result = copyRecursive(ptutil.getPluginDir() .. "/fonts/source", fonts_path)
         logger.info(ptdbg.logprefix, "Copying fonts")
         if not result then return false end
@@ -511,6 +527,29 @@ function ptutil.formatAuthors(authors, authors_limit)
         formatted_authors = BD.auto(authors)
     end
     return formatted_authors
+end
+
+-- Format tags/keywords coming from calibre/bookinfo.keywords
+-- Expect keywords as newline-separated values. Return a compact
+-- single-line string limited to `tags_limit` items or nil if no tags.
+function ptutil.formatTags(keywords, tags_limit)
+    if not keywords or keywords == "" then return nil end
+    local final_tags_list = {}
+    local full_list = util.splitToArray(keywords, "\n")
+    local nb_tags = #full_list
+    if nb_tags == 0 then return nil end
+    tags_limit = tags_limit or 9999
+    for i = 1, math.min(tags_limit, nb_tags) do
+        local t = full_list[i]
+        if t and t ~= "" then
+            table.insert(final_tags_list, BD.auto(t))
+        end
+    end
+    local s = table.concat(final_tags_list, ptutil.separator.bullet)
+    if nb_tags > tags_limit then
+        s = s .. "…"
+    end
+    return s
 end
 
 return ptutil
