@@ -162,15 +162,6 @@ local CoverBrowser = WidgetContainer:extend {
     },
 }
 
-local max_items_per_page = 10
-local min_items_per_page = 3
-local default_items_per_page = 7
-local max_cols = 4
-local max_rows = 4
-local min_cols = 2
-local min_rows = 2
-local default_cols = 3
-local default_rows = 3
 
 function CoverBrowser:onDispatcherRegisterActions()
     Dispatcher:registerAction("dec_items_pp", {
@@ -384,15 +375,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                         width_factor = 0.6,
                         left_text = _("Columns"),
                         left_value = nb_cols,
-                        left_min = min_cols,
-                        left_max = max_cols,
-                        left_default = default_cols,
+                        left_min = ptutil.constants.min_cols,
+                        left_max = ptutil.constants.max_cols,
+                        left_default = ptutil.constants.default_cols,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
-                        right_min = min_rows,
-                        right_max = max_rows,
-                        right_default = default_rows,
+                        right_min = ptutil.constants.min_rows,
+                        right_max = ptutil.constants.max_rows,
+                        right_default = ptutil.constants.default_rows,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
                         callback = function(left_value, right_value)
@@ -433,15 +424,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                         width_factor = 0.6,
                         left_text = _("Columns"),
                         left_value = nb_cols,
-                        left_min = min_cols,
-                        left_max = max_cols,
-                        left_default = default_cols,
+                        left_min = ptutil.constants.min_cols,
+                        left_max = ptutil.constants.max_cols,
+                        left_default = ptutil.constants.default_cols,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
-                        right_min = min_rows,
-                        right_max = max_rows,
-                        right_default = default_cols,
+                        right_min = ptutil.constants.min_rows,
+                        right_max = ptutil.constants.max_rows,
+                        right_default = ptutil.constants.default_cols,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
                         callback = function(left_value, right_value)
@@ -473,17 +464,17 @@ function CoverBrowser:addToMainMenu(menu_items)
                     -- default files_per_page should be calculated by ListMenu on the first drawing,
                     -- use 7 if ListMenu has not been drawn yet
                     return _("List modes") .. T(_(": %1"),
-                        fc.files_per_page or default_items_per_page)
+                        fc.files_per_page or ptutil.constants.default_items_per_page)
                 end,
                 callback = function()
-                    local files_per_page = fc.files_per_page or default_items_per_page
+                    local files_per_page = fc.files_per_page or ptutil.constants.default_items_per_page
                     local SpinWidget = require("ui/widget/spinwidget")
                     local widget = SpinWidget:new {
                         title_text = _("List modes"),
                         value = files_per_page,
-                        value_min = min_items_per_page,
-                        value_max = max_items_per_page,
-                        default_value = default_items_per_page,
+                        value_min = ptutil.constants.min_items_per_page,
+                        value_max = ptutil.constants.max_items_per_page,
+                        default_value = ptutil.constants.default_items_per_page,
                         keep_shown_on_apply = true,
                         callback = function(spin)
                             fc.files_per_page = spin.value
@@ -783,10 +774,10 @@ end
 function CoverBrowser.initGrid(menu, display_mode)
     if menu == nil then return end
     if menu.nb_cols_portrait == nil then
-        menu.nb_cols_portrait  = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
-        menu.nb_rows_portrait  = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
-        menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
-        menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+        menu.nb_cols_portrait  = BookInfoManager:getSetting("nb_cols_portrait") or ptutil.constants.default_cols
+        menu.nb_rows_portrait  = BookInfoManager:getSetting("nb_rows_portrait") or ptutil.constants.default_rows
+        menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or ptutil.constants.default_cols
+        menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or ptutil.constants.default_rows
         -- initial List mode files_per_page will be calculated and saved by ListMenu on the first drawing
         menu.files_per_page    = BookInfoManager:getSetting("files_per_page")
     end
@@ -1083,8 +1074,8 @@ function CoverBrowser:onIncreaseItemsPerPage()
     local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
     -- list modes
     if display_mode == "list_image_meta" or display_mode == "list_only_meta" or display_mode == "list_no_meta" then
-        local files_per_page = fc.files_per_page or default_items_per_page
-        files_per_page = math.min(files_per_page + 1, max_items_per_page)
+        local files_per_page = fc.files_per_page or ptutil.constants.default_items_per_page
+        files_per_page = math.min(files_per_page + 1, ptutil.constants.max_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
         FileChooser.files_per_page = files_per_page
         -- grid mode
@@ -1093,11 +1084,11 @@ function CoverBrowser:onIncreaseItemsPerPage()
         local Screen = Device.screen
         local portrait_mode = Screen:getWidth() <= Screen:getHeight()
         if portrait_mode then
-            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
-            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or ptutil.constants.default_cols
+            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or ptutil.constants.default_rows
             if portrait_cols == portrait_rows then
-                fc.nb_cols_portrait = math.min(portrait_cols + 1, max_cols)
-                fc.nb_rows_portrait = math.min(portrait_rows + 1, max_rows)
+                fc.nb_cols_portrait = math.min(portrait_cols + 1, ptutil.constants.max_cols)
+                fc.nb_rows_portrait = math.min(portrait_rows + 1, ptutil.constants.max_rows)
                 BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
                 BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
@@ -1105,11 +1096,11 @@ function CoverBrowser:onIncreaseItemsPerPage()
             end
         end
         if not portrait_mode then
-            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
-            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or ptutil.constants.default_cols
+            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or ptutil.constants.default_rows
             if landscape_cols == landscape_rows then
-                fc.nb_cols_landscape = math.min(landscape_cols + 1, max_cols)
-                fc.nb_rows_landscape = math.min(landscape_rows + 1, max_rows)
+                fc.nb_cols_landscape = math.min(landscape_cols + 1, ptutil.constants.max_cols)
+                fc.nb_rows_landscape = math.min(landscape_rows + 1, ptutil.constants.max_rows)
                 BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
                 BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape
@@ -1127,8 +1118,8 @@ function CoverBrowser:onDecreaseItemsPerPage()
     local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
     -- list modes
     if display_mode == "list_image_meta" or display_mode == "list_only_meta" or display_mode == "list_no_meta" then
-        local files_per_page = fc.files_per_page or default_items_per_page
-        files_per_page = math.max(files_per_page - 1, min_items_per_page)
+        local files_per_page = fc.files_per_page or ptutil.constants.default_items_per_page
+        files_per_page = math.max(files_per_page - 1, ptutil.constants.min_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
         FileChooser.files_per_page = files_per_page
         -- grid mode
@@ -1137,11 +1128,11 @@ function CoverBrowser:onDecreaseItemsPerPage()
         local Screen = Device.screen
         local portrait_mode = Screen:getWidth() <= Screen:getHeight()
         if portrait_mode then
-            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
-            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or ptutil.constants.default_cols
+            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or ptutil.constants.default_rows
             if portrait_cols == portrait_rows then
-                fc.nb_cols_portrait = math.max(portrait_cols - 1, min_cols)
-                fc.nb_rows_portrait = math.max(portrait_rows - 1, min_rows)
+                fc.nb_cols_portrait = math.max(portrait_cols - 1, ptutil.constants.min_cols)
+                fc.nb_rows_portrait = math.max(portrait_rows - 1, ptutil.constants.min_rows)
                 BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
                 BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
@@ -1149,11 +1140,11 @@ function CoverBrowser:onDecreaseItemsPerPage()
             end
         end
         if not portrait_mode then
-            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
-            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or ptutil.constants.default_cols
+            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or ptutil.constants.default_rows
             if landscape_cols == landscape_rows then
-                fc.nb_cols_landscape = math.max(landscape_cols - 1, min_cols)
-                fc.nb_rows_landscape = math.max(landscape_rows - 1, min_rows)
+                fc.nb_cols_landscape = math.max(landscape_cols - 1, ptutil.constants.min_cols)
+                fc.nb_rows_landscape = math.max(landscape_rows - 1, ptutil.constants.min_rows)
                 BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
                 BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape

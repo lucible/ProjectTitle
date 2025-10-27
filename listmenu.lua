@@ -133,13 +133,13 @@ function ListMenuItem:update()
     end
     -- Will speed up a bit if we don't do all font sizes when
     -- looking for one that make text fit
-    local fontsize_dec_step = 2 -- math.ceil(_fontSize(100) * (1 / 100))
+    local fontsize_dec_step = ptutil.constants.fontsize_dec_step
     -- calculate font used in all right widget text
-    local wright_font_size = _fontSize(12, 18)
+    local wright_font_size = _fontSize(ptutil.constants.list_wright_font_nominal, ptutil.constants.list_wright_font_max)
     local wright_font_face = Font:getFace(ptutil.good_sans, wright_font_size)
     -- and font sizes used for title and author/series
-    local title_font_size = _fontSize(20, 26)   -- 22
-    local authors_font_size = _fontSize(14, 18) -- 16
+    local title_font_size = _fontSize(ptutil.constants.list_title_font_nominal, ptutil.constants.list_title_font_max)
+    local authors_font_size = _fontSize(ptutil.constants.list_authors_font_nominal, ptutil.constants.list_authors_font_max)
 
     -- We'll draw some padding around cover images so they don't run up against
     -- other parts of the list item or decorations
@@ -455,9 +455,9 @@ function ListMenuItem:update()
                 local progressbar_items = { align = "center" }
 
                 local fn_pages = tonumber(est_page_count)
-                local max_progress_size = 235
-                local pixels_per_page = 3
-                local min_progress_size = 25
+                local max_progress_size = ptutil.constants.progress_bar_max_size
+                local pixels_per_page = ptutil.constants.progress_bar_pixels_per_page
+                local min_progress_size = ptutil.constants.progress_bar_min_size_list
                 local progress_bar_height = wright_font_size -- progress bar same height as progress text
                 local total_pixels = math.max(
                     (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
@@ -722,8 +722,8 @@ function ListMenuItem:update()
             else
                 title = bookinfo.title and bookinfo.title or filename_without_suffix
                 title = BD.auto(title)
-                local authors_limit = 2
-                if (show_series and series_mode == "series_in_separate_line") then authors_limit = 1 end
+                local authors_limit = ptutil.constants.authors_limit_default
+                if (show_series and series_mode == "series_in_separate_line") then authors_limit = ptutil.constants.authors_limit_with_series end
                 authors = ptutil.formatAuthors(bookinfo.authors, authors_limit)
             end
             -- series name and position (if available, if requested)
@@ -828,7 +828,7 @@ function ListMenuItem:update()
                 }
                 wmetadata_items = { wauthors }
                 if show_tags and formatted_tags then
-                    fontsize_tags = math.max(10, fontsize_authors - 3)
+                    fontsize_tags = math.max(ptutil.constants.list_tags_font_min, fontsize_authors - ptutil.constants.list_tags_font_offset)
                     wtags_avail_height = dimen.h - (wtitle and wtitle:getSize().h or 0) - (wauthors and wauthors:getSize().h or 0)
                     wtags = TextBoxWidget:new {
                         text = formatted_tags,
@@ -861,7 +861,7 @@ function ListMenuItem:update()
             local authors_line_height
             local authors_min_height
             local formatted_tags = nil
-            if show_tags then formatted_tags = ptutil.formatTags(bookinfo.keywords) end
+            if show_tags then formatted_tags = ptutil.formatTags(bookinfo.keywords, ptutil.constants.list_tags_limit) end
 
             while true do
                 build_wtitle()
@@ -871,7 +871,7 @@ function ListMenuItem:update()
 
                 -- if the single-line title is ... then reduce font to try fitting it
                 while wtitle:isTruncated() do
-                    if fontsize_title <= 20 then
+                    if fontsize_title <= ptutil.constants.list_title_font_nominal then
                         break
                     end
                     fontsize_title = fontsize_title - fontsize_dec_step
@@ -927,7 +927,7 @@ function ListMenuItem:update()
                     title_ismultiline = false
                 else
                     while wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) < avail_dimen_h do
-                        if fontsize_title >= 26 then
+                        if fontsize_title >= ptutil.constants.list_title_font_max then
                             break
                         end
                         fontsize_title = fontsize_title + fontsize_dec_step
@@ -949,7 +949,7 @@ function ListMenuItem:update()
                 authors_width = wmain_width - (wright_width + wright_right_padding)
                 build_wmetadata(authors_width, formatted_tags)
                 while wmetadata:getSize().h > avail_dimen_h - wtitle:getSize().h do
-                    if fontsize_authors <= 10 then
+                    if fontsize_authors <= ptutil.constants.list_authors_font_min then
                         break
                     end
                     fontsize_authors = fontsize_authors - fontsize_dec_step

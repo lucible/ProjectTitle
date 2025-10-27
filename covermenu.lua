@@ -758,15 +758,9 @@ function CoverMenu:updatePageInfo(select_number)
         self.cur_folder_text:setMaxWidth(self.screen_w * 0.94 - self.page_info:getSize().w)
         if BookInfoManager:getSetting("replace_footer_text") then
             local config = self.footer_config or {
-                order = {
-                    "clock",
-                    "wifi",
-                    "battery",
-                    "frontlight",
-                    "frontlight_warmth",
-                },
-                wifi_show_disabled = true,
-                frontlight_show_off = true,
+                order = ptutil.footer_info_order,
+                wifi_show_disabled = ptutil.footer_wifi_show_disabled,
+                frontlight_show_off = ptutil.footer_frontlight_show_off,
             }
             local genItemText = {
                 battery = function()

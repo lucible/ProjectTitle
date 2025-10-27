@@ -957,9 +957,9 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local large_book = false
             if est_page_count then
                 local fn_pages = tonumber(est_page_count)
-                local max_progress_size = 235
-                local pixels_per_page = 3
-                local min_progress_size = 40
+                local max_progress_size = ptutil.constants.progress_bar_max_size
+                local pixels_per_page = ptutil.constants.progress_bar_pixels_per_page
+                local min_progress_size = ptutil.constants.progress_bar_min_size_mosaic
                 local total_pixels = math.max(
                 (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
                 progress_widget_width_mult = total_pixels / max_progress_size

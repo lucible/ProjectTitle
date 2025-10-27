@@ -46,6 +46,57 @@ ptutil.separator = {
     en_dash = " - ",
 }
 
+-- These values control various UI behaviors throughout Project: Title
+ptutil.constants = {
+    -- Progress bar settings (used in both list and mosaic views)
+    progress_bar_max_size = 235,       -- maximum progress bar width in pixels
+    progress_bar_pixels_per_page = 3,  -- pixels per page for progress bar calculation
+    progress_bar_min_size_list = 25,   -- minimum progress bar width in pixels (list view)
+    progress_bar_min_size_mosaic = 40, -- minimum progress bar width in pixels (mosaic view)
+
+    -- Font size adjustment step (used when fitting text into available space)
+    fontsize_dec_step = 2, -- font size decrement step when adjusting to fit
+
+    -- Author display settings
+    authors_limit_default = 2,     -- maximum number of authors to show in list view
+    authors_limit_with_series = 1, -- maximum authors when series is also shown on separate line
+
+    -- Font size ranges for list view (nominal sizes based on 64px item height)
+    list_title_font_nominal = 20,   -- nominal title font size
+    list_title_font_max = 26,       -- maximum title font size
+    list_title_font_min = 20,       -- minimum title font size
+    list_authors_font_nominal = 14, -- nominal authors/metadata font size
+    list_authors_font_max = 18,     -- maximum authors font size
+    list_authors_font_min = 10,     -- minimum authors font size
+    list_wright_font_nominal = 12,  -- nominal right widget font size
+    list_wright_font_max = 18,      -- maximum right widget font size
+    list_tags_font_min = 10,        -- minimum tags font size
+    list_tags_font_offset = 3,      -- offset from authors font size for tags
+
+    list_tags_limit = 9999,         -- limits the number of tags displayed in list view.
+
+    -- Grid/list page size limits
+    max_items_per_page = 10,
+    min_items_per_page = 3,
+    default_items_per_page = 7,
+    max_cols = 4,
+    max_rows = 4,
+    min_cols = 2,
+    min_rows = 2,
+    default_cols = 3,
+    default_rows = 3,
+}
+
+ptutil.footer_info_order = {
+    "clock",
+    "wifi",
+    "battery",
+    "frontlight",
+    "frontlight_warmth",
+}
+ptutil.footer_wifi_show_disabled = true
+ptutil.footer_frontlight_show_off = true
+
 ptutil.koreader_dir = DataStorage:getDataDir()
 
 function ptutil.getPluginDir()
