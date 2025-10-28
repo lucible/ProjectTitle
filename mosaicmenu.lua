@@ -543,13 +543,13 @@ function MosaicMenuItem:update()
                     forced_baseline = baseline,
                 }
             end
-            local dirtext_font_size = 22
+            local dirtext_font_size = ptutil.grid_defaults.dir_font_nominal
             build_directory_text(dirtext_font_size)
             local directory_text_height = directory_text:getSize().h
             local directory_text_baseline = directory_text:getBaseline()
-            while dirtext_font_size >= 18 do
+            while dirtext_font_size > ptutil.grid_defaults.dir_font_min do
                 if directory_text:isTruncated() then
-                    dirtext_font_size = dirtext_font_size - 1
+                    dirtext_font_size = math.min(dirtext_font_size - ptutil.grid_defaults.fontsize_dec_step, ptutil.grid_defaults.dir_font_min)
                     build_directory_text(dirtext_font_size, directory_text_height, directory_text_baseline)
                 else
                     break
@@ -957,9 +957,9 @@ function MosaicMenuItem:paintTo(bb, x, y)
             local large_book = false
             if est_page_count then
                 local fn_pages = tonumber(est_page_count)
-                local max_progress_size = ptutil.constants.progress_bar_max_size
-                local pixels_per_page = ptutil.constants.progress_bar_pixels_per_page
-                local min_progress_size = ptutil.constants.progress_bar_min_size_mosaic
+                local max_progress_size = ptutil.grid_defaults.progress_bar_max_size
+                local pixels_per_page = ptutil.grid_defaults.progress_bar_pixels_per_page
+                local min_progress_size = ptutil.grid_defaults.progress_bar_min_size
                 local total_pixels = math.max(
                 (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
                 progress_widget_width_mult = total_pixels / max_progress_size
