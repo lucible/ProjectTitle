@@ -87,16 +87,6 @@ ptutil.constants = {
     default_rows = 3,
 }
 
-ptutil.footer_info_order = {
-    "clock",
-    "wifi",
-    "battery",
-    "frontlight",
-    "frontlight_warmth",
-}
-ptutil.footer_wifi_show_disabled = true
-ptutil.footer_frontlight_show_off = true
-
 ptutil.koreader_dir = DataStorage:getDataDir()
 
 function ptutil.getPluginDir()
