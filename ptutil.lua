@@ -26,27 +26,7 @@ local BookInfoManager = require("bookinfomanager")
 
 local ptutil = {}
 
-ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
-ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
-ptutil.good_serif_it = "source/SourceSerif4-It.ttf"
-ptutil.good_serif_bold = "source/SourceSerif4-Bold.ttf"
-ptutil.good_sans = "source/SourceSans3-Regular.ttf"
-ptutil.good_sans_it = "source/SourceSans4-It.ttf"
-ptutil.good_sans_bold = "source/SourceSans4-Bold.ttf"
-
--- a non-standard space is used here because it looks nicer and fools koreader
--- text wrapping, ensuring the separator is always at the end of a line, never
--- at the start of a new line
-ptutil.separator = {
-    bar     = " | ",
-    bullet  = " • ",
-    comma   = " , ",
-    dot     = " · ",
-    em_dash = " — ",
-    en_dash = " - ",
-}
-
--- These values control various UI behaviors throughout Project: Title
+-- These values adjust defaults and limits for the List views (Cover List, Details List, Filenames List)
 ptutil.list_defaults = {
     -- Progress bar settings
     progress_bar_max_size = 235,       -- maximum progress bar width in pixels
@@ -69,9 +49,10 @@ ptutil.list_defaults = {
     authors_font_min = 10,     -- minimum authors font size
     wright_font_nominal = 12,  -- nominal right widget font size
     wright_font_max = 18,      -- maximum right widget font size
+
+    -- calibre tags/keywords
     tags_font_min = 10,        -- minimum tags font size
     tags_font_offset = 3,      -- offset from authors font size for tags
-
     tags_limit = 9999,    -- limits the number of tags displayed when enabled
 
     -- Page item limits
@@ -80,13 +61,14 @@ ptutil.list_defaults = {
     default_items_per_page = 7,
 }
 
+-- These values adjust defaults and limits for the Cover Grid view 
 ptutil.grid_defaults = {
     -- Progress bar settings
     progress_bar_max_size = ptutil.list_defaults.progress_bar_max_size,               -- maximum progress bar width in pixels
     progress_bar_pixels_per_page = ptutil.list_defaults.progress_bar_pixels_per_page, -- pixels per page for progress bar calculation
     progress_bar_min_size = 40,                                                       -- minimum progress bar width in pixels
 
-
+    -- Font size adjustment step (used when fitting text into available space)
     fontsize_dec_step = 1, -- font size decrement step when adjusting to fit
 
     -- Font size ranges (nominal sizes based on 64px item height)
@@ -100,6 +82,24 @@ ptutil.grid_defaults = {
     min_rows = 2,
     default_cols = 3,
     default_rows = 3,
+}
+
+ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
+ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
+ptutil.good_serif_it = "source/SourceSerif4-It.ttf"
+ptutil.good_serif_bold = "source/SourceSerif4-Bold.ttf"
+ptutil.good_sans = "source/SourceSans3-Regular.ttf"
+ptutil.good_sans_it = "source/SourceSans4-It.ttf"
+ptutil.good_sans_bold = "source/SourceSans4-Bold.ttf"
+
+-- a non-standard space is used here because it looks nicer
+ptutil.separator = {
+    bar     = " | ",
+    bullet  = " • ",
+    comma   = " , ",
+    dot     = " · ",
+    em_dash = " — ",
+    en_dash = " - ",
 }
 
 ptutil.koreader_dir = DataStorage:getDataDir()
