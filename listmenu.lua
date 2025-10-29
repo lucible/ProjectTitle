@@ -851,15 +851,15 @@ function ListMenuItem:update()
             end
 
             -- make title and author/wright fit within the line height
-            local authors_width = wmain_width - wright_right_padding
+            local wmetadata_width = wmain_width - wright_right_padding
             local avail_dimen_h = dimen.h
             local height
             local title_height
             local title_line_height
             local title_min_height
-            local authors_height
-            local authors_line_height
-            local authors_min_height
+            local wmetadata_height
+            local wmetadata_line_height
+            local wmetadata_min_height
             local formatted_tags = nil
             if show_tags then formatted_tags = ptutil.formatTags(bookinfo.keywords, ptutil.list_defaults.tags_limit) end
 
@@ -867,7 +867,7 @@ function ListMenuItem:update()
                 build_wtitle()
                 -- blank out the authors and series text for filenames only
                 if self.do_filename_only then authors = "" end
-                build_wmetadata(authors_width, formatted_tags)
+                build_wmetadata(wmetadata_width, formatted_tags)
 
                 -- if the single-line title is ... then reduce font to try fitting it
                 while wtitle:isTruncated() do
@@ -888,15 +888,15 @@ function ListMenuItem:update()
                     title_height = wtitle:getSize().h
                     title_line_height = wtitle:getLineHeight()
                     title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
-                    authors_height = authors and wmetadata:getSize().h or 0
-                    authors_height = math.max(authors_height, wright_height)
-                    authors_line_height = authors and wmetadata[1]:getLineHeight() or 0
-                    authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
+                    wmetadata_height = authors and wmetadata:getSize().h or 0
+                    wmetadata_height = math.max(wmetadata_height, wright_height)
+                    wmetadata_line_height = authors and wmetadata[1]:getLineHeight() or 0
+                    wmetadata_min_height = 2 * wmetadata_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
                     -- both labels fit in the allocated space.
-                    while title_height + authors_height > dimen.h do
-                        if authors_height > authors_min_height then
-                            authors_height = authors_height - authors_line_height
+                    while title_height + wmetadata_height > dimen.h do
+                        if wmetadata_height > wmetadata_min_height then
+                            wmetadata_height = wmetadata_height - wmetadata_line_height
                         elseif title_height > title_min_height then
                             title_height = title_height - title_line_height
                         else
@@ -906,8 +906,8 @@ function ListMenuItem:update()
                     if title_height < wtitle:getSize().h then
                         build_wtitle()
                     end
-                    if authors and authors_height < wmetadata:getSize().h then
-                        build_wmetadata(authors_width, formatted_tags)
+                    if authors and wmetadata_height < wmetadata:getSize().h then
+                        build_wmetadata(wmetadata_width, formatted_tags)
                     end
                     break
                 end
@@ -943,11 +943,11 @@ function ListMenuItem:update()
             end
 
             -- if the wider wauthors+wright doesn't fit, go back to a reduced width and reduce font sizes
-            local wauthors_iswider = true
+            local wmetadata_iswider = true
             if dimen.h - wtitle:getSize().h <= wmetadata:getSize().h + wright_height then
-                wauthors_iswider = false
-                authors_width = wmain_width - (wright_width + wright_right_padding)
-                build_wmetadata(authors_width, formatted_tags)
+                wmetadata_iswider = false
+                wmetadata_width = wmain_width - (wright_width + wright_right_padding)
+                build_wmetadata(wmetadata_width, formatted_tags)
                 while wmetadata:getSize().h > avail_dimen_h - wtitle:getSize().h do
                     if fontsize_authors <= ptutil.list_defaults.authors_font_min then
                         break
@@ -959,7 +959,7 @@ function ListMenuItem:update()
                     else
                         build_wtitle()
                     end
-                    build_wmetadata(authors_width, formatted_tags)
+                    build_wmetadata(wmetadata_width, formatted_tags)
                 end
             end
 
@@ -971,7 +971,7 @@ function ListMenuItem:update()
             }
 
             local title_padding = wtitle:getSize().h
-            local wauthors_padding = wmain_width - wright_width - wright_right_padding
+            local wmetadata_padding = wmain_width - wright_width - wright_right_padding
             -- affix wright to bottom of vertical space
             local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
             table.insert(wright_items, 1, VerticalSpan:new { width = (wright_vertical_padding) })
@@ -987,19 +987,19 @@ function ListMenuItem:update()
                 logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
                 logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
                 logger.info(ptdbg.logprefix, "authors ", authors)
-                logger.info(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
-                logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wmetadata:getSize().h)
-                logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wmetadata:getSize().w)
-                logger.info(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
-                logger.info(ptdbg.logprefix, "authors_width ", authors_width)
+                logger.info(ptdbg.logprefix, "wmetadata_iswider ", wmetadata_iswider)
+                logger.info(ptdbg.logprefix, "wmetadata:getSize().h ", wmetadata:getSize().h)
+                logger.info(ptdbg.logprefix, "wmetadata:getSize().w ", wmetadata:getSize().w)
+                logger.info(ptdbg.logprefix, "wmetadata_width ", wmetadata_width)
+                logger.info(ptdbg.logprefix, "wmetadata_padding ", wmetadata_padding)
                 logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
                 logger.info(ptdbg.logprefix, "wright_height ", wright_height)
                 logger.info(ptdbg.logprefix, "wright_width ", wright_width)
                 logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
             end
 
-            -- build the main widget which holds wtitle, wauthors, and wright
-            local wmain = LeftContainer:new {
+            -- build the widget which holds wtitle, wauthors, and wright
+            local wbody = LeftContainer:new {
                 dimen = dimen:copy(),
                 OverlapGroup:new {
                     dimen = dimen:copy(),
@@ -1012,7 +1012,7 @@ function ListMenuItem:update()
                                 },
                                 TopContainer:new {
                                     HorizontalGroup:new {
-                                        HorizontalSpan:new { width = wauthors_padding },
+                                        HorizontalSpan:new { width = wmetadata_padding },
                                         TopContainer:new {
                                             VerticalGroup:new(wright_items),
                                         },
@@ -1030,6 +1030,7 @@ function ListMenuItem:update()
             widget = OverlapGroup:new {
                 dimen = dimen:copy(),
             }
+            local wmain
             if self.do_cover_image then
                 -- add left widget
                 if wleft then
@@ -1042,13 +1043,13 @@ function ListMenuItem:update()
                 wmain = HorizontalGroup:new {
                     HorizontalSpan:new { width = wleft_width },
                     HorizontalSpan:new { width = wmain_left_padding },
-                    wmain
+                    wbody
                 }
             else
                 -- pad main widget on the left
                 wmain = HorizontalGroup:new {
                     HorizontalSpan:new { width = wmain_left_padding },
-                    wmain
+                    wbody
                 }
             end
             -- add padded main widget
