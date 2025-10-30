@@ -58,6 +58,9 @@ msgstr ""
 msgid "Auto-generate cover images from books"
 msgstr ""
 
+msgid "Show auto-generated cover images as a stack"
+msgstr ""
+
 msgid "Overlay name and details in cover grid"
 msgstr ""
 
@@ -77,6 +80,9 @@ msgid "Show progress % instead of progress bars"
 msgstr ""
 
 msgid "Always show maximum length progress bars"
+msgstr ""
+
+msgid "Show calibre tags/keywords"
 msgstr ""
 
 msgid "Use custom book status screen"
@@ -110,6 +116,9 @@ msgid "Are you sure that you want to delete cover and metadata cache?"
 msgstr ""
 
 msgid "Cache emptied."
+msgstr ""
+
+msgid "Show last item indicator on touchscreen devices"
 msgstr ""
 
 # bookinfomanager.lua
