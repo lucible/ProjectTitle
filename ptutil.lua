@@ -42,7 +42,7 @@ ptutil.list_defaults = {
 
     -- Font size ranges (nominal sizes based on 64px item height)
     directory_font_nominal = 20, -- nominal directory font size
-    directory_font_max = 26,     -- nominal title font size
+    directory_font_max = 26,     -- maximum directory font size
     title_font_nominal = 20,     -- nominal title font size
     title_font_max = 26,         -- maximum title font size
     title_font_min = 20,         -- minimum title font size
