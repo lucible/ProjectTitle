@@ -29,8 +29,8 @@ local ptutil = {}
 -- These values adjust defaults and limits for the List views (Cover List, Details List, Filenames List)
 ptutil.list_defaults = {
     -- Progress bar settings
-    progress_bar_max_size = 235,       -- maximum progress bar width in pixels
-    progress_bar_pixels_per_page = 3,  -- pixels per page for progress bar calculation
+    progress_bar_max_size = 235,      -- maximum progress bar width in pixels
+    progress_bar_pixels_per_page = 3, -- pixels per page for progress bar calculation
     progress_bar_min_size = 25,       -- minimum progress bar width in pixels
 
     -- Author display settings
@@ -41,18 +41,20 @@ ptutil.list_defaults = {
     fontsize_dec_step = 2, -- font size decrement step when adjusting to fit
 
     -- Font size ranges (nominal sizes based on 64px item height)
-    title_font_nominal = 20,   -- nominal title font size
-    title_font_max = 26,       -- maximum title font size
-    title_font_min = 20,       -- minimum title font size
-    authors_font_nominal = 14, -- nominal authors/metadata font size
-    authors_font_max = 18,     -- maximum authors font size
-    authors_font_min = 10,     -- minimum authors font size
-    wright_font_nominal = 12,  -- nominal right widget font size
-    wright_font_max = 18,      -- maximum right widget font size
+    directory_font_nominal = 20, -- nominal directory font size
+    directory_font_max = 26,     -- nominal title font size
+    title_font_nominal = 20,     -- nominal title font size
+    title_font_max = 26,         -- maximum title font size
+    title_font_min = 20,         -- minimum title font size
+    authors_font_nominal = 14,   -- nominal authors/metadata font size
+    authors_font_max = 18,       -- maximum authors font size
+    authors_font_min = 10,       -- minimum authors font size
+    wright_font_nominal = 12,    -- nominal right widget font size
+    wright_font_max = 18,        -- maximum right widget font size
 
     -- calibre tags/keywords
-    tags_font_min = 10,        -- minimum tags font size
-    tags_font_offset = 3,      -- offset from authors font size for tags
+    tags_font_min = 10,   -- minimum tags font size
+    tags_font_offset = 3, -- offset from authors font size for tags
     tags_limit = 9999,    -- limits the number of tags displayed when enabled
 
     -- Page item limits
@@ -61,7 +63,7 @@ ptutil.list_defaults = {
     default_items_per_page = 7,
 }
 
--- These values adjust defaults and limits for the Cover Grid view 
+-- These values adjust defaults and limits for the Cover Grid view
 ptutil.grid_defaults = {
     -- Progress bar settings
     progress_bar_max_size = ptutil.list_defaults.progress_bar_max_size,               -- maximum progress bar width in pixels
@@ -72,8 +74,8 @@ ptutil.grid_defaults = {
     fontsize_dec_step = 1, -- font size decrement step when adjusting to fit
 
     -- Font size ranges (nominal sizes based on 64px item height)
-    dir_font_nominal = 22,   -- nominal directory font size
-    dir_font_min = 18,   -- minimum directory font size
+    dir_font_nominal = 22, -- nominal directory font size
+    dir_font_min = 18,     -- minimum directory font size
 
     -- Page item limits
     max_cols = 4,

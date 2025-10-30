@@ -139,6 +139,7 @@ function ListMenuItem:update()
     local wright_font_face = Font:getFace(ptutil.good_sans, wright_font_size)
     -- and font sizes used for title and author/series
     local title_font_size = _fontSize(ptutil.list_defaults.title_font_nominal, ptutil.list_defaults.title_font_max)
+    local directory_font_size = _fontSize(ptutil.list_defaults.directory_font_nominal, ptutil.list_defaults.directory_font_max)
     local authors_font_size = _fontSize(ptutil.list_defaults.authors_font_nominal, ptutil.list_defaults.authors_font_max)
 
     -- We'll draw some padding around cover images so they don't run up against
@@ -270,7 +271,7 @@ function ListMenuItem:update()
 
         local wleft = TextBoxWidget:new {
             text = wlefttext,
-            face = Font:getFace(folderfont, title_font_size),
+            face = Font:getFace(folderfont, directory_font_size),
             width = wleft_width,
             alignment = "left",
             bold = false,
