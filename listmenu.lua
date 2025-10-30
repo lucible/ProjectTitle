@@ -840,18 +840,11 @@ function ListMenuItem:update()
                         alignment = "left",
                         fgcolor = wmetadata_fgcolor,
                     }
-                    -- logger.info("wtags:getSize().h", wtags:getSize().h)
-                    -- logger.info("wtags:getTextHeight()", wtags:getTextHeight())
-                    -- logger.info("wtags:getLineHeight()", wtags:getLineHeight())
-                    -- logger.info("wtags_avail_height", wtags_avail_height)
-                    -- if wtags:getSize().h <= wtags_avail_height then
                     if wtags:getTextHeight() <= wtags_avail_height then
                         table.insert(wmetadata_items, wtags)
-                        -- logger.info("inserting tags")
                     else
                         wtags:free(true)
                         wtags = nil
-                        -- logger.info("deleting tags")
                     end
                 end
                 wmetadata = VerticalGroup:new(wmetadata_items)
