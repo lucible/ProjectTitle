@@ -788,7 +788,7 @@ function MosaicMenuItem:update()
                 local title_add, authors_add
                 if bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 then -- suppress series if index is "0"
                     authors_add = BD.auto(bookinfo.series)
-                    bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
+                    bookinfo.series = "#" .. bookinfo.series_index .. ptutil.separator.en_dash .. BD.auto(bookinfo.series)
                 end
                 local bottom_pad = Size.padding.default
                 if self.show_progress_bar and self.do_hint_opened then
