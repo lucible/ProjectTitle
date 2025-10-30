@@ -598,7 +598,7 @@ function ptutil.formatSeries(series, series_index)
         series = string.sub(series, util.lastIndexOf(series, ": ") + 1, -1)
     end
     if series_index then
-        formatted_series = "#" .. series_index .. ptutil.separator.em_dash .. BD.auto(series)
+        formatted_series = "#" .. series_index .. ptutil.separator.en_dash .. BD.auto(series)
     else
         formatted_series = BD.auto(series)
     end
