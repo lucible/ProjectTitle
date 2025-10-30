@@ -753,6 +753,7 @@ function ListMenuItem:update()
 
             -- Build title and authors texts with decreasing font size
             -- till it fits in the space available
+            local title_reserved_space
             local build_wtitle = function()
                 if wtitle then
                     wtitle:free(true)
@@ -780,6 +781,7 @@ function ListMenuItem:update()
                     bold = bold_title,
                     fgcolor = fgcolor,
                 }
+                title_reserved_space = wtitle:getBaseline() + Size.margin.fine_tune
             end
 
             local build_multiline_wtitle = function()
@@ -799,6 +801,7 @@ function ListMenuItem:update()
                     bold = bold_title,
                     fgcolor = fgcolor,
                 }
+                title_reserved_space = wtitle:getTextHeight()
             end
 
             local build_wmetadata = function(width)
@@ -819,7 +822,7 @@ function ListMenuItem:update()
                 wmetadata_items = { wauthors }
                 if show_tags and tags then
                     fontsize_tags = math.max(ptutil.list_defaults.tags_font_min, fontsize_authors - ptutil.list_defaults.tags_font_offset)
-                    wtags_avail_height = dimen.h - (wtitle and wtitle:getSize().h or 0) - (wauthors and wauthors:getSize().h or 0)
+                    wtags_avail_height = dimen.h - title_reserved_space - wauthors:getSize().h
                     wtags = TextBoxWidget:new {
                         text = tags,
                         face = Font:getFace(fontname_tags, fontsize_tags),
@@ -866,14 +869,13 @@ function ListMenuItem:update()
                     build_wtitle()
                 end
 
-                height = wtitle:getSize().h
-                height = height + wmetadata:getSize().h
+                height = title_reserved_space + wmetadata:getSize().h
                 if height <= avail_dimen_h then -- We fit!
                     break
                 end
                 -- Don't go too low, and get out of this loop.
                 if fontsize_title <= 12 or fontsize_authors <= 10 then
-                    title_height = wtitle:getSize().h
+                    title_height = title_reserved_space
                     title_line_height = wtitle:getLineHeight()
                     title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
                     wmetadata_height = authors and wmetadata:getSize().h or 0
@@ -891,7 +893,7 @@ function ListMenuItem:update()
                             break
                         end
                     end
-                    if title_height < wtitle:getSize().h then
+                    if title_height < title_reserved_space then
                         build_wtitle()
                     end
                     if author_series and wmetadata_height < wmetadata:getSize().h then
@@ -906,22 +908,22 @@ function ListMenuItem:update()
 
             -- if there is room for a 2+ line title, do it and max out the font size
             local title_ismultiline = false
-            if wtitle:getSize().h * 2 < avail_dimen_h - math.max(wmetadata:getSize().h, wright_height) then
+            if title_reserved_space * 2 < avail_dimen_h - math.max(wmetadata:getSize().h, wright_height) then
                 title_ismultiline = true
                 build_multiline_wtitle()
                 -- if the multiline title doesn't fit even with the smallest font size, give up
-                if wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
+                if title_reserved_space + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                     build_wtitle()
                     title_ismultiline = false
                 else
-                    while wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) < avail_dimen_h do
+                    while title_reserved_space + math.max(wmetadata:getSize().h, wright_height) < avail_dimen_h do
                         if fontsize_title >= ptutil.list_defaults.title_font_max then
                             break
                         end
                         fontsize_title = fontsize_title + fontsize_dec_step
                         build_multiline_wtitle()
                         -- if we overshoot, go back a step
-                        if wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
+                        if title_reserved_space + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                             fontsize_title = fontsize_title - fontsize_dec_step
                             build_multiline_wtitle()
                             break
@@ -932,11 +934,11 @@ function ListMenuItem:update()
 
             -- if the wider wauthors+wright doesn't fit, go back to a reduced width and reduce font sizes
             local wmetadata_iswider = true
-            if dimen.h - wtitle:getSize().h <= wmetadata:getSize().h + wright_height then
+            if dimen.h - title_reserved_space <= wmetadata:getSize().h + wright_height then
                 wmetadata_iswider = false
                 wmetadata_width = wmain_width - (wright_width + wright_right_padding)
                 build_wmetadata(wmetadata_width)
-                while wmetadata:getSize().h > avail_dimen_h - wtitle:getSize().h do
+                while wmetadata:getSize().h > avail_dimen_h - title_reserved_space do
                     if fontsize_authors <= ptutil.list_defaults.authors_font_min then
                         break
                     end
@@ -958,28 +960,28 @@ function ListMenuItem:update()
                 wtitle,
             }
 
-            local title_padding = wtitle:getSize().h
-            local wmetadata_padding = wmain_width - wright_width - wright_right_padding
+            local wmetadata_reserved_space = math.max(0, wmain_width - wright_width - wright_right_padding)
             -- affix wright to bottom of vertical space
-            local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
+            local wright_vertical_padding = math.max(0, avail_dimen_h - wright_height - title_reserved_space - Size.padding.default)
             table.insert(wright_items, 1, VerticalSpan:new { width = (wright_vertical_padding) })
 
             -- The combined size of the elements in a listbox should not exceed the available
             -- height of that listbox. Log if they do.
-            if wtitle:getSize().h + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
+            if title_reserved_space + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                 logger.info(ptdbg.logprefix, "Listbox height exceeded")
                 logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
                 logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
                 logger.info(ptdbg.logprefix, "title ", title)
                 logger.info(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
                 logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
+                logger.info(ptdbg.logprefix, "title_reserved_space ", title_reserved_space)
                 logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
                 logger.info(ptdbg.logprefix, "author_series ", author_series)
                 logger.info(ptdbg.logprefix, "wmetadata_iswider ", wmetadata_iswider)
                 logger.info(ptdbg.logprefix, "wmetadata:getSize().h ", wmetadata:getSize().h)
                 logger.info(ptdbg.logprefix, "wmetadata:getSize().w ", wmetadata:getSize().w)
                 logger.info(ptdbg.logprefix, "wmetadata_width ", wmetadata_width)
-                logger.info(ptdbg.logprefix, "wmetadata_padding ", wmetadata_padding)
+                logger.info(ptdbg.logprefix, "wmetadata_reserved_space ", wmetadata_reserved_space)
                 logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
                 logger.info(ptdbg.logprefix, "wright_height ", wright_height)
                 logger.info(ptdbg.logprefix, "wright_width ", wright_width)
@@ -993,14 +995,14 @@ function ListMenuItem:update()
                     dimen = dimen:copy(),
                     TopContainer:new {
                         VerticalGroup:new {
-                            VerticalSpan:new { width = title_padding },
+                            VerticalSpan:new { width = title_reserved_space },
                             OverlapGroup:new {
                                 TopContainer:new {
                                     wmetadata,
                                 },
                                 TopContainer:new {
                                     HorizontalGroup:new {
-                                        HorizontalSpan:new { width = wmetadata_padding },
+                                        HorizontalSpan:new { width = wmetadata_reserved_space },
                                         TopContainer:new {
                                             VerticalGroup:new(wright_items),
                                         },
