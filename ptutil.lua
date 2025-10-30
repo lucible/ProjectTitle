@@ -96,7 +96,7 @@ ptutil.good_sans_bold = "source/SourceSans4-Bold.ttf"
 ptutil.separator = {
     bar     = " | ",
     bullet  = " • ",
-    comma   = " , ",
+    comma   = ", ", -- except here
     dot     = " · ",
     em_dash = " — ",
     en_dash = " - ",
@@ -564,7 +564,7 @@ function ptutil.isPathChooser(self)
 end
 
 function ptutil.formatAuthors(authors, authors_limit)
-    local formatted_authors
+    local formatted_authors = ""
     if authors and authors:find("\n") then
         local full_authors_list = util.splitToArray(authors, "\n")
         local nb_authors = #full_authors_list
@@ -585,6 +585,48 @@ function ptutil.formatAuthors(authors, authors_limit)
     return formatted_authors
 end
 
+function ptutil.formatSeries(series, series_index)
+    local formatted_series = ""
+    -- suppress series if index is "0"
+    if series_index == 0 then
+        return ""
+    end
+    -- if series is formated like "big series: small subseries" then show only "small subseries"
+    if string.match(series, ": ") then
+        series = string.sub(series, util.lastIndexOf(series, ": ") + 1, -1)
+    end
+    if series_index then
+        formatted_series = "#" .. series_index .. ptutil.separator.em_dash .. BD.auto(series)
+    else
+        formatted_series = BD.auto(series)
+    end
+    return formatted_series
+end
+
+function ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
+    local formatted_author_series = ""
+    if authors == "" then
+        if series_mode == "series_in_separate_line" and series ~= "" then
+            formatted_author_series = series
+        end
+    else
+        if show_tags then
+            local authors_list = util.splitToArray(authors, "\n")
+            authors = table.concat(authors_list, ptutil.separator.comma)
+        end
+        if series_mode == "series_in_separate_line" and series ~= "" then
+            if show_tags then
+                formatted_author_series = authors .. ptutil.separator.dot .. series
+            else
+                formatted_author_series = authors .. "\n" .. series
+            end
+        else
+            formatted_author_series = authors
+        end
+    end
+    return formatted_author_series
+end
+
 -- Format tags/keywords coming from calibre/bookinfo.keywords
 -- Expect keywords as newline-separated values. Return a compact
 -- single-line string limited to `tags_limit` items or nil if no tags.
@@ -601,11 +643,11 @@ function ptutil.formatTags(keywords, tags_limit)
             table.insert(final_tags_list, BD.auto(t))
         end
     end
-    local s = table.concat(final_tags_list, ptutil.separator.bullet)
+    local formatted_tags = table.concat(final_tags_list, ptutil.separator.bullet)
     if nb_tags > tags_limit then
-        s = s .. "…"
+        formatted_tags = formatted_tags .. "…"
     end
-    return s
+    return formatted_tags
 end
 
 return ptutil

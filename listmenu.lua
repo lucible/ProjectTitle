@@ -704,9 +704,9 @@ function ListMenuItem:update()
             local wmetadata_items
             local wtags_avail_height = 0
             local wmetadata_safe_width = 0
-            local title, authors
+            local title, authors, series, tags, author_series
             local series_mode = BookInfoManager:getSetting("series_mode")
-            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 and not bookinfo.ignore_meta -- suppress series if index is "0"
+            local show_series = bookinfo.series and bookinfo.series_index and not bookinfo.ignore_meta
             local show_tags = BookInfoManager:getSetting("show_tags") and not self.do_filename_only and not bookinfo.ignore_meta and bookinfo.keywords and bookinfo.keywords ~= ""
 
             -- whether to use or not title and authors
@@ -726,39 +726,28 @@ function ListMenuItem:update()
                 if (show_series and series_mode == "series_in_separate_line") then authors_limit = ptutil.list_defaults.authors_limit_with_series end
                 authors = ptutil.formatAuthors(bookinfo.authors, authors_limit)
             end
-            -- series name and position (if available, if requested)
-            if show_series then
-                if string.match(bookinfo.series, ": ") then
-                    bookinfo.series = string.sub(bookinfo.series, util.lastIndexOf(bookinfo.series, ": ") + 1, -1)
-                end
-                if bookinfo.series_index then
-                    if show_tags then
-                        bookinfo.series = BD.auto(bookinfo.series) .. ' #' .. bookinfo.series_index
-                    else
-                        -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
-                        bookinfo.series = "#" .. bookinfo.series_index .. ptutil.separator.em_dash .. BD.auto(bookinfo.series)
-                    end
-                else
-                    bookinfo.series = BD.auto(bookinfo.series)
-                end
-                local series = bookinfo.series
-                if not authors then
-                    if series_mode == "series_in_separate_line" then
-                        authors = series
-                    end
-                else
-                    if series_mode == "series_in_separate_line" then
-                        if show_tags then
-                            authors = authors .. ptutil.separator.em_dash .. series
-                        else
-                            authors = series .. "\n" .. authors
-                        end
-                    end
-                end
-            end
             if bookinfo.unsupported then
                 -- Let's show this fact in place of the anyway empty authors slot
                 authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
+            end
+
+            -- series name and position (if available, if requested)
+            if show_series then
+                series = ptutil.formatSeries(bookinfo.series, bookinfo.series_index)
+                -- if series comes back as blank, don't include it
+                if series == "" then show_series = false end
+            else
+                series = ""
+            end
+
+            -- merge series and authors into a single string (may contain linebreaks)
+            author_series = ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
+
+            -- tags
+            if show_tags then
+                tags = ptutil.formatTags(bookinfo.keywords, ptutil.list_defaults.tags_limit)
+            else
+                tags = nil
             end
 
             -- Build title and authors texts with decreasing font size
@@ -811,14 +800,14 @@ function ListMenuItem:update()
                 }
             end
 
-            local build_wmetadata = function(width, formatted_tags)
+            local build_wmetadata = function(width)
                 if wmetadata then
                     wmetadata:free(true)
                     wmetadata = nil
                 end
                 wmetadata_safe_width = math.max(1, width - Size.padding.default)
                 wauthors = TextBoxWidget:new {
-                    text = authors,
+                    text = author_series,
                     lang = bookinfo.language,
                     face = Font:getFace(fontname_authors, fontsize_authors),
                     width = wmetadata_safe_width,
@@ -827,11 +816,11 @@ function ListMenuItem:update()
                     fgcolor = wmetadata_fgcolor,
                 }
                 wmetadata_items = { wauthors }
-                if show_tags and formatted_tags then
+                if show_tags and tags then
                     fontsize_tags = math.max(ptutil.list_defaults.tags_font_min, fontsize_authors - ptutil.list_defaults.tags_font_offset)
                     wtags_avail_height = dimen.h - (wtitle and wtitle:getSize().h or 0) - (wauthors and wauthors:getSize().h or 0)
                     wtags = TextBoxWidget:new {
-                        text = formatted_tags,
+                        text = tags,
                         face = Font:getFace(fontname_tags, fontsize_tags),
                         width = wmetadata_safe_width,
                         height = wtags_avail_height,
@@ -860,14 +849,12 @@ function ListMenuItem:update()
             local wmetadata_height
             local wmetadata_line_height
             local wmetadata_min_height
-            local formatted_tags = nil
-            if show_tags then formatted_tags = ptutil.formatTags(bookinfo.keywords, ptutil.list_defaults.tags_limit) end
 
             while true do
                 build_wtitle()
                 -- blank out the authors and series text for filenames only
-                if self.do_filename_only then authors = "" end
-                build_wmetadata(wmetadata_width, formatted_tags)
+                if self.do_filename_only then author_series = "" end
+                build_wmetadata(wmetadata_width)
 
                 -- if the single-line title is ... then reduce font to try fitting it
                 while wtitle:isTruncated() do
@@ -906,8 +893,8 @@ function ListMenuItem:update()
                     if title_height < wtitle:getSize().h then
                         build_wtitle()
                     end
-                    if authors and wmetadata_height < wmetadata:getSize().h then
-                        build_wmetadata(wmetadata_width, formatted_tags)
+                    if author_series and wmetadata_height < wmetadata:getSize().h then
+                        build_wmetadata(wmetadata_width)
                     end
                     break
                 end
@@ -947,7 +934,7 @@ function ListMenuItem:update()
             if dimen.h - wtitle:getSize().h <= wmetadata:getSize().h + wright_height then
                 wmetadata_iswider = false
                 wmetadata_width = wmain_width - (wright_width + wright_right_padding)
-                build_wmetadata(wmetadata_width, formatted_tags)
+                build_wmetadata(wmetadata_width)
                 while wmetadata:getSize().h > avail_dimen_h - wtitle:getSize().h do
                     if fontsize_authors <= ptutil.list_defaults.authors_font_min then
                         break
@@ -959,7 +946,7 @@ function ListMenuItem:update()
                     else
                         build_wtitle()
                     end
-                    build_wmetadata(wmetadata_width, formatted_tags)
+                    build_wmetadata(wmetadata_width)
                 end
             end
 
@@ -986,7 +973,7 @@ function ListMenuItem:update()
                 logger.info(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
                 logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
                 logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
-                logger.info(ptdbg.logprefix, "authors ", authors)
+                logger.info(ptdbg.logprefix, "metadata ", author_series)
                 logger.info(ptdbg.logprefix, "wmetadata_iswider ", wmetadata_iswider)
                 logger.info(ptdbg.logprefix, "wmetadata:getSize().h ", wmetadata:getSize().h)
                 logger.info(ptdbg.logprefix, "wmetadata:getSize().w ", wmetadata:getSize().w)
