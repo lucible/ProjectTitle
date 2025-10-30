@@ -829,7 +829,7 @@ function CoverMenu:updatePageInfo(select_number)
                 local text = genItemText[item]()
                 if text then table.insert(device_statuses, text) end
             end
-            if #device_statuses > 0 then alt_footer = table.concat(device_statuses, " · ") end
+            if #device_statuses > 0 then alt_footer = table.concat(device_statuses, ptutil.separator.dot) end
             if self._manager and type(self._manager.name) == "string" then
                 self.cur_folder_text:setText("")
             else

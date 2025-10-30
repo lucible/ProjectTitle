@@ -162,7 +162,7 @@ function BookInfoManager:getDbSize()
     if res then
         num_books = string.match(tostring(res[1][1]), "^(%d+)")
     end
-    return friendly_file_size .. "  —  " .. num_books .. " " .. _("Books")
+    return friendly_file_size .. " (" .. num_books .. " " .. _("Books") .. ")"
 end
 
 function BookInfoManager:createDB()
