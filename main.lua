@@ -605,6 +605,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                     },
                     {
                         text = _("Show calibre tags/keywords"),
+                        separator = true,
                         checked_func = function() return BookInfoManager:getSetting("show_tags") end,
                         callback = function()
                             BookInfoManager:toggleSetting("show_tags")
