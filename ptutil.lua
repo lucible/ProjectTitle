@@ -607,7 +607,7 @@ end
 
 function ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
     local formatted_author_series = ""
-    if authors == "" then
+    if authors == nil or authors == "" then
         if series_mode == "series_in_separate_line" and series ~= "" then
             formatted_author_series = series
         end
