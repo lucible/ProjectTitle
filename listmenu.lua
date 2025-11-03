@@ -157,13 +157,14 @@ function ListMenuItem:update()
     end
     -- Will speed up a bit if we don't do all font sizes when
     -- looking for one that make text fit
-    local fontsize_dec_step = 2 -- math.ceil(_fontSize(100) * (1 / 100))
+    local fontsize_dec_step = ptutil.list_defaults.fontsize_dec_step
     -- calculate font used in all right widget text
-    local wright_font_size = _fontSize(12, 18)
+    local wright_font_size = _fontSize(ptutil.list_defaults.wright_font_nominal, ptutil.list_defaults.wright_font_max)
     local wright_font_face = Font:getFace(ptutil.getUIFont(), wright_font_size)
     -- and font sizes used for title and author/series
-    local title_font_size = _fontSize(20, 26)   -- 22
-    local authors_font_size = _fontSize(14, 18) -- 16
+    local title_font_size = _fontSize(ptutil.list_defaults.title_font_nominal, ptutil.list_defaults.title_font_max)
+    local directory_font_size = _fontSize(ptutil.list_defaults.directory_font_nominal, ptutil.list_defaults.directory_font_max)
+    local authors_font_size = _fontSize(ptutil.list_defaults.authors_font_nominal, ptutil.list_defaults.authors_font_max)
 
     -- We'll draw some padding around cover images so they don't run up against
     -- other parts of the list item or decorations
@@ -294,7 +295,7 @@ function ListMenuItem:update()
 
         local wleft = TextBoxWidget:new {
             text = wlefttext,
-            face = Font:getFace(folderfont, title_font_size),
+            face = Font:getFace(folderfont, directory_font_size),
             width = wleft_width,
             alignment = "left",
             bold = false,
@@ -656,9 +657,9 @@ function ListMenuItem:update()
 
                 local fn_pages = tonumber(est_page_count) or 0
                 if fn_pages > 0 then
-                    local max_progress_size = 235
-                    local pixels_per_page = 3
-                    local min_progress_size = 25
+                    local max_progress_size = ptutil.list_defaults.progress_bar_max_size
+                    local pixels_per_page = ptutil.list_defaults.progress_bar_pixels_per_page
+                    local min_progress_size = ptutil.list_defaults.progress_bar_min_size
                     local progress_bar_height = wright_font_size -- progress bar same height as progress text
                     local total_pixels = math.max(
                         (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
@@ -898,13 +899,20 @@ function ListMenuItem:update()
             local wmain_width = dimen.w - wleft_width - wmain_left_padding
             local fontname_title = ptutil.getTitleFont()
             local fontname_authors = ptutil.getContentFont()
+            local fontname_tags = ptutil.good_serif_it
+            local wmetadata_fgcolor = Blitbuffer.COLOR_GRAY_2
             local bold_title = false
             local fontsize_title = title_font_size
             local fontsize_authors = authors_font_size
-            local wtitle, wauthors
-            local title, authors
+            local fontsize_tags = 10
+            local wtitle, wmetadata, wtags, wauthors
+            local wmetadata_items
+            local wtags_avail_height = 0
+            local wmetadata_safe_width = 0
+            local title, authors, series, tags, author_series
             local series_mode = BookInfoManager:getSetting("series_mode")
-            local show_series = bookinfo.series and bookinfo.series_index and bookinfo.series_index ~= 0 -- suppress series if index is "0"
+            local show_series = bookinfo.series and bookinfo.series_index and not bookinfo.ignore_meta
+            local show_tags = BookInfoManager:getSetting("show_tags") and not self.do_filename_only and not bookinfo.ignore_meta and bookinfo.keywords and bookinfo.keywords ~= ""
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them
@@ -919,37 +927,35 @@ function ListMenuItem:update()
             else
                 title = bookinfo.title and bookinfo.title or filename_without_suffix
                 title = BD.auto(title)
-                local authors_limit = 2
-                if (show_series and series_mode == "series_in_separate_line") then authors_limit = 1 end
+                local authors_limit = ptutil.list_defaults.authors_limit_default
+                if (show_series and series_mode == "series_in_separate_line") then authors_limit = ptutil.list_defaults.authors_limit_with_series end
                 authors = ptutil.formatAuthors(bookinfo.authors, authors_limit)
             end
+            if bookinfo.unsupported then
+                -- Let's show this fact in place of the anyway empty authors slot
+                authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
+            end
+
             -- series name and position (if available, if requested)
             if show_series then
-                if string.match(bookinfo.series, ": ") then
-                    bookinfo.series = string.sub(bookinfo.series, util.lastIndexOf(bookinfo.series, ": ") + 1, -1)
-                end
-                if bookinfo.series_index then
-                    -- bookinfo.series = "\u{FFF1}#" .. bookinfo.series_index .. " – " .. "\u{FFF2}" .. BD.auto(bookinfo.series) .. "\u{FFF3}"
-                    bookinfo.series = "#" .. bookinfo.series_index .. " – " .. BD.auto(bookinfo.series)
-                else
-                    bookinfo.series = BD.auto(bookinfo.series)
-                end
-                local series = bookinfo.series
-                if not authors then
-                    -- No authors, so series goes where authors would go (all modes behave the same)
-                    authors = series
-                else
-                    -- We have authors, so combine based on mode
-                    if series_mode == "series_in_separate_line" then
-                        authors = series .. "\n" .. authors  -- series above authors
-                    elseif series_mode == "series_in_separate_line_below" then
-                        authors = authors .. "\n" .. series  -- authors above series
-                    elseif series_mode == "series_inline" then
-                        authors = authors .. " – " .. series  -- append series to authors with separator
-                    end
-                    -- Note: if series_mode is nil or any other value, series is not displayed
-                end
+                series = ptutil.formatSeries(bookinfo.series, bookinfo.series_index)
+                -- if series comes back as blank, don't include it
+                if series == "" then show_series = false end
+            else
+                series = ""
             end
+
+            -- merge series and authors into a single string (may contain linebreaks)
+            author_series = ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
+
+            -- tags
+            local tags
+            if show_tags then
+                tags = ptutil.formatTags(bookinfo.keywords, ptutil.list_defaults.tags_limit)
+            else
+                tags = nil
+            end
+
             if bookinfo.unsupported then
                 -- Let's show this fact in place of the anyway empty authors slot
                 authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
@@ -957,7 +963,8 @@ function ListMenuItem:update()
 
             -- Build title and authors texts with decreasing font size
             -- till it fits in the space available
-            local build_title = function()
+            local title_reserved_space
+            local build_wtitle = function()
                 if wtitle then
                     wtitle:free(true)
                     wtitle = nil
@@ -984,9 +991,10 @@ function ListMenuItem:update()
                     bold = bold_title,
                     fgcolor = fgcolor,
                 }
+                title_reserved_space = wtitle:getBaseline() + Size.margin.fine_tune
             end
 
-            local build_multiline_title = function()
+            local build_multiline_wtitle = function()
                 if wtitle then
                     wtitle:free(true)
                     wtitle = nil
@@ -1003,113 +1011,135 @@ function ListMenuItem:update()
                     bold = bold_title,
                     fgcolor = fgcolor,
                 }
+                title_reserved_space = wtitle:getTextHeight()
             end
 
-            local build_authors = function(width)
-                if wauthors then
-                    wauthors:free(true)
-                    wauthors = nil
+            local build_wmetadata = function(width)
+                if wmetadata then
+                    wmetadata:free(true)
+                    wmetadata = nil
                 end
-                width = math.max(width or 100, 50) -- minimum 50 pixels
+                wmetadata_safe_width = math.max(1, width - Size.padding.default)
 
-                local authors_components = {}
+                local wmetadata_items = {}
 
-                -- Add authors text if it exists
-                if authors and authors ~= "" then
-                    local authors_widget = TextBoxWidget:new {
-                        text = authors,
+                -- Add authors/series text if it exists
+                if author_series and author_series ~= "" then
+                    wauthors = TextBoxWidget:new {
+                        text = author_series,
                         lang = bookinfo.language,
                         face = Font:getFace(fontname_authors, fontsize_authors),
-                        width = width,
+                        width = wmetadata_safe_width,
                         height_adjust = true,
                         alignment = "left",
-                        fgcolor = Blitbuffer.COLOR_GRAY_2,
+                        fgcolor = wmetadata_fgcolor,
                     }
-                    table.insert(authors_components, authors_widget)
+                    table.insert(wmetadata_items, wauthors)
                 end
 
-                -- Add left-aligned progress container if in that mode & it exists
+                -- Add tags if enabled
+                if show_tags and tags then
+                    fontsize_tags = math.max(ptutil.list_defaults.tags_font_min, fontsize_authors - ptutil.list_defaults.tags_font_offset)
+                    wtags_avail_height = dimen.h - title_reserved_space - (wauthors and wauthors:getSize().h or 0)
+                    wtags = TextBoxWidget:new {
+                        text = tags,
+                        face = Font:getFace(fontname_tags, fontsize_tags),
+                        width = wmetadata_safe_width,
+                        height = wtags_avail_height,
+                        height_adjust = true,
+                        height_overflow_show_ellipsis = true,
+                        alignment = "left",
+                        fgcolor = wmetadata_fgcolor,
+                    }
+                    if wtags:getTextHeight() <= wtags_avail_height then
+                        table.insert(wmetadata_items, wtags)
+                    else
+                        wtags:free(true)
+                        wtags = nil
+                    end
+                end
+
+                -- Add left-aligned progress dots if enabled
                 local dots_align_left = BookInfoManager:getSetting("dots_align_left")
                 if dots_align_left and self.dots_widget_for_left_align then
-                    if #authors_components > 0 then
-                        table.insert(authors_components, VerticalSpan:new { width = Size.padding.small })
+                    if #wmetadata_items > 0 then
+                        table.insert(wmetadata_items, VerticalSpan:new { width = Size.padding.small })
                     end
-                    table.insert(authors_components, self.dots_widget_for_left_align)
+                    table.insert(wmetadata_items, self.dots_widget_for_left_align)
                 end
 
                 -- Create the combined container
-                if #authors_components > 0 then
-                    wauthors = VerticalGroup:new(authors_components)
-                    wauthors.align = "left"
+                if #wmetadata_items > 0 then
+                    wmetadata = VerticalGroup:new(wmetadata_items)
+                    wmetadata.align = "left"
                 else
                     -- Fallback: create empty widget with minimal height to maintain layout
-                    wauthors = VerticalGroup:new {
+                    wmetadata = VerticalGroup:new {
                         align = "left",
                         VerticalSpan:new { width = 1 }
                     }
                 end
             end
 
-            -- make title and author/wright fit within the line height
-            local authors_width = math.max(wmain_width - wright_right_padding, 50)
+            -- Calculate width for metadata
+            local wmetadata_width = math.max(wmain_width - wright_right_padding, 50)
             local dots_align_left = BookInfoManager:getSetting("dots_align_left")
             if dots_align_left and self.dots_widget_for_left_align then
-                authors_width = math.max(wmain_width - wright_right_padding, 50)
+                wmetadata_width = math.max(wmain_width - wright_right_padding, 50)
             end
             local avail_dimen_h = dimen.h
             local height
             local title_height
             local title_line_height
             local title_min_height
-            local authors_height
-            local authors_line_height
-            local authors_min_height
+            local wmetadata_height
+            local wmetadata_line_height
+            local wmetadata_min_height
 
             while true do
-                build_title()
+                build_wtitle()
                 -- blank out the authors and series text for filenames only
-                if self.do_filename_only then authors = "" end
-                build_authors(authors_width)
+                if self.do_filename_only then author_series = "" end
+                build_wmetadata(wmetadata_width)
 
                 -- if the single-line title is ... then reduce font to try fitting it
                 while wtitle:isTruncated() do
-                    if fontsize_title <= 20 then
+                    if fontsize_title <= ptutil.list_defaults.title_font_nominal then
                         break
                     end
                     fontsize_title = fontsize_title - fontsize_dec_step
-                    build_title()
+                    build_wtitle()
                 end
 
-                height = wtitle:getSize().h
-                height = height + wauthors:getSize().h
+                height = title_reserved_space + wmetadata:getSize().h
                 if height <= avail_dimen_h then -- We fit!
                     break
                 end
                 -- Don't go too low, and get out of this loop.
                 if fontsize_title <= 12 or fontsize_authors <= 10 then
-                    title_height = wtitle:getSize().h
+                    title_height = title_reserved_space
                     title_line_height = wtitle:getLineHeight()
                     title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
-                    authors_height = authors and wauthors:getSize().h or 0
-                    authors_height = math.max(authors_height, wright_height)
-                    authors_line_height = authors and wauthors:getLineHeight() or 0
-                    authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
+                    wmetadata_height = authors and wmetadata:getSize().h or 0
+                    wmetadata_height = math.max(wmetadata_height, wright_height)
+                    wmetadata_line_height = authors and wmetadata[1]:getLineHeight() or 0
+                    wmetadata_min_height = 2 * wmetadata_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
                     -- both labels fit in the allocated space.
-                    while title_height + authors_height > dimen.h do
-                        if authors_height > authors_min_height then
-                            authors_height = authors_height - authors_line_height
+                    while title_height + wmetadata_height > dimen.h do
+                        if wmetadata_height > wmetadata_min_height then
+                            wmetadata_height = wmetadata_height - wmetadata_line_height
                         elseif title_height > title_min_height then
                             title_height = title_height - title_line_height
                         else
                             break
                         end
                     end
-                    if title_height < wtitle:getSize().h then
-                        build_title()
+                    if title_height < title_reserved_space then
+                        build_wtitle()
                     end
-                    if authors and authors_height < wauthors:getSize().h then
-                        build_authors(authors_width)
+                    if author_series and wmetadata_height < wmetadata:getSize().h then
+                        build_wmetadata(wmetadata_width)
                     end
                     break
                 end
@@ -1120,24 +1150,24 @@ function ListMenuItem:update()
 
             -- if there is room for a 2+ line title, do it and max out the font size
             local title_ismultiline = false
-            if wtitle:getSize().h * 2 < avail_dimen_h - math.max(wauthors:getSize().h, wright_height) then
+            if title_reserved_space * 2 < avail_dimen_h - math.max(wmetadata:getSize().h, wright_height) then
                 title_ismultiline = true
-                build_multiline_title()
+                build_multiline_wtitle()
                 -- if the multiline title doesn't fit even with the smallest font size, give up
-                if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
-                    build_title()
+                if title_reserved_space + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
+                    build_wtitle()
                     title_ismultiline = false
                 else
-                    while wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) < avail_dimen_h do
-                        if fontsize_title >= 26 then
+                    while title_reserved_space + math.max(wmetadata:getSize().h, wright_height) < avail_dimen_h do
+                        if fontsize_title >= ptutil.list_defaults.title_font_max then
                             break
                         end
                         fontsize_title = fontsize_title + fontsize_dec_step
-                        build_multiline_title()
+                        build_multiline_wtitle()
                         -- if we overshoot, go back a step
-                        if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+                        if title_reserved_space + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                             fontsize_title = fontsize_title - fontsize_dec_step
-                            build_multiline_title()
+                            build_multiline_wtitle()
                             break
                         end
                     end
@@ -1145,23 +1175,23 @@ function ListMenuItem:update()
             end
 
             -- if the wider wauthors+wright doesn't fit, go back to a reduced width and reduce font sizes
-            local wauthors_iswider = true
-            if dimen.h - wtitle:getSize().h <= wauthors:getSize().h + wright_height then
-                wauthors_iswider = false
-                authors_width = wmain_width - (wright_width + wright_right_padding)
-                build_authors(authors_width)
-                while wauthors:getSize().h > avail_dimen_h - wtitle:getSize().h do
-                    if fontsize_authors <= 10 then
+            local wmetadata_iswider = true
+            if dimen.h - title_reserved_space <= wmetadata:getSize().h + wright_height then
+                wmetadata_iswider = false
+                wmetadata_width = wmain_width - (wright_width + wright_right_padding)
+                build_wmetadata(wmetadata_width)
+                while wmetadata:getSize().h > avail_dimen_h - title_reserved_space do
+                    if fontsize_authors <= ptutil.list_defaults.authors_font_min then
                         break
                     end
                     fontsize_authors = fontsize_authors - fontsize_dec_step
                     fontsize_title = fontsize_title - fontsize_dec_step
                     if title_ismultiline then
-                        build_multiline_title()
+                        build_multiline_wtitle()
                     else
-                        build_title()
+                        build_wtitle()
                     end
-                    build_authors(authors_width)
+                    build_wmetadata(wmetadata_width)
                 end
             end
 
@@ -1172,49 +1202,49 @@ function ListMenuItem:update()
                 wtitle,
             }
 
-            local title_padding = wtitle:getSize().h
-            local wauthors_padding = wmain_width - wright_width - wright_right_padding
+            local wmetadata_reserved_space = math.max(0, wmain_width - wright_width - wright_right_padding)
             -- affix wright to bottom of vertical space
-            local wright_vertical_padding = avail_dimen_h - wright_height - title_padding - Size.padding.default
+            local wright_vertical_padding = math.max(0, avail_dimen_h - wright_height - title_reserved_space - Size.padding.default)
             table.insert(wright_items, 1, VerticalSpan:new { width = (wright_vertical_padding) })
 
             -- The combined size of the elements in a listbox should not exceed the available
             -- height of that listbox. Log if they do.
-            if wtitle:getSize().h + math.max(wauthors:getSize().h, wright_height) > avail_dimen_h then
+            if title_reserved_space + math.max(wmetadata:getSize().h, wright_height) > avail_dimen_h then
                 logger.info(ptdbg.logprefix, "Listbox height exceeded")
                 logger.info(ptdbg.logprefix, "dimen.h ", dimen.h)
                 logger.info(ptdbg.logprefix, "avail_dimen_h ", avail_dimen_h)
                 logger.info(ptdbg.logprefix, "title ", title)
                 logger.info(ptdbg.logprefix, "title_ismultiline ", title_ismultiline)
                 logger.info(ptdbg.logprefix, "wtitle:getSize().h ", wtitle:getSize().h)
+                logger.info(ptdbg.logprefix, "title_reserved_space ", title_reserved_space)
                 logger.info(ptdbg.logprefix, "fontsize_title ", fontsize_title)
-                logger.info(ptdbg.logprefix, "authors ", authors)
-                logger.info(ptdbg.logprefix, "wauthors_iswider ", wauthors_iswider)
-                logger.info(ptdbg.logprefix, "wauthors:getSize().h ", wauthors:getSize().h)
-                logger.info(ptdbg.logprefix, "wauthors:getSize().w ", wauthors:getSize().w)
-                logger.info(ptdbg.logprefix, "wauthors_padding ", wauthors_padding)
-                logger.info(ptdbg.logprefix, "authors_width ", authors_width)
+                logger.info(ptdbg.logprefix, "author_series ", author_series)
+                logger.info(ptdbg.logprefix, "wmetadata_iswider ", wmetadata_iswider)
+                logger.info(ptdbg.logprefix, "wmetadata:getSize().h ", wmetadata:getSize().h)
+                logger.info(ptdbg.logprefix, "wmetadata:getSize().w ", wmetadata:getSize().w)
+                logger.info(ptdbg.logprefix, "wmetadata_width ", wmetadata_width)
+                logger.info(ptdbg.logprefix, "wmetadata_reserved_space ", wmetadata_reserved_space)
                 logger.info(ptdbg.logprefix, "fontsize_authors ", fontsize_authors)
                 logger.info(ptdbg.logprefix, "wright_height ", wright_height)
                 logger.info(ptdbg.logprefix, "wright_width ", wright_width)
                 logger.info(ptdbg.logprefix, "wright_vertical_padding ", wright_vertical_padding)
             end
 
-            -- build the main widget which holds wtitle, wauthors, and wright
-            local wmain = LeftContainer:new {
+            -- build the widget which holds wtitle, wauthors, and wright
+            local wbody = LeftContainer:new {
                 dimen = dimen:copy(),
                 OverlapGroup:new {
                     dimen = dimen:copy(),
                     TopContainer:new {
                         VerticalGroup:new {
-                            VerticalSpan:new { width = title_padding },
+                            VerticalSpan:new { width = title_reserved_space },
                             OverlapGroup:new {
                                 TopContainer:new {
-                                    wauthors,
+                                    wmetadata,
                                 },
                                 TopContainer:new {
                                     HorizontalGroup:new {
-                                        HorizontalSpan:new { width = wauthors_padding },
+                                        HorizontalSpan:new { width = wmetadata_reserved_space },
                                         TopContainer:new {
                                             VerticalGroup:new(wright_items),
                                         },
@@ -1232,6 +1262,7 @@ function ListMenuItem:update()
             widget = OverlapGroup:new {
                 dimen = dimen:copy(),
             }
+            local wmain
             if self.do_cover_image then
                 -- add left widget
                 if wleft then
@@ -1244,13 +1275,13 @@ function ListMenuItem:update()
                 wmain = HorizontalGroup:new {
                     HorizontalSpan:new { width = wleft_width },
                     HorizontalSpan:new { width = wmain_left_padding },
-                    wmain
+                    wbody
                 }
             else
                 -- pad main widget on the left
                 wmain = HorizontalGroup:new {
                     HorizontalSpan:new { width = wmain_left_padding },
-                    wmain
+                    wbody
                 }
             end
             -- add padded main widget

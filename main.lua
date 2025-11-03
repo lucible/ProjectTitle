@@ -52,7 +52,7 @@ end
 
     https://github.com/joshuacant/ProjectTitle/wiki/Use-With-Nightly-KOReader-Builds
 --]]
-local safe_version = 202508000000
+local safe_version = 202510000000
 local cv_int, cv_commit = Version:getNormalizedCurrentVersion()
 local version_unsafe = true
 if (cv_int == safe_version or util.fileExists(data_dir .. "/settings/pt-skipversioncheck.txt")) then
@@ -64,7 +64,7 @@ else
     end
 end
 
--- If any required files are missing, or if KOReader version is wrong, load an empty plugin 
+-- If any required files are missing, or if KOReader version is wrong, load an empty plugin
 -- and display an error message to the user.
 if fonts_missing or icons_missing or version_unsafe then
     logger.warn(ptdbg.logprefix, "Refusing to fully load the plugin")
@@ -162,15 +162,6 @@ local CoverBrowser = WidgetContainer:extend {
     },
 }
 
-local max_items_per_page = 10
-local min_items_per_page = 3
-local default_items_per_page = 7
-local max_cols = 4
-local max_rows = 4
-local min_cols = 2
-local min_rows = 2
-local default_cols = 3
-local default_rows = 3
 
 function CoverBrowser:onDispatcherRegisterActions()
     Dispatcher:registerAction("dec_items_pp", {
@@ -288,6 +279,11 @@ function CoverBrowser:init()
         BookInfoManager:saveSetting("font_ui", "source/SourceSans3-Regular.ttf")
         BookInfoManager:saveSetting("config_version", "7")
     end
+    if BookInfoManager:getSetting("config_version") == 7 then
+        logger.info(ptdbg.logprefix, "Migrating settings to version 8")
+        BookInfoManager:saveSetting("show_tags", false)
+        BookInfoManager:saveSetting("config_version", "8")
+    end
 
     -- restart if needed
     if restart_needed then
@@ -388,8 +384,7 @@ function CoverBrowser:addToMainMenu(menu_items)
         sub_item_table = {
             {
                 text_func = function()
-                    return _("Portrait cover grid mode") .. T(_(": %1 × %2"), fc.nb_cols_portrait,
-                        fc.nb_rows_portrait)
+                    return _("Portrait cover grid mode") .. T(_(": %1 × %2"), fc.nb_cols_portrait, fc.nb_rows_portrait)
                 end,
                 -- Best to not "keep_menu_open = true", to see how this apply on the full view
                 callback = function()
@@ -401,15 +396,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                         width_factor = 0.6,
                         left_text = _("Columns"),
                         left_value = nb_cols,
-                        left_min = min_cols,
-                        left_max = max_cols,
-                        left_default = default_cols,
+                        left_min = ptutil.grid_defaults.min_cols,
+                        left_max = ptutil.grid_defaults.max_cols,
+                        left_default = ptutil.grid_defaults.default_cols,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
-                        right_min = min_rows,
-                        right_max = max_rows,
-                        right_default = default_rows,
+                        right_min = ptutil.grid_defaults.min_rows,
+                        right_max = ptutil.grid_defaults.max_rows,
+                        right_default = ptutil.grid_defaults.default_rows,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
                         callback = function(left_value, right_value)
@@ -438,8 +433,7 @@ function CoverBrowser:addToMainMenu(menu_items)
             },
             {
                 text_func = function()
-                    return _("Landscape cover grid mode") .. T(_(": %1 × %2"), fc.nb_cols_landscape,
-                        fc.nb_rows_landscape)
+                    return _("Landscape cover grid mode") .. T(_(": %1 × %2"), fc.nb_cols_landscape, fc.nb_rows_landscape)
                 end,
                 callback = function()
                     local nb_cols = fc.nb_cols_landscape
@@ -450,15 +444,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                         width_factor = 0.6,
                         left_text = _("Columns"),
                         left_value = nb_cols,
-                        left_min = min_cols,
-                        left_max = max_cols,
-                        left_default = default_cols,
+                        left_min = ptutil.grid_defaults.min_cols,
+                        left_max = ptutil.grid_defaults.max_cols,
+                        left_default = ptutil.grid_defaults.default_cols,
                         left_precision = "%01d",
                         right_text = _("Rows"),
                         right_value = nb_rows,
-                        right_min = min_rows,
-                        right_max = max_rows,
-                        right_default = default_cols,
+                        right_min = ptutil.grid_defaults.min_rows,
+                        right_max = ptutil.grid_defaults.max_rows,
+                        right_default = ptutil.grid_defaults.default_rows,
                         right_precision = "%01d",
                         keep_shown_on_apply = true,
                         callback = function(left_value, right_value)
@@ -490,17 +484,17 @@ function CoverBrowser:addToMainMenu(menu_items)
                     -- default files_per_page should be calculated by ListMenu on the first drawing,
                     -- use 7 if ListMenu has not been drawn yet
                     return _("List modes") .. T(_(": %1"),
-                        fc.files_per_page or default_items_per_page)
+                        fc.files_per_page or ptutil.list_defaults.default_items_per_page)
                 end,
                 callback = function()
-                    local files_per_page = fc.files_per_page or default_items_per_page
+                    local files_per_page = fc.files_per_page or ptutil.list_defaults.default_items_per_page
                     local SpinWidget = require("ui/widget/spinwidget")
                     local widget = SpinWidget:new {
                         title_text = _("List modes"),
                         value = files_per_page,
-                        value_min = min_items_per_page,
-                        value_max = max_items_per_page,
-                        default_value = default_items_per_page,
+                        value_min = ptutil.list_defaults.min_items_per_page,
+                        value_max = ptutil.list_defaults.max_items_per_page,
+                        default_value = ptutil.list_defaults.default_items_per_page,
                         keep_shown_on_apply = true,
                         callback = function(spin)
                             fc.files_per_page = spin.value
@@ -627,154 +621,23 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                         checked_func = function() return BookInfoManager:getSetting("use_progress_dots") end,
                         callback = function()
-                            BookInfoManager:toggleSetting("use_progress_dots")
+                            if series_mode == "series_in_separate_line" then
+                                series_mode = nil
+                            else
+                                series_mode = "series_in_separate_line"
+                            end
+                            BookInfoManager:saveSetting("series_mode", series_mode)
                             fc:updateItems(1, true)
                         end,
                     },
                     {
-                        text = _("Prefer locations over pages for dots"),
-                        enabled_func = function()
-                            return BookInfoManager:getSetting("use_progress_dots") and not (
-                                    BookInfoManager:getSetting("force_no_progressbars") or
-                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
-                                    not BookInfoManager:getSetting("hide_file_info")
-                                )
-                        end,
-                        checked_func = function() return BookInfoManager:getSetting("prefer_locations") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("prefer_locations")
-                            fc:updateItems(1, true)
-                        end,
-                    },
-                    {
-                        text = _("Configure dots display"),
+                        text = _("Show calibre tags/keywords"),
                         separator = true,
-                        enabled_func = function()
-                            return BookInfoManager:getSetting("use_progress_dots") and not (
-                                    BookInfoManager:getSetting("force_no_progressbars") or
-                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
-                                    not BookInfoManager:getSetting("hide_file_info")
-                                )
+                        checked_func = function() return BookInfoManager:getSetting("show_tags") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("show_tags")
+                            fc:updateItems(1, true)
                         end,
-                        sub_item_table = {
-                            {
-                                text = _("Align dots under title instead of right side"),
-                                checked_func = function() return BookInfoManager:getSetting("dots_align_left") end,
-                                callback = function()
-                                    BookInfoManager:toggleSetting("dots_align_left")
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                            {
-                                text = _("Show book status text (New, Reading, etc.)"),
-                                checked_func = function() return BookInfoManager:getSetting("show_book_status_text") end,
-                                callback = function()
-                                    BookInfoManager:toggleSetting("show_book_status_text")
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                            {
-                                text = _("Show progress percentage after dots"),
-                                checked_func = function() return BookInfoManager:getSetting("show_progress_percent") end,
-                                callback = function()
-                                    BookInfoManager:toggleSetting("show_progress_percent")
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                            {
-                                text_func = function()
-                                    local dots_per_loc = BookInfoManager:getSetting("dots_per_location_unit") or 340
-                                    return _("Locations per dot") .. T(_(": %1"), dots_per_loc)
-                                end,
-                                callback = function()
-                                    local current_value = BookInfoManager:getSetting("dots_per_location_unit") or 340
-                                    local SpinWidget = require("ui/widget/spinwidget")
-                                    local widget = SpinWidget:new {
-                                        title_text = _("Locations per dot"),
-                                        value = current_value,
-                                        value_min = 50,
-                                        value_max = 1000,
-                                        value_step = 10,
-                                        default_value = 340,
-                                        keep_shown_on_apply = true,
-                                        callback = function(spin)
-                                            BookInfoManager:saveSetting("dots_per_location_unit", spin.value)
-                                            if fc.display_mode_type == "list" then
-                                                fc:updateItems(1, true)
-                                            end
-                                        end,
-                                    }
-                                    UIManager:show(widget)
-                                end,
-                            },
-                            {
-                                text_func = function()
-                                    local dots_per_page = BookInfoManager:getSetting("dots_per_page_unit") or 25
-                                    return _("Pages per dot") .. T(_(": %1"), dots_per_page)
-                                end,
-                                callback = function()
-                                    local current_value = BookInfoManager:getSetting("dots_per_page_unit") or 25
-                                    local SpinWidget = require("ui/widget/spinwidget")
-                                    local widget = SpinWidget:new {
-                                        title_text = _("Pages per dot"),
-                                        value = current_value,
-                                        value_min = 5,
-                                        value_max = 100,
-                                        value_step = 1,
-                                        default_value = 25,
-                                        keep_shown_on_apply = true,
-                                        callback = function(spin)
-                                            BookInfoManager:saveSetting("dots_per_page_unit", spin.value)
-                                            if fc.display_mode_type == "list" then
-                                                fc:updateItems(1, true)
-                                            end
-                                        end,
-                                    }
-                                    UIManager:show(widget)
-                                end,
-                            },
-                        },
-                    },
-                    {
-                        text = _("Series display"),
-                        sub_item_table = {
-                            {
-                                text = _("Don't show series"),
-                                checked_func = function() return series_mode == nil end,
-                                callback = function()
-                                    series_mode = nil
-                                    BookInfoManager:saveSetting("series_mode", series_mode)
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                            {
-                                text = _("Show series above authors"),
-                                checked_func = function() return series_mode == "series_in_separate_line" end,
-                                callback = function()
-                                    series_mode = "series_in_separate_line"
-                                    BookInfoManager:saveSetting("series_mode", series_mode)
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                            {
-                                text = _("Show authors above series"),
-                                checked_func = function() return series_mode == "series_in_separate_line_below" end,
-                                callback = function()
-                                    series_mode = "series_in_separate_line_below"
-                                    BookInfoManager:saveSetting("series_mode", series_mode)
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                            {
-                                text = _("Show series inline with authors"),
-                                checked_func = function() return series_mode == "series_inline" end,
-                                callback = function()
-                                    series_mode = "series_inline"
-                                    BookInfoManager:saveSetting("series_mode", series_mode)
-                                    fc:updateItems(1, true)
-                                end,
-                            },
-                        },
                     },
                     {
                         text = _("Use custom book status screen"),
@@ -1000,10 +863,10 @@ end
 function CoverBrowser.initGrid(menu, display_mode)
     if menu == nil then return end
     if menu.nb_cols_portrait == nil then
-        menu.nb_cols_portrait  = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
-        menu.nb_rows_portrait  = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
-        menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
-        menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+        menu.nb_cols_portrait  = BookInfoManager:getSetting("nb_cols_portrait") or ptutil.grid_defaults.default_cols
+        menu.nb_rows_portrait  = BookInfoManager:getSetting("nb_rows_portrait") or ptutil.grid_defaults.default_rows
+        menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or ptutil.grid_defaults.default_cols
+        menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or ptutil.grid_defaults.default_rows
         -- initial List mode files_per_page will be calculated and saved by ListMenu on the first drawing
         menu.files_per_page    = BookInfoManager:getSetting("files_per_page")
     end
@@ -1300,8 +1163,8 @@ function CoverBrowser:onIncreaseItemsPerPage()
     local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
     -- list modes
     if display_mode == "list_image_meta" or display_mode == "list_only_meta" or display_mode == "list_no_meta" then
-        local files_per_page = fc.files_per_page or default_items_per_page
-        files_per_page = math.min(files_per_page + 1, max_items_per_page)
+        local files_per_page = fc.files_per_page or ptutil.list_defaults.default_items_per_page
+        files_per_page = math.min(files_per_page + 1, ptutil.list_defaults.max_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
         FileChooser.files_per_page = files_per_page
         -- grid mode
@@ -1310,11 +1173,11 @@ function CoverBrowser:onIncreaseItemsPerPage()
         local Screen = Device.screen
         local portrait_mode = Screen:getWidth() <= Screen:getHeight()
         if portrait_mode then
-            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
-            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or ptutil.grid_defaults.default_cols
+            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or ptutil.list_defaults.default_rows
             if portrait_cols == portrait_rows then
-                fc.nb_cols_portrait = math.min(portrait_cols + 1, max_cols)
-                fc.nb_rows_portrait = math.min(portrait_rows + 1, max_rows)
+                fc.nb_cols_portrait = math.min(portrait_cols + 1, ptutil.grid_defaults.max_cols)
+                fc.nb_rows_portrait = math.min(portrait_rows + 1, ptutil.grid_defaults.max_rows)
                 BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
                 BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
@@ -1322,11 +1185,11 @@ function CoverBrowser:onIncreaseItemsPerPage()
             end
         end
         if not portrait_mode then
-            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
-            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or ptutil.grid_defaults.default_cols
+            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or ptutil.list_defaults.default_rows
             if landscape_cols == landscape_rows then
-                fc.nb_cols_landscape = math.min(landscape_cols + 1, max_cols)
-                fc.nb_rows_landscape = math.min(landscape_rows + 1, max_rows)
+                fc.nb_cols_landscape = math.min(landscape_cols + 1, ptutil.grid_defaults.max_cols)
+                fc.nb_rows_landscape = math.min(landscape_rows + 1, ptutil.grid_defaults.max_rows)
                 BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
                 BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape
@@ -1344,8 +1207,8 @@ function CoverBrowser:onDecreaseItemsPerPage()
     local display_mode = BookInfoManager:getSetting("filemanager_display_mode")
     -- list modes
     if display_mode == "list_image_meta" or display_mode == "list_only_meta" or display_mode == "list_no_meta" then
-        local files_per_page = fc.files_per_page or default_items_per_page
-        files_per_page = math.max(files_per_page - 1, min_items_per_page)
+        local files_per_page = fc.files_per_page or ptutil.list_defaults.default_items_per_page
+        files_per_page = math.max(files_per_page - 1, ptutil.list_defaults.min_items_per_page)
         BookInfoManager:saveSetting("files_per_page", files_per_page)
         FileChooser.files_per_page = files_per_page
         -- grid mode
@@ -1354,11 +1217,11 @@ function CoverBrowser:onDecreaseItemsPerPage()
         local Screen = Device.screen
         local portrait_mode = Screen:getWidth() <= Screen:getHeight()
         if portrait_mode then
-            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or default_cols
-            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or default_rows
+            local portrait_cols = BookInfoManager:getSetting("nb_cols_portrait") or ptutil.grid_defaults.default_cols
+            local portrait_rows = BookInfoManager:getSetting("nb_rows_portrait") or ptutil.list_defaults.default_rows
             if portrait_cols == portrait_rows then
-                fc.nb_cols_portrait = math.max(portrait_cols - 1, min_cols)
-                fc.nb_rows_portrait = math.max(portrait_rows - 1, min_rows)
+                fc.nb_cols_portrait = math.max(portrait_cols - 1, ptutil.grid_defaults.min_cols)
+                fc.nb_rows_portrait = math.max(portrait_rows - 1, ptutil.grid_defaults.min_rows)
                 BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
                 BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
@@ -1366,11 +1229,11 @@ function CoverBrowser:onDecreaseItemsPerPage()
             end
         end
         if not portrait_mode then
-            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or default_cols
-            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or default_rows
+            local landscape_cols = BookInfoManager:getSetting("nb_cols_landscape") or ptutil.grid_defaults.default_cols
+            local landscape_rows = BookInfoManager:getSetting("nb_rows_landscape") or ptutil.list_defaults.default_rows
             if landscape_cols == landscape_rows then
-                fc.nb_cols_landscape = math.max(landscape_cols - 1, min_cols)
-                fc.nb_rows_landscape = math.max(landscape_rows - 1, min_rows)
+                fc.nb_cols_landscape = math.max(landscape_cols - 1, ptutil.grid_defaults.min_cols)
+                fc.nb_rows_landscape = math.max(landscape_rows - 1, ptutil.grid_defaults.min_rows)
                 BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
                 BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape

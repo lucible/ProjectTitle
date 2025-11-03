@@ -135,34 +135,23 @@ function AltBookStatusWidget:genBookInfoGroup()
         authors = ptutil.formatAuthors(props.authors, 3)
     end
 
-    -- series text and position (if available, if requested)
+    -- series name and position (if available, if requested)
     local series_mode = BookInfoManager:getSetting("series_mode")
-    -- suppress showing series information if position in series is "0"
-    local show_series = props.series and props.series_index and props.series_index ~= 0
+    local show_series = props.series and props.series_index
+    local series
     if show_series then
-        local series_text = props.series
-        if string.match(props.series, ": ") then
-            series_text = string.sub(series_text, util.lastIndexOf(series_text, ": ") + 1, -1)
-        end
-        if props.series_index then
-            series_text = "#" .. props.series_index .. " – " .. BD.auto(series_text)
-        else
-            series_text = BD.auto(series_text)
-        end
-        if not authors then
-            if series_mode == "series_in_separate_line" then
-                authors = series_text
-            end
-        else
-            if series_mode == "series_in_separate_line" then
-                authors = series_text .. "\n" .. authors
-            end
-        end
+        series = ptutil.formatSeries(props.series, props.series_index)
+        -- if series comes back as blank, don't include it
+        if series == "" then show_series = false end
+    else
+        series = ""
     end
+
+    local author_series = ptutil.formatAuthorSeries(authors, series, series_mode, false)
 
     -- author(s) and series combined box
     local bookinfo = TextBoxWidget:new {
-        text = authors,
+        text = author_series,
         lang = lang,
         face = self.small_serif_font,
         width = width,

@@ -232,6 +232,14 @@ function TitleBar:setSubTitle(subtitle, no_refresh)
     self.subtitle = ""
 end
 
+function TitleBar:setLeftIcon(icon)
+    -- do nothing, we don't want our icon changing
+end
+
+function TitleBar:setRightIcon(icon)
+    -- do nothing, we don't want our icon changing
+end
+
 -- layout for FocusManager
 function TitleBar:generateHorizontalLayout()
     local row = {}

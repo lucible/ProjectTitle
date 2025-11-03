@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+**Before sending this issue:**
+- Take a couple seconds and search to see if there is already an issue (open or closed) for the problem you're having.
+- If Project: Title suddenly stopped working, did you just upgrade KOReader? Project: Title versions are locked to specific releases of KOReader. Your options are to downgrade or wait. I try my best to get new versions of the plugin out quickly when KOReader updates but there is always a delay.
+
 **Describe the bug**
 Please give a description of what the bug is, and include as much detail as you can.
 
