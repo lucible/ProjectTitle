@@ -812,6 +812,14 @@ function ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
             else
                 formatted_author_series = authors .. "\n" .. series
             end
+        elseif series_mode == "series_in_separate_line_below" and series ~= "" then
+            if show_tags then
+                formatted_author_series = authors .. ptutil.separator.dot .. series
+            else
+                formatted_author_series = authors .. "\n" .. series
+            end
+        elseif series_mode == "series_inline" and series ~= "" then
+            formatted_author_series = authors .. ptutil.separator.en_dash .. series
         else
             formatted_author_series = authors
         end
