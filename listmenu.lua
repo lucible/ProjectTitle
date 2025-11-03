@@ -511,11 +511,11 @@ function ListMenuItem:update()
 
                 -- "●" -- U+25CF filled circle 
                 -- "○"  -- U+25CB empty circle
-                -- dot options: ⚬○⚫⬤●
+                -- dot options: ⚬○⚫⬤●●
                 -- Build the dot string
                 local dot_string = ""
-                local empty_char = "⚬"
-                local filled_char = "●"
+                local empty_char = "⚬" -- medium small white circle
+                local filled_char = "⦁" -- z notation spot
 
                 -- Create separate strings for filled and empty dots
                 local filled_string = string.rep(filled_char, filled_dots)
@@ -602,14 +602,14 @@ function ListMenuItem:update()
                         face = wright_font_face,
                         padding = 0,
                     }
-                    table.insert(progress_items, HorizontalSpan:new { width = Size.padding.small })
+                    table.insert(progress_items, HorizontalSpan:new { width = Size.padding.default })
                     table.insert(progress_items, percent_widget)
                 end
 
                 -- Add status icon if needed (pause/trophy)
                 if status == "complete" or status == "abandoned" then
                     local bar_icon_size = Screen:scaleBySize(wright_font_size)
-                    local bar_icon_padding = Size.padding.small
+                    local bar_icon_padding = Size.padding.default
                     local icon_filename = plugin_dir .. "/resources/pause.svg"
                     if status == "complete" then
                         icon_filename = plugin_dir .. "/resources/trophy.svg"
@@ -1195,11 +1195,21 @@ function ListMenuItem:update()
                 end
             end
 
-            -- align to top normally, align to center in filename only list
+            -- If the progress dots are aligned left, build authors with final sizes
+            -- so that dots can be properly aligned to the bottom of the listbox
+            build_authors(authors_width, true)
+
+            -- align title to top normally, align to center in filename only list
             local wtitle_container_style = self.do_filename_only and LeftContainer or TopContainer
+
+            -- add some padding to the title top so it's not butting up against the line separating listboxes
+            local wtitle_with_padding = VerticalGroup:new {
+                VerticalSpan:new { width = Size.padding.default },
+                wtitle,
+            }
             local wtitle_container = wtitle_container_style:new {
                 dimen = dimen:copy(),
-                wtitle,
+                wtitle_with_padding,
             }
 
             local wmetadata_reserved_space = math.max(0, wmain_width - wright_width - wright_right_padding)
@@ -1236,6 +1246,7 @@ function ListMenuItem:update()
                 OverlapGroup:new {
                     dimen = dimen:copy(),
                     TopContainer:new {
+                        dimen = dimen:copy(),
                         VerticalGroup:new {
                             VerticalSpan:new { width = title_reserved_space },
                             OverlapGroup:new {

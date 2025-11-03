@@ -1,6 +1,39 @@
-<a href="resources/collage.jpg"><img src="resources/collage.jpg" width="600px"></a><br />
-<sub>A collage of screenshots showing KOReader with Project: Title installed demonstrating a variety of possible display settings.</sub><br />
-<sup>The books used are from the Standard Ebooks collection and the text visible is part of their cover design, not overlaid by this plugin.</sup> 
+<a href="resources/collage.jpg"><img src="resources/FileManager_2025-09-21_153749.png" width="300px"></a><br />
+
+A personal mod of Project: Title to make it look more like the stock Kindle UI, including:
+- Option to show relative book lengths as "dots" instead of a progress bar; these go from empty to filled as reading percentage increases
+  - Parses file names for `L(##)` alongside `P(##)` for use with [a script](https://gist.github.com/lucible/546dd6a79a34299b9ba0ac1d47cd6a72) to generate a Kindle-like "locations" number for an ePUB
+  - Option to prefer using "locations" number over "pages" number (falls back to pages if locations not found) or to prefer pages
+  - Option to set the # of locations or pages that are equivalent to one dot
+  - Option to show/hide progress percentage at the end of the dots bar
+  - Option to align the dots bar on the left side of the listbox instead of the right
+- Option to show/hide book status text (New/Reading/On Hold/etc)
+- Expanded series display options:
+  - Don't show series
+  - Show series above authors
+  - Show authors above series
+  - Show series inline with authors
+- Font settings menu to easily change book title font, content font, and ui font (currently only working for Cover List??)
+
+<hr>
+
+Current issues:
+- align dots left is broken for multi-line author+series option
+- show book status text should NOT be nested under dots settings
+- percentage text is a darker font? can it be the same color as the author font?
+
+Display Mode:
+- ✅ Cover List
+    - Built & tested on this display mode, works great except for the issues above
+- ⛔ Cover Grid
+    - Dots don't make sense to display on top of cover images (not enough space, etc) so no plans to support this mode
+    - Believe there should be no bugs introduced in this mode by the changes made in this fork but not comprehensively tested
+- ✔️ Details List
+    - On first glance it looks like it works fine with changes from this fork but not comprehensively tested
+- ❌ Filenames List
+    - Broken, dots display when they shouldn't. Needs to be fixed!
+
+<hr>
 
 #### A new view for KOReader, based on Cover Browser.
 Project: Title is a project by two people who love KOreader but wanted to expand upon the Cover Browser plugin. We desired an interface that would blend in with the very best that commercial eReaders have. Something that would make the time between books, looking for that next read, as pleasant as possible.
