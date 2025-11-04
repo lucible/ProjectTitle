@@ -676,7 +676,9 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
                 local success, response = pcall(getEstimatedPagecount, filepath)
                 if success then pages = response end
                 local success, response = pcall(getEstimatedLocations, filepath)
-                if success then locations = response end
+                if success and response then 
+                    locations = tonumber(response)
+                end
             end
         else
             -- for all others than crengine, we seem to get an accurate nb of pages
