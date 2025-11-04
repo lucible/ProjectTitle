@@ -88,14 +88,6 @@ ptutil.grid_defaults = {
     default_rows = 3,
 }
 
-ptutil.title_serif = ptutil.getTitleFont() -- Dynamic
-ptutil.good_serif = ptutil.getContentFont() -- Dynamic  
-ptutil.good_serif_it = "source/SourceSerif4-It.ttf"
-ptutil.good_serif_bold = "source/SourceSerif4-Bold.ttf"
-ptutil.good_sans = ptutil.getUIFont() -- Dynamic
-ptutil.good_sans_it = "source/SourceSans4-It.ttf"
-ptutil.good_sans_bold = "source/SourceSans4-Bold.ttf"
-
 -- a non-standard space is used here because it looks nicer
 ptutil.separator = {
     bar     = " | ",
@@ -117,6 +109,14 @@ end
 function ptutil.getUIFont()
     return BookInfoManager:getSetting("font_ui") or "source/SourceSans3-Regular.ttf" 
 end
+
+ptutil.title_serif = ptutil.getTitleFont() -- Dynamic
+ptutil.good_serif = ptutil.getContentFont() -- Dynamic  
+ptutil.good_serif_it = "source/SourceSerif4-It.ttf"
+ptutil.good_serif_bold = "source/SourceSerif4-Bold.ttf"
+ptutil.good_sans = ptutil.getUIFont() -- Dynamic
+ptutil.good_sans_it = "source/SourceSans4-It.ttf"
+ptutil.good_sans_bold = "source/SourceSans4-Bold.ttf"
 
 function ptutil.getAvailableFonts()
     local fonts = {}
