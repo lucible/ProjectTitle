@@ -1194,6 +1194,74 @@ function ListMenuItem:update()
                 end
             end
 
+            -- If dots are left-aligned, rebuild with proper bottom alignment
+            if dots_align_left and self.dots_widget_for_left_align then
+                -- Recalculate with spacing to push dots to bottom
+                if wmetadata then
+                    wmetadata:free(true)
+                    wmetadata = nil
+                end
+
+                local final_width = wmetadata_iswider and wmetadata_width or (wmain_width - (wright_width + wright_right_padding))
+                local wmetadata_items = {}
+
+                -- Rebuild authors/series
+                if author_series and author_series ~= "" then
+                    wauthors = TextBoxWidget:new {
+                        text = author_series,
+                        lang = bookinfo.language,
+                        face = Font:getFace(fontname_authors, fontsize_authors),
+                        width = math.max(1, final_width - Size.padding.default),
+                        height_adjust = true,
+                        alignment = "left",
+                        fgcolor = wmetadata_fgcolor,
+                    }
+                    table.insert(wmetadata_items, wauthors)
+                end
+
+                -- Rebuild tags if present
+                if show_tags and tags then
+                    fontsize_tags = math.max(ptutil.list_defaults.tags_font_min, fontsize_authors - ptutil.list_defaults.tags_font_offset)
+                    wtags_avail_height = avail_dimen_h - title_reserved_space - (wauthors and wauthors:getSize().h or 0)
+                    wtags = TextBoxWidget:new {
+                        text = tags,
+                        face = Font:getFace(fontname_tags, fontsize_tags),
+                        width = math.max(1, final_width - Size.padding.default),
+                        height = wtags_avail_height,
+                        height_adjust = true,
+                        height_overflow_show_ellipsis = true,
+                        alignment = "left",
+                        fgcolor = wmetadata_fgcolor,
+                    }
+                    if wtags:getTextHeight() <= wtags_avail_height then
+                        table.insert(wmetadata_items, wtags)
+                    else
+                        wtags:free(true)
+                        wtags = nil
+                    end
+                end
+
+                -- Calculate spacing to push dots to bottom
+                local current_height = 0
+                for _, item in ipairs(wmetadata_items) do
+                    current_height = current_height + item:getSize().h
+                end
+                local dots_height = self.dots_widget_for_left_align:getSize().h
+                local remaining_space = avail_dimen_h - title_reserved_space - current_height - dots_height - Size.padding.default
+                remaining_space = math.max(0, remaining_space)
+
+                if remaining_space > 0 then
+                    table.insert(wmetadata_items, VerticalSpan:new { width = remaining_space })
+                else
+                    table.insert(wmetadata_items, VerticalSpan:new { width = Size.padding.small })
+                end
+
+                table.insert(wmetadata_items, self.dots_widget_for_left_align)
+
+                wmetadata = VerticalGroup:new(wmetadata_items)
+                wmetadata.align = "left"
+            end
+
             -- align title to top normally, align to center in filename only list
             local wtitle_container_style = self.do_filename_only and LeftContainer or TopContainer
 
