@@ -626,6 +626,110 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
+                        text = _("Prefer locations over pages for dots"),
+                        enabled_func = function()
+                            return BookInfoManager:getSetting("use_progress_dots") and not (
+                                    BookInfoManager:getSetting("force_no_progressbars") or
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
+                        end,
+                        checked_func = function() return BookInfoManager:getSetting("prefer_locations") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("prefer_locations")
+                            fc:updateItems(1, true)
+                        end,
+                    },
+                    {
+                        text = _("Configure dots display"),
+                        separator = true,
+                        enabled_func = function()
+                            return BookInfoManager:getSetting("use_progress_dots") and not (
+                                    BookInfoManager:getSetting("force_no_progressbars") or
+                                    BookInfoManager:getSetting("show_pages_read_as_progress") or
+                                    not BookInfoManager:getSetting("hide_file_info")
+                                )
+                        end,
+                        sub_item_table = {
+                            {
+                                text = _("Align dots under title instead of right side"),
+                                checked_func = function() return BookInfoManager:getSetting("dots_align_left") end,
+                                callback = function()
+                                    BookInfoManager:toggleSetting("dots_align_left")
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show book status text (New, Reading, etc.)"),
+                                checked_func = function() return BookInfoManager:getSetting("show_book_status_text") end,
+                                callback = function()
+                                    BookInfoManager:toggleSetting("show_book_status_text")
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text = _("Show progress percentage after dots"),
+                                checked_func = function() return BookInfoManager:getSetting("show_progress_percent") end,
+                                callback = function()
+                                    BookInfoManager:toggleSetting("show_progress_percent")
+                                    fc:updateItems(1, true)
+                                end,
+                            },
+                            {
+                                text_func = function()
+                                    local dots_per_loc = BookInfoManager:getSetting("dots_per_location_unit") or 340
+                                    return _("Locations per dot") .. T(_(": %1"), dots_per_loc)
+                                end,
+                                callback = function()
+                                    local current_value = BookInfoManager:getSetting("dots_per_location_unit") or 340
+                                    local SpinWidget = require("ui/widget/spinwidget")
+                                    local widget = SpinWidget:new {
+                                        title_text = _("Locations per dot"),
+                                        value = current_value,
+                                        value_min = 50,
+                                        value_max = 1000,
+                                        value_step = 10,
+                                        default_value = 340,
+                                        keep_shown_on_apply = true,
+                                        callback = function(spin)
+                                            BookInfoManager:saveSetting("dots_per_location_unit", spin.value)
+                                            if fc.display_mode_type == "list" then
+                                                fc:updateItems(1, true)
+                                            end
+                                        end,
+                                    }
+                                    UIManager:show(widget)
+                                end,
+                            },
+                            {
+                                text_func = function()
+                                    local dots_per_page = BookInfoManager:getSetting("dots_per_page_unit") or 25
+                                    return _("Pages per dot") .. T(_(": %1"), dots_per_page)
+                                end,
+                                callback = function()
+                                    local current_value = BookInfoManager:getSetting("dots_per_page_unit") or 25
+                                    local SpinWidget = require("ui/widget/spinwidget")
+                                    local widget = SpinWidget:new {
+                                        title_text = _("Pages per dot"),
+                                        value = current_value,
+                                        value_min = 5,
+                                        value_max = 100,
+                                        value_step = 1,
+                                        default_value = 25,
+                                        keep_shown_on_apply = true,
+                                        callback = function(spin)
+                                            BookInfoManager:saveSetting("dots_per_page_unit", spin.value)
+                                            if fc.display_mode_type == "list" then
+                                                fc:updateItems(1, true)
+                                            end
+                                        end,
+                                    }
+                                    UIManager:show(widget)
+                                end,
+                            },
+                        },
+                    },
+                    {
                         text = _("Show calibre tags/keywords"),
                         separator = true,
                         checked_func = function() return BookInfoManager:getSetting("show_tags") end,
