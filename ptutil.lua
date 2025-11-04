@@ -783,12 +783,20 @@ function ptutil.formatSeries(series, series_index)
     if series_index == 0 then
         return ""
     end
-    -- if series is formated like "big series: small subseries" then show only "small subseries"
+    -- if series is formatted like "big series: small subseries" then show only "small subseries"
     if string.match(series, ": ") then
         series = string.sub(series, util.lastIndexOf(series, ": ") + 1, -1)
     end
+
     if series_index then
-        formatted_series = "#" .. series_index .. ptutil.separator.en_dash .. BD.auto(series)
+        local series_mode = BookInfoManager:getSetting("series_mode")
+        if series_mode == "series_inline_alt" then
+            -- Alternate format: "Series #Num"
+            formatted_series = BD.auto(series) .. " #" .. series_index
+        else
+            -- Original format: "#Num - Series"
+            formatted_series = "#" .. series_index .. ptutil.separator.en_dash .. BD.auto(series)
+        end
     else
         formatted_series = BD.auto(series)
     end
@@ -808,9 +816,9 @@ function ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
         end
         if series_mode == "series_in_separate_line" and series ~= "" then
             if show_tags then
-                formatted_author_series = authors .. ptutil.separator.dot .. series
+                formatted_author_series = series .. ptutil.separator.dot .. authors
             else
-                formatted_author_series = authors .. "\n" .. series
+                formatted_author_series = series .. "\n" .. authors
             end
         elseif series_mode == "series_in_separate_line_below" and series ~= "" then
             if show_tags then
@@ -819,6 +827,8 @@ function ptutil.formatAuthorSeries(authors, series, series_mode, show_tags)
                 formatted_author_series = authors .. "\n" .. series
             end
         elseif series_mode == "series_inline" and series ~= "" then
+            formatted_author_series = authors .. ptutil.separator.en_dash .. series
+        elseif series_mode == "series_inline_alt" and series ~= "" then
             formatted_author_series = authors .. ptutil.separator.en_dash .. series
         else
             formatted_author_series = authors

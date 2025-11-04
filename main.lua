@@ -777,6 +777,15 @@ function CoverBrowser:addToMainMenu(menu_items)
                                     fc:updateItems(1, true)
                                 end,
                             },
+                            {
+                                text = _("Show series inline with authors (alt format)"),
+                                checked_func = function() return series_mode == "series_inline_alt" end,
+                                callback = function()
+                                    series_mode = "series_inline_alt"
+                                    BookInfoManager:saveSetting("series_mode", series_mode)
+                                    fc:updateItems(1, true)
+                                end,
+                            },
                         },
                     },
                     {
