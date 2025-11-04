@@ -482,9 +482,8 @@ function ListMenuItem:update()
 
             -- locations logic
             if progress_mode == "dots_locations" then
-                self.locations = est_page_count  -- ADD THIS
+                self.locations = est_page_count
                 bookinfo.locations = est_page_count
-                local locations = bookinfo.locations
             end
 
             if draw_progress and (progress_mode == "dots_locations" or progress_mode == "dots_pages") then
@@ -1194,10 +1193,6 @@ function ListMenuItem:update()
                     build_wmetadata(wmetadata_width)
                 end
             end
-
-            -- If the progress dots are aligned left, build authors with final sizes
-            -- so that dots can be properly aligned to the bottom of the listbox
-            build_authors(authors_width, true)
 
             -- align title to top normally, align to center in filename only list
             local wtitle_container_style = self.do_filename_only and LeftContainer or TopContainer
